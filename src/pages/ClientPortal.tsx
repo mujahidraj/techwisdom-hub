@@ -65,6 +65,7 @@ export default function ClientPortal() {
       const { data, error } = await supabase
         .from('active_projects')
         .select('*')
+        .eq('client_id', user?.id)
         .order('updated_at', { ascending: false });
       if (error) throw error;
       return data as Project[];
