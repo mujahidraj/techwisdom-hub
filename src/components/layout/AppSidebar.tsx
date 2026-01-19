@@ -10,6 +10,9 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
+  UserCog,
+  Briefcase,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,12 +36,18 @@ const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'CRM & Leads', url: '/crm', icon: Users },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
+  { title: 'Messages', url: '/messages', icon: MessageSquare },
 ];
 
 const managementItems = [
   { title: 'Team', url: '/team', icon: UserCircle },
   { title: 'Finances', url: '/finances', icon: DollarSign },
   { title: 'Invoices', url: '/invoices', icon: FileText },
+];
+
+const adminItems = [
+  { title: 'Users', url: '/users', icon: UserCog },
+  { title: 'CMS', url: '/cms', icon: Briefcase },
 ];
 
 export function AppSidebar() {
@@ -52,7 +61,7 @@ export function AppSidebar() {
   // Filter nav items based on role
   const getVisibleItems = (items: typeof mainNavItems) => {
     if (role === 'client') {
-      return items.filter(item => item.url === '/dashboard' || item.url === '/projects');
+      return items.filter(item => item.url === '/dashboard' || item.url === '/projects' || item.url === '/messages');
     }
     return items;
   };
@@ -63,6 +72,11 @@ export function AppSidebar() {
       return managementItems.filter(item => item.url === '/team');
     }
     return managementItems;
+  };
+
+  const getVisibleAdminItems = () => {
+    if (role !== 'admin') return [];
+    return adminItems;
   };
 
   return (
