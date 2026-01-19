@@ -14,6 +14,9 @@ import Invoices from "./pages/Invoices";
 import Settings from "./pages/Settings";
 import ClientPortal from "./pages/ClientPortal";
 import EmployeePortal from "./pages/EmployeePortal";
+import UserManagement from "./pages/UserManagement";
+import Messaging from "./pages/Messaging";
+import CMS from "./pages/CMS";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +40,9 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/client-portal" element={<ClientPortal />} />
             <Route path="/employee-portal" element={<EmployeePortal />} />
+            <Route path="/users" element={<UserManagement />} />
+            <Route path="/messages" element={<Messaging />} />
+            <Route path="/cms" element={<CMS />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
