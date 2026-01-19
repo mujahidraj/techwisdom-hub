@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,14 +10,81 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { User, Bell, Shield, Palette, LogOut } from 'lucide-react';
+import { User, Bell, Shield, Palette, LogOut, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Settings() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, role, signOut } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  // Fetch profile data
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Set form values when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setPhone(profile.phone || '');
+    }
+  }, [profile]);
+
+  // Update profile mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ fullName, phone }: { fullName: string; phone: string }) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({ full_name: fullName, phone })
+          .eq('user_id', user.id);
+        if (error) throw error;
+      } else {
+        // Insert new profile
+        const { error } = await supabase
+          .from('profiles')
+          .insert({ user_id: user.id, full_name: fullName, phone, email: user.email });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      toast.success('Profile updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update profile: ' + error.message);
+    },
+  });
+
+  const handleSave = () => {
+    updateMutation.mutate({ fullName, phone });
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -52,13 +121,30 @@ export default function Settings() {
             </div>
             <div>
               <Label>Full Name</Label>
-              <Input placeholder="Enter your full name" />
+              <Input 
+                placeholder="Enter your full name" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                disabled={isLoading}
+              />
             </div>
             <div>
               <Label>Phone</Label>
-              <Input placeholder="+1 (555) 000-0000" />
+              <Input 
+                placeholder="+1 (555) 000-0000" 
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={isLoading}
+              />
             </div>
-            <Button className="gradient-primary">Save Changes</Button>
+            <Button 
+              className="gradient-primary" 
+              onClick={handleSave}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
           </CardContent>
         </Card>
 
