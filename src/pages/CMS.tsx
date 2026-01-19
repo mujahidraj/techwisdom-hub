@@ -54,6 +54,49 @@ import {
   EyeOff,
 } from 'lucide-react';
 
+// Types
+interface PortfolioItem {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  project_url: string | null;
+  category: string | null;
+  featured: boolean | null;
+  thumbnail: string | null;
+  challenge: string | null;
+  solution: string | null;
+  tech_stack: string[] | null;
+  results: Record<string, unknown>[] | null;
+  display_order: number | null;
+}
+
+interface ServiceItem {
+  id: string;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  icon: string | null;
+  features: string[] | null;
+  is_active: boolean | null;
+  display_order: number | null;
+}
+
+interface PricingItem {
+  id: string;
+  tier_id: string | null;
+  name: string;
+  description: string | null;
+  price: number;
+  billing_cycle: string | null;
+  features: string[] | null;
+  is_popular: boolean | null;
+  is_active: boolean | null;
+  cta: string | null;
+  highlighted: boolean | null;
+  display_order: number | null;
+}
+
 export default function CMS() {
   const navigate = useNavigate();
   const { role, loading: authLoading, user } = useAuth();
@@ -66,6 +109,11 @@ export default function CMS() {
   const [pricingDialog, setPricingDialog] = useState(false);
   const [deleteItem, setDeleteItem] = useState<{ type: 'portfolio' | 'services' | 'pricing_tiers'; id: string; name: string } | null>(null);
 
+  // Edit states
+  const [editingPortfolio, setEditingPortfolio] = useState<PortfolioItem | null>(null);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  const [editingPricing, setEditingPricing] = useState<PricingItem | null>(null);
+
   // Form states
   const [portfolioForm, setPortfolioForm] = useState({
     title: '',
@@ -74,21 +122,109 @@ export default function CMS() {
     project_url: '',
     category: '',
     featured: false,
+    thumbnail: '',
+    challenge: '',
+    solution: '',
+    tech_stack: '',
+    results: '',
   });
+
   const [serviceForm, setServiceForm] = useState({
     name: '',
     description: '',
+    short_description: '',
     icon: '',
+    features: '',
     is_active: true,
   });
+
   const [pricingForm, setPricingForm] = useState({
+    tier_id: '',
     name: '',
     description: '',
     price: 0,
     billing_cycle: 'one-time',
+    features: '',
     is_popular: false,
     is_active: true,
+    cta: 'Start Project',
+    highlighted: false,
   });
+
+  // Reset forms
+  const resetPortfolioForm = () => {
+    setPortfolioForm({
+      title: '', description: '', image_url: '', project_url: '',
+      category: '', featured: false, thumbnail: '', challenge: '',
+      solution: '', tech_stack: '', results: '',
+    });
+    setEditingPortfolio(null);
+  };
+
+  const resetServiceForm = () => {
+    setServiceForm({
+      name: '', description: '', short_description: '', icon: '', features: '', is_active: true,
+    });
+    setEditingService(null);
+  };
+
+  const resetPricingForm = () => {
+    setPricingForm({
+      tier_id: '', name: '', description: '', price: 0,
+      billing_cycle: 'one-time', features: '', is_popular: false,
+      is_active: true, cta: 'Start Project', highlighted: false,
+    });
+    setEditingPricing(null);
+  };
+
+  // Open edit dialogs
+  const openEditPortfolio = (item: PortfolioItem) => {
+    setEditingPortfolio(item);
+    setPortfolioForm({
+      title: item.title || '',
+      description: item.description || '',
+      image_url: item.image_url || '',
+      project_url: item.project_url || '',
+      category: item.category || '',
+      featured: item.featured || false,
+      thumbnail: item.thumbnail || '',
+      challenge: item.challenge || '',
+      solution: item.solution || '',
+      tech_stack: item.tech_stack?.join(', ') || '',
+      results: item.results ? JSON.stringify(item.results, null, 2) : '',
+    });
+    setPortfolioDialog(true);
+  };
+
+  const openEditService = (item: ServiceItem) => {
+    setEditingService(item);
+    setServiceForm({
+      name: item.name || '',
+      description: item.description || '',
+      short_description: item.short_description || '',
+      icon: item.icon || '',
+      features: item.features?.join('\n') || '',
+      is_active: item.is_active ?? true,
+    });
+    setServiceDialog(true);
+  };
+
+  const openEditPricing = (item: PricingItem) => {
+    setEditingPricing(item);
+    setPricingForm({
+      tier_id: item.tier_id || '',
+      name: item.name || '',
+      description: item.description || '',
+      price: item.price || 0,
+      billing_cycle: item.billing_cycle || 'one-time',
+      features: item.features?.join('\n') || '',
+      is_popular: item.is_popular || false,
+      is_active: item.is_active ?? true,
+      cta: item.cta || 'Start Project',
+      highlighted: item.highlighted || false,
+    });
+    setPricingDialog(true);
+  };
 
   // Redirect non-admins
   useEffect(() => {
@@ -107,7 +243,7 @@ export default function CMS() {
         .select('*')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data;
+      return data as PortfolioItem[];
     },
     enabled: role === 'admin',
   });
@@ -121,7 +257,7 @@ export default function CMS() {
         .select('*')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data;
+      return data as ServiceItem[];
     },
     enabled: role === 'admin',
   });
@@ -135,63 +271,122 @@ export default function CMS() {
         .select('*')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data;
+      return data as PricingItem[];
     },
     enabled: role === 'admin',
   });
 
-  // Mutations
-  const addPortfolioMutation = useMutation({
-    mutationFn: async (data: typeof portfolioForm) => {
-      const { error } = await supabase.from('portfolio').insert({
-        ...data,
-        created_by: user?.id,
-      });
-      if (error) throw error;
+  // Portfolio mutations
+  const portfolioMutation = useMutation({
+    mutationFn: async (data: typeof portfolioForm & { id?: string }) => {
+      const techStackArray = data.tech_stack ? data.tech_stack.split(',').map(s => s.trim()).filter(Boolean) : null;
+      let resultsJson = null;
+      if (data.results) {
+        try {
+          resultsJson = JSON.parse(data.results);
+        } catch {
+          throw new Error('Invalid JSON in results field');
+        }
+      }
+
+      const payload = {
+        title: data.title,
+        description: data.description || null,
+        image_url: data.image_url || null,
+        project_url: data.project_url || null,
+        category: data.category || null,
+        featured: data.featured,
+        thumbnail: data.thumbnail || null,
+        challenge: data.challenge || null,
+        solution: data.solution || null,
+        tech_stack: techStackArray,
+        results: resultsJson,
+      };
+
+      if (data.id) {
+        const { error } = await supabase.from('portfolio').update(payload).eq('id', data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('portfolio').insert({ ...payload, created_by: user?.id });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio'] });
-      toast.success('Portfolio item added');
+      toast.success(editingPortfolio ? 'Portfolio item updated' : 'Portfolio item added');
       setPortfolioDialog(false);
-      setPortfolioForm({ title: '', description: '', image_url: '', project_url: '', category: '', featured: false });
+      resetPortfolioForm();
     },
     onError: (error) => toast.error('Failed: ' + error.message),
   });
 
-  const addServiceMutation = useMutation({
-    mutationFn: async (data: typeof serviceForm) => {
-      const { error } = await supabase.from('services').insert({
-        ...data,
-        created_by: user?.id,
-      });
-      if (error) throw error;
+  // Service mutations
+  const serviceMutation = useMutation({
+    mutationFn: async (data: typeof serviceForm & { id?: string }) => {
+      const featuresArray = data.features ? data.features.split('\n').map(s => s.trim()).filter(Boolean) : null;
+
+      const payload = {
+        name: data.name,
+        description: data.description || null,
+        short_description: data.short_description || null,
+        icon: data.icon || null,
+        features: featuresArray,
+        is_active: data.is_active,
+      };
+
+      if (data.id) {
+        const { error } = await supabase.from('services').update(payload).eq('id', data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('services').insert({ ...payload, created_by: user?.id });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
-      toast.success('Service added');
+      toast.success(editingService ? 'Service updated' : 'Service added');
       setServiceDialog(false);
-      setServiceForm({ name: '', description: '', icon: '', is_active: true });
+      resetServiceForm();
     },
     onError: (error) => toast.error('Failed: ' + error.message),
   });
 
-  const addPricingMutation = useMutation({
-    mutationFn: async (data: typeof pricingForm) => {
-      const { error } = await supabase.from('pricing_tiers').insert({
-        ...data,
-        created_by: user?.id,
-      });
-      if (error) throw error;
+  // Pricing mutations
+  const pricingMutation = useMutation({
+    mutationFn: async (data: typeof pricingForm & { id?: string }) => {
+      const featuresArray = data.features ? data.features.split('\n').map(s => s.trim()).filter(Boolean) : null;
+
+      const payload = {
+        tier_id: data.tier_id || null,
+        name: data.name,
+        description: data.description || null,
+        price: data.price,
+        billing_cycle: data.billing_cycle,
+        features: featuresArray,
+        is_popular: data.is_popular,
+        is_active: data.is_active,
+        cta: data.cta || 'Start Project',
+        highlighted: data.highlighted,
+      };
+
+      if (data.id) {
+        const { error } = await supabase.from('pricing_tiers').update(payload).eq('id', data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('pricing_tiers').insert({ ...payload, created_by: user?.id });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pricing_tiers'] });
-      toast.success('Pricing tier added');
+      toast.success(editingPricing ? 'Pricing tier updated' : 'Pricing tier added');
       setPricingDialog(false);
-      setPricingForm({ name: '', description: '', price: 0, billing_cycle: 'one-time', is_popular: false, is_active: true });
+      resetPricingForm();
     },
     onError: (error) => toast.error('Failed: ' + error.message),
   });
 
+  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async ({ type, id }: { type: 'portfolio' | 'services' | 'pricing_tiers'; id: string }) => {
       const { error } = await supabase.from(type).delete().eq('id', id);
@@ -255,36 +450,59 @@ export default function CMS() {
           <TabsContent value="portfolio" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Portfolio Items ({portfolio.length})</h2>
-              <Dialog open={portfolioDialog} onOpenChange={setPortfolioDialog}>
+              <Dialog open={portfolioDialog} onOpenChange={(open) => {
+                setPortfolioDialog(open);
+                if (!open) resetPortfolioForm();
+              }}>
                 <DialogTrigger asChild>
                   <Button className="gradient-primary">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Portfolio
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Add Portfolio Item</DialogTitle>
-                    <DialogDescription>Add a new project to your portfolio.</DialogDescription>
+                    <DialogTitle>{editingPortfolio ? 'Edit Portfolio Item' : 'Add Portfolio Item'}</DialogTitle>
+                    <DialogDescription>
+                      {editingPortfolio ? 'Update portfolio details.' : 'Add a new project to your portfolio.'}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
-                    <div>
-                      <Label>Title</Label>
-                      <Input
-                        value={portfolioForm.title}
-                        onChange={(e) => setPortfolioForm({ ...portfolioForm, title: e.target.value })}
-                        placeholder="Project name"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Title *</Label>
+                        <Input
+                          value={portfolioForm.title}
+                          onChange={(e) => setPortfolioForm({ ...portfolioForm, title: e.target.value })}
+                          placeholder="Project name"
+                        />
+                      </div>
+                      <div>
+                        <Label>Category</Label>
+                        <Input
+                          value={portfolioForm.category}
+                          onChange={(e) => setPortfolioForm({ ...portfolioForm, category: e.target.value })}
+                          placeholder="Web Design, App, etc."
+                        />
+                      </div>
                     </div>
                     <div>
                       <Label>Description</Label>
                       <Textarea
                         value={portfolioForm.description}
                         onChange={(e) => setPortfolioForm({ ...portfolioForm, description: e.target.value })}
-                        placeholder="Brief description"
+                        placeholder="Brief project description"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Thumbnail URL</Label>
+                        <Input
+                          value={portfolioForm.thumbnail}
+                          onChange={(e) => setPortfolioForm({ ...portfolioForm, thumbnail: e.target.value })}
+                          placeholder="https://..."
+                        />
+                      </div>
                       <div>
                         <Label>Image URL</Label>
                         <Input
@@ -293,21 +511,46 @@ export default function CMS() {
                           placeholder="https://..."
                         />
                       </div>
-                      <div>
-                        <Label>Project URL</Label>
-                        <Input
-                          value={portfolioForm.project_url}
-                          onChange={(e) => setPortfolioForm({ ...portfolioForm, project_url: e.target.value })}
-                          placeholder="https://..."
-                        />
-                      </div>
                     </div>
                     <div>
-                      <Label>Category</Label>
+                      <Label>Project URL</Label>
                       <Input
-                        value={portfolioForm.category}
-                        onChange={(e) => setPortfolioForm({ ...portfolioForm, category: e.target.value })}
-                        placeholder="Web Design, App, etc."
+                        value={portfolioForm.project_url}
+                        onChange={(e) => setPortfolioForm({ ...portfolioForm, project_url: e.target.value })}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div>
+                      <Label>Challenge</Label>
+                      <Textarea
+                        value={portfolioForm.challenge}
+                        onChange={(e) => setPortfolioForm({ ...portfolioForm, challenge: e.target.value })}
+                        placeholder="Describe the challenge/problem"
+                      />
+                    </div>
+                    <div>
+                      <Label>Solution</Label>
+                      <Textarea
+                        value={portfolioForm.solution}
+                        onChange={(e) => setPortfolioForm({ ...portfolioForm, solution: e.target.value })}
+                        placeholder="Describe the solution implemented"
+                      />
+                    </div>
+                    <div>
+                      <Label>Tech Stack (comma-separated)</Label>
+                      <Input
+                        value={portfolioForm.tech_stack}
+                        onChange={(e) => setPortfolioForm({ ...portfolioForm, tech_stack: e.target.value })}
+                        placeholder="React, Node.js, PostgreSQL"
+                      />
+                    </div>
+                    <div>
+                      <Label>Results (JSON array)</Label>
+                      <Textarea
+                        value={portfolioForm.results}
+                        onChange={(e) => setPortfolioForm({ ...portfolioForm, results: e.target.value })}
+                        placeholder='[{"metric": "Conversion Rate", "value": "+40%"}]'
+                        className="font-mono text-sm"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -319,14 +562,14 @@ export default function CMS() {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setPortfolioDialog(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => { setPortfolioDialog(false); resetPortfolioForm(); }}>Cancel</Button>
                     <Button
                       className="gradient-primary"
-                      onClick={() => addPortfolioMutation.mutate(portfolioForm)}
-                      disabled={addPortfolioMutation.isPending || !portfolioForm.title}
+                      onClick={() => portfolioMutation.mutate({ ...portfolioForm, id: editingPortfolio?.id })}
+                      disabled={portfolioMutation.isPending || !portfolioForm.title}
                     >
-                      {addPortfolioMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Add
+                      {portfolioMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      {editingPortfolio ? 'Update' : 'Add'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -365,6 +608,10 @@ export default function CMS() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditPortfolio(item)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => setDeleteItem({ type: 'portfolio', id: item.id, name: item.title })}
                               className="text-destructive"
@@ -378,6 +625,16 @@ export default function CMS() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                      {item.tech_stack && item.tech_stack.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {item.tech_stack.slice(0, 3).map((tech, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{tech}</Badge>
+                          ))}
+                          {item.tech_stack.length > 3 && (
+                            <Badge variant="outline" className="text-xs">+{item.tech_stack.length - 3}</Badge>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))
@@ -389,41 +646,65 @@ export default function CMS() {
           <TabsContent value="services" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Services ({services.length})</h2>
-              <Dialog open={serviceDialog} onOpenChange={setServiceDialog}>
+              <Dialog open={serviceDialog} onOpenChange={(open) => {
+                setServiceDialog(open);
+                if (!open) resetServiceForm();
+              }}>
                 <DialogTrigger asChild>
                   <Button className="gradient-primary">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Service
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-xl">
                   <DialogHeader>
-                    <DialogTitle>Add Service</DialogTitle>
-                    <DialogDescription>Add a new service listing.</DialogDescription>
+                    <DialogTitle>{editingService ? 'Edit Service' : 'Add Service'}</DialogTitle>
+                    <DialogDescription>
+                      {editingService ? 'Update service details.' : 'Add a new service listing.'}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Name *</Label>
+                        <Input
+                          value={serviceForm.name}
+                          onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
+                          placeholder="Service name"
+                        />
+                      </div>
+                      <div>
+                        <Label>Icon (Lucide name)</Label>
+                        <Input
+                          value={serviceForm.icon}
+                          onChange={(e) => setServiceForm({ ...serviceForm, icon: e.target.value })}
+                          placeholder="Code, Globe, etc."
+                        />
+                      </div>
+                    </div>
                     <div>
-                      <Label>Name</Label>
+                      <Label>Short Description</Label>
                       <Input
-                        value={serviceForm.name}
-                        onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
-                        placeholder="Service name"
+                        value={serviceForm.short_description}
+                        onChange={(e) => setServiceForm({ ...serviceForm, short_description: e.target.value })}
+                        placeholder="Brief tagline"
                       />
                     </div>
                     <div>
-                      <Label>Description</Label>
+                      <Label>Full Description</Label>
                       <Textarea
                         value={serviceForm.description}
                         onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                        placeholder="Service description"
+                        placeholder="Detailed service description"
                       />
                     </div>
                     <div>
-                      <Label>Icon (Lucide icon name)</Label>
-                      <Input
-                        value={serviceForm.icon}
-                        onChange={(e) => setServiceForm({ ...serviceForm, icon: e.target.value })}
-                        placeholder="Globe, Code, Palette, etc."
+                      <Label>Features (one per line)</Label>
+                      <Textarea
+                        value={serviceForm.features}
+                        onChange={(e) => setServiceForm({ ...serviceForm, features: e.target.value })}
+                        placeholder="React & Next.js&#10;Node.js Backend&#10;API Development"
+                        rows={4}
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -435,14 +716,14 @@ export default function CMS() {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setServiceDialog(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => { setServiceDialog(false); resetServiceForm(); }}>Cancel</Button>
                     <Button
                       className="gradient-primary"
-                      onClick={() => addServiceMutation.mutate(serviceForm)}
-                      disabled={addServiceMutation.isPending || !serviceForm.name}
+                      onClick={() => serviceMutation.mutate({ ...serviceForm, id: editingService?.id })}
+                      disabled={serviceMutation.isPending || !serviceForm.name}
                     >
-                      {addServiceMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Add
+                      {serviceMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      {editingService ? 'Update' : 'Add'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -474,6 +755,9 @@ export default function CMS() {
                               <EyeOff className="h-4 w-4 text-muted-foreground" />
                             )}
                           </CardTitle>
+                          {item.short_description && (
+                            <p className="text-xs text-muted-foreground mt-1">{item.short_description}</p>
+                          )}
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -482,6 +766,10 @@ export default function CMS() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditService(item)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => setDeleteItem({ type: 'services', id: item.id, name: item.name })}
                               className="text-destructive"
@@ -495,6 +783,16 @@ export default function CMS() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                      {item.features && item.features.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {item.features.slice(0, 3).map((f, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{f}</Badge>
+                          ))}
+                          {item.features.length > 3 && (
+                            <Badge variant="outline" className="text-xs">+{item.features.length - 3}</Badge>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))
@@ -506,38 +804,53 @@ export default function CMS() {
           <TabsContent value="pricing" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Pricing Tiers ({pricing.length})</h2>
-              <Dialog open={pricingDialog} onOpenChange={setPricingDialog}>
+              <Dialog open={pricingDialog} onOpenChange={(open) => {
+                setPricingDialog(open);
+                if (!open) resetPricingForm();
+              }}>
                 <DialogTrigger asChild>
                   <Button className="gradient-primary">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Pricing
+                    Add Pricing Tier
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Add Pricing Tier</DialogTitle>
-                    <DialogDescription>Add a new pricing package.</DialogDescription>
+                    <DialogTitle>{editingPricing ? 'Edit Pricing Tier' : 'Add Pricing Tier'}</DialogTitle>
+                    <DialogDescription>
+                      {editingPricing ? 'Update pricing tier details.' : 'Add a new pricing tier.'}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
-                    <div>
-                      <Label>Name</Label>
-                      <Input
-                        value={pricingForm.name}
-                        onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
-                        placeholder="Basic, Pro, Enterprise"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Tier ID</Label>
+                        <Input
+                          value={pricingForm.tier_id}
+                          onChange={(e) => setPricingForm({ ...pricingForm, tier_id: e.target.value })}
+                          placeholder="starter, corporate, etc."
+                        />
+                      </div>
+                      <div>
+                        <Label>Name *</Label>
+                        <Input
+                          value={pricingForm.name}
+                          onChange={(e) => setPricingForm({ ...pricingForm, name: e.target.value })}
+                          placeholder="The Starter"
+                        />
+                      </div>
                     </div>
                     <div>
                       <Label>Description</Label>
                       <Textarea
                         value={pricingForm.description}
                         onChange={(e) => setPricingForm({ ...pricingForm, description: e.target.value })}
-                        placeholder="Package description"
+                        placeholder="For Personal Portfolios, Small F-Commerce..."
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Price ($)</Label>
+                        <Label>Price</Label>
                         <Input
                           type="number"
                           value={pricingForm.price}
@@ -553,32 +866,56 @@ export default function CMS() {
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div>
+                      <Label>CTA Button Text</Label>
+                      <Input
+                        value={pricingForm.cta}
+                        onChange={(e) => setPricingForm({ ...pricingForm, cta: e.target.value })}
+                        placeholder="Start Project"
+                      />
+                    </div>
+                    <div>
+                      <Label>Features (one per line)</Label>
+                      <Textarea
+                        value={pricingForm.features}
+                        onChange={(e) => setPricingForm({ ...pricingForm, features: e.target.value })}
+                        placeholder="1 Page (Long Scroll) & Hero Section&#10;Gallery/Portfolio & Contact Form"
+                        rows={5}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={pricingForm.is_popular}
                           onCheckedChange={(v) => setPricingForm({ ...pricingForm, is_popular: v })}
                         />
-                        <Label>Popular</Label>
+                        <Label className="text-sm">Popular</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={pricingForm.highlighted}
+                          onCheckedChange={(v) => setPricingForm({ ...pricingForm, highlighted: v })}
+                        />
+                        <Label className="text-sm">Highlighted</Label>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={pricingForm.is_active}
                           onCheckedChange={(v) => setPricingForm({ ...pricingForm, is_active: v })}
                         />
-                        <Label>Active</Label>
+                        <Label className="text-sm">Active</Label>
                       </div>
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setPricingDialog(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => { setPricingDialog(false); resetPricingForm(); }}>Cancel</Button>
                     <Button
                       className="gradient-primary"
-                      onClick={() => addPricingMutation.mutate(pricingForm)}
-                      disabled={addPricingMutation.isPending || !pricingForm.name}
+                      onClick={() => pricingMutation.mutate({ ...pricingForm, id: editingPricing?.id })}
+                      disabled={pricingMutation.isPending || !pricingForm.name}
                     >
-                      {addPricingMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Add
+                      {pricingMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      {editingPricing ? 'Update' : 'Add'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -598,18 +935,20 @@ export default function CMS() {
                 </Card>
               ) : (
                 pricing.map((item) => (
-                  <Card key={item.id} className={`glass-card group ${item.is_popular ? 'ring-2 ring-primary' : ''}`}>
+                  <Card key={item.id} className={`glass-card group ${item.highlighted ? 'ring-2 ring-primary' : ''}`}>
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-base flex items-center gap-2">
                             {item.name}
-                            {item.is_popular && <Badge className="bg-primary">Popular</Badge>}
+                            {item.is_popular && <Badge className="bg-primary text-primary-foreground text-xs">Popular</Badge>}
                           </CardTitle>
-                          <p className="text-2xl font-bold mt-2">
-                            ${Number(item.price).toLocaleString()}
-                            <span className="text-sm font-normal text-muted-foreground">/{item.billing_cycle}</span>
-                          </p>
+                          <div className="text-2xl font-bold mt-1">
+                            ৳{item.price.toLocaleString()}
+                            {item.billing_cycle !== 'one-time' && (
+                              <span className="text-sm font-normal text-muted-foreground">/{item.billing_cycle}</span>
+                            )}
+                          </div>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -618,6 +957,10 @@ export default function CMS() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditPricing(item)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => setDeleteItem({ type: 'pricing_tiers', id: item.id, name: item.name })}
                               className="text-destructive"
@@ -630,14 +973,20 @@ export default function CMS() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                      <div className="mt-2 flex items-center gap-1">
-                        {item.is_active ? (
-                          <Badge variant="secondary" className="text-green-600">Active</Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-muted-foreground">Inactive</Badge>
-                        )}
-                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{item.description}</p>
+                      {item.features && item.features.length > 0 && (
+                        <ul className="text-xs text-muted-foreground space-y-1">
+                          {item.features.slice(0, 3).map((f, i) => (
+                            <li key={i} className="flex items-center gap-1">
+                              <span className="w-1 h-1 rounded-full bg-primary" />
+                              {f}
+                            </li>
+                          ))}
+                          {item.features.length > 3 && (
+                            <li className="text-primary">+{item.features.length - 3} more features</li>
+                          )}
+                        </ul>
+                      )}
                     </CardContent>
                   </Card>
                 ))
@@ -653,7 +1002,7 @@ export default function CMS() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {deleteItem?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone.
+              This action cannot be undone. This will permanently delete this item.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -662,6 +1011,7 @@ export default function CMS() {
               onClick={() => deleteItem && deleteMutation.mutate({ type: deleteItem.type, id: deleteItem.id })}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
+              {deleteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
