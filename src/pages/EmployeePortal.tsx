@@ -1,0 +1,354 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Building2,
+  LogOut,
+  User,
+  Phone,
+  Mail,
+  Calendar,
+  DollarSign,
+  Briefcase,
+  Edit2,
+  Save,
+  X,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Employee = Tables<'employees'>;
+type PayrollLog = Tables<'payroll_log'>;
+type Profile = Tables<'profiles'>;
+
+export default function EmployeePortal() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user, role, signOut, loading } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ full_name: '', phone: '' });
+
+  useEffect(() => {
+    if (!loading && (!user || role !== 'employee')) {
+      navigate('/auth');
+    }
+  }, [user, role, loading, navigate]);
+
+  const { data: profile } = useQuery({
+    queryKey: ['employee-profile', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Profile | null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: employee } = useQuery({
+    queryKey: ['employee-record', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Employee | null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: payrollHistory = [] } = useQuery({
+    queryKey: ['employee-payroll', employee?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payroll_log')
+        .select('*')
+        .eq('employee_id', employee!.id)
+        .order('payment_date', { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data as PayrollLog[];
+    },
+    enabled: !!employee?.id,
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: { full_name: string; phone: string }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: data.full_name,
+          phone: data.phone,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-profile'] });
+      toast.success('Profile updated successfully');
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      toast.error('Failed to update profile: ' + error.message);
+    },
+  });
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  const handleEdit = () => {
+    setEditData({
+      full_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    updateProfileMutation.mutate(editData);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  const totalEarnings = payrollHistory.reduce((sum, p) => sum + Number(p.amount_paid), 0);
+  const initials = (profile?.full_name || user?.email || 'U')
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 gradient-primary rounded-lg">
+              <Building2 className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <span className="font-bold text-lg">TechWisdom</span>
+              <p className="text-xs text-muted-foreground">Employee Self-Service</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8 space-y-8 max-w-4xl">
+        {/* Profile Header */}
+        <Card className="glass-card">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <Avatar className="h-24 w-24 text-2xl">
+                <AvatarFallback className="gradient-primary text-primary-foreground">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 text-center sm:text-left">
+                <h1 className="text-2xl font-bold">{profile?.full_name || 'Employee'}</h1>
+                <p className="text-muted-foreground">{employee?.designation || 'Team Member'}</p>
+                {employee?.department && (
+                  <Badge variant="outline" className="mt-2">
+                    {employee.department}
+                  </Badge>
+                )}
+              </div>
+              <Badge variant="default" className="text-sm">
+                {employee?.status || 'Active'}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Personal Information */}
+          <Card className="glass-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  Personal Information
+                </CardTitle>
+                {!isEditing ? (
+                  <Button variant="ghost" size="sm" onClick={handleEdit}>
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" onClick={handleSave} disabled={updateProfileMutation.isPending}>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isEditing ? (
+                <>
+                  <div>
+                    <Label>Full Name</Label>
+                    <Input
+                      value={editData.full_name}
+                      onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Phone</Label>
+                    <Input
+                      value={editData.phone}
+                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span>{profile?.email || user?.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{profile?.phone || employee?.phone || 'Not set'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      Joined:{' '}
+                      {employee?.joining_date
+                        ? format(new Date(employee.joining_date), 'MMM d, yyyy')
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Employment Details */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-primary" />
+                Employment Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Designation</span>
+                <span className="font-medium">{employee?.designation || 'N/A'}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Department</span>
+                <span className="font-medium">{employee?.department || 'N/A'}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Base Salary</span>
+                <span className="font-medium">
+                  ${Number(employee?.base_salary || 0).toLocaleString()}/month
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Status</span>
+                <Badge variant={employee?.status === 'active' ? 'default' : 'secondary'}>
+                  {employee?.status || 'Active'}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Salary History */}
+        <Card className="glass-card">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-primary" />
+                Salary History
+              </CardTitle>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Total Earnings (Last 12 months)</p>
+                <p className="text-xl font-bold text-success">${totalEarnings.toLocaleString()}</p>
+              </div>
+            </div>
+            <CardDescription>Your recent salary payments</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {payrollHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No salary records found.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {payrollHistory.map((record) => (
+                  <div
+                    key={record.id}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {format(new Date(record.payment_date), 'MMMM yyyy')}
+                      </p>
+                      <div className="flex gap-4 text-xs text-muted-foreground">
+                        {record.bonus && Number(record.bonus) > 0 && (
+                          <span className="text-success">+${Number(record.bonus)} bonus</span>
+                        )}
+                        {record.deduction && Number(record.deduction) > 0 && (
+                          <span className="text-destructive">-${Number(record.deduction)} deduction</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-success">
+                        ${Number(record.amount_paid).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}

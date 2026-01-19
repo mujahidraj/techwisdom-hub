@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -23,10 +24,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { TrendingUp, TrendingDown, DollarSign, Receipt, PiggyBank, Pencil, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Receipt, PiggyBank, Pencil, Trash2, Shield } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { AddExpenseDialog } from '@/components/finances/AddExpenseDialog';
 import { EditExpenseDialog } from '@/components/finances/EditExpenseDialog';
 import type { Tables } from '@/integrations/supabase/types';
@@ -46,9 +48,19 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function Finances() {
+  const navigate = useNavigate();
+  const { role, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null);
+
+  // Redirect non-admins
+  useEffect(() => {
+    if (!authLoading && role !== 'admin') {
+      toast.error('Access denied. Only admins can view finances.');
+      navigate('/dashboard');
+    }
+  }, [role, authLoading, navigate]);
 
   // Fetch all expenses
   const { data: expenses = [], isLoading: expensesLoading } = useQuery({
@@ -61,6 +73,7 @@ export default function Finances() {
       if (error) throw error;
       return data as Expense[];
     },
+    enabled: role === 'admin',
   });
 
   // Fetch projects for revenue
@@ -73,6 +86,7 @@ export default function Finances() {
       if (error) throw error;
       return data;
     },
+    enabled: role === 'admin',
   });
 
   // Fetch payroll for costs
@@ -85,6 +99,7 @@ export default function Finances() {
       if (error) throw error;
       return data;
     },
+    enabled: role === 'admin',
   });
 
   // Delete mutation
@@ -103,6 +118,29 @@ export default function Finances() {
       toast.error('Failed to delete expense: ' + error.message);
     },
   });
+
+  // Show loading or access denied
+  if (authLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (role !== 'admin') {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-64 text-center">
+          <Shield className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground">Only administrators can access financial data.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   // Calculate totals
   const totalRevenue = projects.reduce((sum, p) => sum + Number(p.total_budget || 0), 0);
@@ -456,8 +494,8 @@ export default function Finances() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteExpense && deleteMutation.mutate(deleteExpense.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
