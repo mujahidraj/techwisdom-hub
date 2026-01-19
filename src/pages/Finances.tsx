@@ -31,6 +31,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { AddExpenseDialog } from '@/components/finances/AddExpenseDialog';
 import { EditExpenseDialog } from '@/components/finances/EditExpenseDialog';
+import { formatCurrency } from '@/lib/currency';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Expense = Tables<'expenses'>;
@@ -233,9 +234,9 @@ export default function Finances() {
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
               <p className="text-xs text-success flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3" /> ${totalPaid.toLocaleString()} collected
+                <TrendingUp className="h-3 w-3" /> {formatCurrency(totalPaid)} collected
               </p>
             </CardContent>
           </Card>
@@ -246,7 +247,7 @@ export default function Finances() {
               <Receipt className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalExpenses.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalExpenses)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {expenses.length} transactions
               </p>
@@ -259,7 +260,7 @@ export default function Finances() {
               <TrendingDown className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalPayroll.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalPayroll)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {payroll.length} payments
               </p>
@@ -273,7 +274,7 @@ export default function Finances() {
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                ${netProfit.toLocaleString()}
+                {formatCurrency(netProfit)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">{profitMargin}% profit margin</p>
             </CardContent>
@@ -295,7 +296,7 @@ export default function Finances() {
                     <XAxis dataKey="month" className="text-xs" />
                     <YAxis className="text-xs" />
                     <Tooltip 
-                      formatter={(value: number) => `$${value.toLocaleString()}`}
+                      formatter={(value: number) => formatCurrency(value)}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
@@ -334,7 +335,7 @@ export default function Finances() {
                         ))}
                       </Pie>
                       <Tooltip 
-                        formatter={(value: number) => `$${value.toLocaleString()}`}
+                        formatter={(value: number) => formatCurrency(value)}
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--card))', 
                           border: '1px solid hsl(var(--border))',
@@ -379,7 +380,7 @@ export default function Finances() {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => `$${value.toLocaleString()}`}
+                      formatter={(value: number) => formatCurrency(value)}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
@@ -444,7 +445,7 @@ export default function Finances() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          ${Number(expense.amount).toLocaleString()}
+                          {formatCurrency(expense.amount)}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">

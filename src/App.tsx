@@ -18,6 +18,7 @@ import UserManagement from "./pages/UserManagement";
 import Messaging from "./pages/Messaging";
 import CMS from "./pages/CMS";
 import Notes from "./pages/Notes";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/team" element={<Team />} />
             <Route path="/finances" element={<Finances />} />
             <Route path="/invoices" element={<Invoices />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/client-portal" element={<ClientPortal />} />
             <Route path="/employee-portal" element={<EmployeePortal />} />

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Users, FolderKanban, TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight, MessageSquare, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { formatCurrency } from '@/lib/currency';
 
 export default function Dashboard() {
   const { user, role } = useAuth();
@@ -118,11 +119,11 @@ export default function Dashboard() {
     },
     {
       title: 'Total Revenue',
-      value: `$${totalRevenue.toLocaleString()}`,
-      change: `$${totalPaid.toLocaleString()} collected`,
+      value: formatCurrency(totalRevenue),
+      change: `${formatCurrency(totalPaid)} collected`,
       trend: 'up' as const,
       icon: DollarSign,
-      description: `$${(totalRevenue - totalPaid).toLocaleString()} pending`,
+      description: `${formatCurrency(totalRevenue - totalPaid)} pending`,
     },
   ];
 
@@ -293,19 +294,19 @@ export default function Dashboard() {
             <div className="grid gap-4 md:grid-cols-4">
               <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                 <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
               </div>
               <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                 <p className="text-sm text-muted-foreground">Collected</p>
-                <p className="text-2xl font-bold text-blue-600">${totalPaid.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalPaid)}</p>
               </div>
               <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">${(totalRevenue - totalPaid).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-yellow-600">{formatCurrency(totalRevenue - totalPaid)}</p>
               </div>
               <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
                 <p className="text-sm text-muted-foreground">Expenses</p>
-                <p className="text-2xl font-bold text-red-600">${totalExpenses.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</p>
               </div>
             </div>
             <Button variant="outline" className="mt-4" onClick={() => navigate('/finances')}>

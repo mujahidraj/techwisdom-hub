@@ -14,6 +14,7 @@ import {
   UserCog,
   Briefcase,
   StickyNote,
+  BarChart3,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,6 +46,7 @@ const managementItems = [
   { title: 'Team', url: '/team', icon: UserCircle },
   { title: 'Finances', url: '/finances', icon: DollarSign },
   { title: 'Invoices', url: '/invoices', icon: FileText },
+  { title: 'Reports', url: '/reports', icon: BarChart3 },
 ];
 
 const adminItems = [

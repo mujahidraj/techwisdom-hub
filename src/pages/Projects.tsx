@@ -25,6 +25,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AddProjectDialog } from '@/components/projects/AddProjectDialog';
 import { EditProjectDialog } from '@/components/projects/EditProjectDialog';
 import { ProjectDocuments } from '@/components/projects/ProjectDocuments';
+import { formatCurrency } from '@/lib/currency';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -197,7 +198,7 @@ export default function Projects() {
               <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalBudget.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalBudget)}</div>
             </CardContent>
           </Card>
           <Card className="glass-card">
@@ -206,7 +207,7 @@ export default function Projects() {
               <CheckCircle2 className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalPaid.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalPaid)}</div>
             </CardContent>
           </Card>
         </div>
