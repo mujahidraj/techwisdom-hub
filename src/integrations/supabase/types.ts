@@ -14,6 +14,187 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_projects: {
+        Row: {
+          client_id: string | null
+          client_name: string
+          created_at: string
+          created_by: string | null
+          credentials_sent: boolean | null
+          deadline: string | null
+          domain_purchased: boolean | null
+          id: string
+          lead_id: string | null
+          paid_amount: number
+          project_name: string
+          project_type: string
+          retainer_paid: boolean | null
+          ssl_active: boolean | null
+          stage: Database["public"]["Enums"]["project_stage"]
+          start_date: string
+          status: Database["public"]["Enums"]["project_status"]
+          total_budget: number
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name: string
+          created_at?: string
+          created_by?: string | null
+          credentials_sent?: boolean | null
+          deadline?: string | null
+          domain_purchased?: boolean | null
+          id?: string
+          lead_id?: string | null
+          paid_amount?: number
+          project_name: string
+          project_type: string
+          retainer_paid?: boolean | null
+          ssl_active?: boolean | null
+          stage?: Database["public"]["Enums"]["project_stage"]
+          start_date?: string
+          status?: Database["public"]["Enums"]["project_status"]
+          total_budget?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string
+          created_at?: string
+          created_by?: string | null
+          credentials_sent?: boolean | null
+          deadline?: string | null
+          domain_purchased?: boolean | null
+          id?: string
+          lead_id?: string | null
+          paid_amount?: number
+          project_name?: string
+          project_type?: string
+          retainer_paid?: boolean | null
+          ssl_active?: boolean | null
+          stage?: Database["public"]["Enums"]["project_stage"]
+          start_date?: string
+          status?: Database["public"]["Enums"]["project_status"]
+          total_budget?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_projects_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          project_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          project_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          project_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "active_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          base_salary: number
+          created_at: string
+          department: string | null
+          designation: string
+          id: string
+          joining_date: string
+          phone: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_salary?: number
+          created_at?: string
+          department?: string | null
+          designation: string
+          id?: string
+          joining_date?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_salary?: number
+          created_at?: string
+          department?: string | null
+          designation?: string
+          id?: string
+          joining_date?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          amount: number
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       interactions: {
         Row: {
           created_at: string
@@ -48,6 +229,53 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          notes: string | null
+          project_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "active_projects"
             referencedColumns: ["id"]
           },
         ]
@@ -112,6 +340,50 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_log: {
+        Row: {
+          amount_paid: number
+          bonus: number | null
+          created_at: string
+          created_by: string | null
+          deduction: number | null
+          employee_id: string
+          id: string
+          notes: string | null
+          payment_date: string
+        }
+        Insert: {
+          amount_paid: number
+          bonus?: number | null
+          created_at?: string
+          created_by?: string | null
+          deduction?: number | null
+          employee_id: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+        }
+        Update: {
+          amount_paid?: number
+          bonus?: number | null
+          created_at?: string
+          created_by?: string | null
+          deduction?: number | null
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_log_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -144,6 +416,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      project_updates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          project_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          project_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          project_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_updates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "active_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -182,6 +489,16 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "employee" | "client"
+      expense_category:
+        | "rent"
+        | "server"
+        | "software"
+        | "marketing"
+        | "salary"
+        | "utilities"
+        | "office_supplies"
+        | "travel"
+        | "other"
       interaction_type: "call" | "meeting" | "email" | "note"
       lead_category:
         | "study_abroad"
@@ -199,6 +516,16 @@ export type Database = {
         | "in_negotiation"
         | "deal_won"
         | "deal_lost"
+      project_stage:
+        | "discovery"
+        | "requirement"
+        | "strategy"
+        | "design"
+        | "development"
+        | "qa"
+        | "deployment"
+        | "maintenance"
+      project_status: "active" | "completed" | "on_hold" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -327,6 +654,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "employee", "client"],
+      expense_category: [
+        "rent",
+        "server",
+        "software",
+        "marketing",
+        "salary",
+        "utilities",
+        "office_supplies",
+        "travel",
+        "other",
+      ],
       interaction_type: ["call", "meeting", "email", "note"],
       lead_category: [
         "study_abroad",
@@ -346,6 +684,17 @@ export const Constants = {
         "deal_won",
         "deal_lost",
       ],
+      project_stage: [
+        "discovery",
+        "requirement",
+        "strategy",
+        "design",
+        "development",
+        "qa",
+        "deployment",
+        "maintenance",
+      ],
+      project_status: ["active", "completed", "on_hold", "cancelled"],
     },
   },
 } as const
