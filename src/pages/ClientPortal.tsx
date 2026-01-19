@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Building2,
   FolderKanban,
@@ -18,13 +20,17 @@ import {
   Calendar,
   DollarSign,
   FileText,
+  Send,
+  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import type { Tables, Database } from '@/integrations/supabase/types';
 
 type Project = Tables<'active_projects'>;
 type ProjectUpdate = Tables<'project_updates'>;
 type Invoice = Tables<'invoices'>;
+type Message = Tables<'client_messages'>;
 type ProjectStage = Database['public']['Enums']['project_stage'];
 
 const stages: ProjectStage[] = [
@@ -51,7 +57,11 @@ const stageLabels: Record<ProjectStage, string> = {
 
 export default function ClientPortal() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, role, signOut, loading } = useAuth();
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!loading && (!user || role !== 'client')) {
@@ -104,9 +114,102 @@ export default function ClientPortal() {
     enabled: projects.length > 0,
   });
 
+  // Fetch messages for selected project
+  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+    queryKey: ['client-messages', selectedProject],
+    queryFn: async () => {
+      if (!selectedProject) return [];
+      const { data, error } = await supabase
+        .from('client_messages')
+        .select('*')
+        .eq('project_id', selectedProject)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data as Message[];
+    },
+    enabled: !!selectedProject,
+  });
+
+  // Send message mutation
+  const sendMutation = useMutation({
+    mutationFn: async ({ projectId, message }: { projectId: string; message: string }) => {
+      const { error } = await supabase
+        .from('client_messages')
+        .insert({
+          project_id: projectId,
+          sender_id: user?.id,
+          message,
+          is_read: false,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-messages', selectedProject] });
+      setNewMessage('');
+    },
+    onError: (error) => {
+      toast.error('Failed to send message: ' + error.message);
+    },
+  });
+
+  // Mark messages as read
+  const markReadMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase
+        .from('client_messages')
+        .update({ is_read: true })
+        .eq('project_id', projectId)
+        .neq('sender_id', user?.id);
+      if (error) throw error;
+    },
+  });
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Mark as read when viewing project
+  useEffect(() => {
+    if (selectedProject) {
+      markReadMutation.mutate(selectedProject);
+    }
+  }, [selectedProject]);
+
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!selectedProject) return;
+
+    const channel = supabase
+      .channel(`client-messages-${selectedProject}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'client_messages',
+          filter: `project_id=eq.${selectedProject}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['client-messages', selectedProject] });
+          markReadMutation.mutate(selectedProject);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedProject, queryClient]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedProject) return;
+    sendMutation.mutate({ projectId: selectedProject, message: newMessage.trim() });
   };
 
   const getProgress = (stage: ProjectStage) => ((stages.indexOf(stage) + 1) / stages.length) * 100;
@@ -266,6 +369,90 @@ export default function ClientPortal() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>Deadline: {format(new Date(project.deadline), 'MMM d, yyyy')}</span>
+                      </div>
+                    )}
+
+                    {/* Message Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setSelectedProject(
+                        selectedProject === project.id ? null : project.id
+                      )}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      {selectedProject === project.id ? 'Close Chat' : 'Message Team'}
+                    </Button>
+
+                    {/* Inline Chat */}
+                    {selectedProject === project.id && (
+                      <div className="border rounded-lg mt-3 bg-muted/30">
+                        <ScrollArea className="h-64 p-3">
+                          {messagesLoading ? (
+                            <div className="flex items-center justify-center h-full">
+                              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            </div>
+                          ) : messages.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground text-sm">
+                              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                              No messages yet. Start the conversation!
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {messages.map((msg) => {
+                                const isMine = msg.sender_id === user?.id;
+                                return (
+                                  <div
+                                    key={msg.id}
+                                    className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                                  >
+                                    <div
+                                      className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                                        isMine
+                                          ? 'bg-primary text-primary-foreground'
+                                          : 'bg-background border'
+                                      }`}
+                                    >
+                                      <p className="text-sm">{msg.message}</p>
+                                      <p className="text-xs opacity-70 mt-1">
+                                        {format(new Date(msg.created_at), 'MMM d, h:mm a')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              <div ref={messagesEndRef} />
+                            </div>
+                          )}
+                        </ScrollArea>
+                        <div className="p-3 border-t">
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleSendMessage();
+                            }}
+                            className="flex gap-2"
+                          >
+                            <Input
+                              placeholder="Type a message..."
+                              value={newMessage}
+                              onChange={(e) => setNewMessage(e.target.value)}
+                              disabled={sendMutation.isPending}
+                            />
+                            <Button
+                              type="submit"
+                              size="icon"
+                              disabled={!newMessage.trim() || sendMutation.isPending}
+                            >
+                              {sendMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Send className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </form>
+                        </div>
                       </div>
                     )}
                   </CardContent>
