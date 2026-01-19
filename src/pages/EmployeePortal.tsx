@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Building2,
   LogOut,
@@ -22,14 +23,37 @@ import {
   Edit2,
   Save,
   X,
+  CalendarDays,
+  Plus,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
+import { LeaveApplicationDialog } from '@/components/team/LeaveApplicationDialog';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Employee = Tables<'employees'>;
 type PayrollLog = Tables<'payroll_log'>;
 type Profile = Tables<'profiles'>;
+
+const LEAVE_TYPE_LABELS: Record<string, string> = {
+  annual: 'Annual Leave',
+  sick: 'Sick Leave',
+  personal: 'Personal Leave',
+  unpaid: 'Unpaid Leave',
+  maternity: 'Maternity Leave',
+  paternity: 'Paternity Leave',
+  other: 'Other',
+};
+
+const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string }> = {
+  pending: { label: 'Pending', icon: Clock, color: 'text-warning' },
+  approved: { label: 'Approved', icon: CheckCircle, color: 'text-success' },
+  rejected: { label: 'Rejected', icon: XCircle, color: 'text-destructive' },
+  cancelled: { label: 'Cancelled', icon: X, color: 'text-muted-foreground' },
+};
 
 export default function EmployeePortal() {
   const navigate = useNavigate();
@@ -37,6 +61,7 @@ export default function EmployeePortal() {
   const { user, role, signOut, loading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ full_name: '', phone: '' });
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || role !== 'employee')) {
@@ -85,6 +110,37 @@ export default function EmployeePortal() {
       return data as PayrollLog[];
     },
     enabled: !!employee?.id,
+  });
+
+  const { data: leaveApplications = [] } = useQuery({
+    queryKey: ['leave-applications', employee?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leave_applications')
+        .select('*')
+        .eq('employee_id', employee!.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!employee?.id,
+  });
+
+  const cancelLeaveMutation = useMutation({
+    mutationFn: async (leaveId: string) => {
+      const { error } = await supabase
+        .from('leave_applications')
+        .update({ status: 'cancelled' })
+        .eq('id', leaveId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leave-applications'] });
+      toast.success('Leave application cancelled');
+    },
+    onError: (error) => {
+      toast.error('Failed to cancel leave: ' + error.message);
+    },
   });
 
   const updateProfileMutation = useMutation({
@@ -297,58 +353,159 @@ export default function EmployeePortal() {
           </Card>
         </div>
 
-        {/* Salary History */}
-        <Card className="glass-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
-                Salary History
-              </CardTitle>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Total Earnings (Last 12 months)</p>
-                <p className="text-xl font-bold text-success">${totalEarnings.toLocaleString()}</p>
-              </div>
-            </div>
-            <CardDescription>Your recent salary payments</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {payrollHistory.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No salary records found.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {payrollHistory.map((record) => (
-                  <div
-                    key={record.id}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {format(new Date(record.payment_date), 'MMMM yyyy')}
-                      </p>
-                      <div className="flex gap-4 text-xs text-muted-foreground">
-                        {record.bonus && Number(record.bonus) > 0 && (
-                          <span className="text-success">+${Number(record.bonus)} bonus</span>
-                        )}
-                        {record.deduction && Number(record.deduction) > 0 && (
-                          <span className="text-destructive">-${Number(record.deduction)} deduction</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-success">
-                        ${Number(record.amount_paid).toLocaleString()}
-                      </p>
-                    </div>
+        {/* Tabs for Leave & Salary */}
+        <Tabs defaultValue="leave" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="leave" className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Leave Applications
+            </TabsTrigger>
+            <TabsTrigger value="salary" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Salary History
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="leave">
+            <Card className="glass-card">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <CalendarDays className="h-5 w-5 text-primary" />
+                      Leave Applications
+                    </CardTitle>
+                    <CardDescription>Your leave requests and history</CardDescription>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <Button onClick={() => setLeaveDialogOpen(true)} disabled={!employee}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Apply for Leave
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {leaveApplications.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No leave applications yet. Apply for your first leave.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {leaveApplications.map((leave) => {
+                      const days = differenceInDays(new Date(leave.end_date), new Date(leave.start_date)) + 1;
+                      const statusConfig = STATUS_CONFIG[leave.status] || STATUS_CONFIG.pending;
+                      const StatusIcon = statusConfig.icon;
+                      return (
+                        <div
+                          key={leave.id}
+                          className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">
+                                {LEAVE_TYPE_LABELS[leave.leave_type] || leave.leave_type}
+                              </p>
+                              <Badge variant="secondary">{days} day{days > 1 ? 's' : ''}</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {format(new Date(leave.start_date), 'MMM d')} - {format(new Date(leave.end_date), 'MMM d, yyyy')}
+                            </p>
+                            {leave.reason && (
+                              <p className="text-xs text-muted-foreground mt-1">{leave.reason}</p>
+                            )}
+                            {leave.review_notes && (
+                              <p className="text-xs text-muted-foreground mt-1 italic">
+                                Note: {leave.review_notes}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className={`flex items-center gap-1 ${statusConfig.color}`}>
+                              <StatusIcon className="h-4 w-4" />
+                              <span className="text-sm font-medium">{statusConfig.label}</span>
+                            </div>
+                            {leave.status === 'pending' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => cancelLeaveMutation.mutate(leave.id)}
+                                disabled={cancelLeaveMutation.isPending}
+                              >
+                                Cancel
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="salary">
+            <Card className="glass-card">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-primary" />
+                    Salary History
+                  </CardTitle>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Total Earnings (Last 12 months)</p>
+                    <p className="text-xl font-bold text-success">${totalEarnings.toLocaleString()}</p>
+                  </div>
+                </div>
+                <CardDescription>Your recent salary payments</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {payrollHistory.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No salary records found.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {payrollHistory.map((record) => (
+                      <div
+                        key={record.id}
+                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {format(new Date(record.payment_date), 'MMMM yyyy')}
+                          </p>
+                          <div className="flex gap-4 text-xs text-muted-foreground">
+                            {record.bonus && Number(record.bonus) > 0 && (
+                              <span className="text-success">+${Number(record.bonus)} bonus</span>
+                            )}
+                            {record.deduction && Number(record.deduction) > 0 && (
+                              <span className="text-destructive">-${Number(record.deduction)} deduction</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-success">
+                            ${Number(record.amount_paid).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
+
+      {/* Leave Application Dialog */}
+      {employee && (
+        <LeaveApplicationDialog
+          open={leaveDialogOpen}
+          onOpenChange={setLeaveDialogOpen}
+          employeeId={employee.id}
+        />
+      )}
     </div>
   );
 }
