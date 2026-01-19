@@ -121,13 +121,16 @@ export default function UserManagement() {
     enabled: role === 'admin',
   });
 
-  // Create new user mutation
+  // Create new user mutation using edge function
   const createUserMutation = useMutation({
     mutationFn: async ({ email, password, fullName, role }: { email: string; password: string; fullName: string; role: AppRole }) => {
-      // We can't create users directly from client-side
-      // For now, we'll show instructions
-      toast.info('New user creation requires admin backend access. Please use the Supabase dashboard or create an edge function for this.');
-      throw new Error('Direct user creation not supported from client');
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { email, password, fullName, role }
+      });
+      
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
@@ -136,7 +139,7 @@ export default function UserManagement() {
       resetForm();
     },
     onError: (error) => {
-      // Don't show error toast since we showed info toast above
+      toast.error('Failed to create user: ' + error.message);
     },
   });
 

@@ -387,6 +387,7 @@ export type Database = {
       portfolio: {
         Row: {
           category: string | null
+          challenge: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -395,12 +396,17 @@ export type Database = {
           id: string
           image_url: string | null
           project_url: string | null
+          results: Json | null
+          solution: string | null
+          tech_stack: string[] | null
           technologies: string[] | null
+          thumbnail: string | null
           title: string
           updated_at: string
         }
         Insert: {
           category?: string | null
+          challenge?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -409,12 +415,17 @@ export type Database = {
           id?: string
           image_url?: string | null
           project_url?: string | null
+          results?: Json | null
+          solution?: string | null
+          tech_stack?: string[] | null
           technologies?: string[] | null
+          thumbnail?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           category?: string | null
+          challenge?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -423,7 +434,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           project_url?: string | null
+          results?: Json | null
+          solution?: string | null
+          tech_stack?: string[] | null
           technologies?: string[] | null
+          thumbnail?: string | null
           title?: string
           updated_at?: string
         }
@@ -434,42 +449,51 @@ export type Database = {
           billing_cycle: string | null
           created_at: string
           created_by: string | null
+          cta: string | null
           description: string | null
           display_order: number | null
           features: string[] | null
+          highlighted: boolean | null
           id: string
           is_active: boolean | null
           is_popular: boolean | null
           name: string
           price: number
+          tier_id: string | null
           updated_at: string
         }
         Insert: {
           billing_cycle?: string | null
           created_at?: string
           created_by?: string | null
+          cta?: string | null
           description?: string | null
           display_order?: number | null
           features?: string[] | null
+          highlighted?: boolean | null
           id?: string
           is_active?: boolean | null
           is_popular?: boolean | null
           name: string
           price?: number
+          tier_id?: string | null
           updated_at?: string
         }
         Update: {
           billing_cycle?: string | null
           created_at?: string
           created_by?: string | null
+          cta?: string | null
           description?: string | null
           display_order?: number | null
           features?: string[] | null
+          highlighted?: boolean | null
           id?: string
           is_active?: boolean | null
           is_popular?: boolean | null
           name?: string
           price?: number
+          tier_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -553,6 +577,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           name: string
+          short_description: string | null
           updated_at: string
         }
         Insert: {
@@ -565,6 +590,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name: string
+          short_description?: string | null
           updated_at?: string
         }
         Update: {
@@ -577,6 +603,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          short_description?: string | null
           updated_at?: string
         }
         Relationships: []
