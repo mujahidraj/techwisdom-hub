@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Upload, FileSpreadsheet, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
+type LeadCategory = 'study_abroad' | 'fashion' | 'real_estate' | 'healthcare' | 'technology' | 'education' | 'retail' | 'hospitality' | 'other';
+type LeadStatus = 'new' | 'contacted' | 'in_negotiation' | 'deal_won' | 'deal_lost';
+
 interface LeadImporterProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,6 +40,13 @@ export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
     setPreview(json.slice(0, 5));
   };
 
+  const mapCategory = (cat: string | undefined): LeadCategory => {
+    if (!cat) return 'other';
+    const lower = cat.toLowerCase().replace(/\s+/g, '_');
+    const validCategories: LeadCategory[] = ['study_abroad', 'fashion', 'real_estate', 'healthcare', 'technology', 'education', 'retail', 'hospitality', 'other'];
+    return validCategories.includes(lower as LeadCategory) ? (lower as LeadCategory) : 'other';
+  };
+
   const handleImport = async () => {
     if (!file) return;
     setImporting(true);
@@ -46,18 +56,30 @@ export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows: any[] = XLSX.utils.sheet_to_json(sheet);
 
-      const leads = rows.map((row, i) => ({
+      const leads: {
+        sl_no: number;
+        business_name: string;
+        contact_person?: string;
+        phone?: string;
+        email?: string;
+        category: LeadCategory;
+        city?: string;
+        address?: string;
+        facebook_page?: string;
+        source: string;
+        status: LeadStatus;
+      }[] = rows.map((row, i) => ({
         sl_no: i + 1,
-        business_name: row['Business Name'] || row['business_name'] || 'Unknown',
-        contact_person: row['Contact Person'] || row['contact_person'] || null,
-        phone: row['Phone'] || row['phone'] || null,
-        email: row['Email'] || row['email'] || null,
-        category: 'other',
-        city: row['City/ Area'] || row['City'] || row['city'] || null,
-        address: row['Address'] || row['address'] || null,
-        facebook_page: row['Facebook Page'] || row['facebook_page'] || null,
+        business_name: String(row['Business Name'] || row['business_name'] || 'Unknown'),
+        contact_person: row['Contact Person'] || row['contact_person'] || undefined,
+        phone: row['Phone'] || row['phone'] || undefined,
+        email: row['Email'] || row['email'] || undefined,
+        category: mapCategory(row['Category'] || row['category']),
+        city: row['City/ Area'] || row['City'] || row['city'] || undefined,
+        address: row['Address'] || row['address'] || undefined,
+        facebook_page: row['Facebook Page'] || row['facebook_page'] || undefined,
         source: 'excel_import',
-        status: 'new',
+        status: 'new' as LeadStatus,
       }));
 
       const { error } = await supabase.from('leads').insert(leads);
