@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -60,6 +60,7 @@ const statuses = ['active', 'completed', 'on_hold', 'cancelled'];
 const schema = z.object({
   project_name: z.string().min(1, 'Project name is required'),
   client_name: z.string().min(1, 'Client name is required'),
+  client_id: z.string().optional(),
   project_type: z.string().min(1, 'Project type is required'),
   total_budget: z.string().min(1, 'Budget is required'),
   paid_amount: z.string(),
@@ -74,6 +75,12 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+interface ClientUser {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+}
+
 interface EditProjectDialogProps {
   project: Project | null;
   onOpenChange: (open: boolean) => void;
@@ -82,11 +89,36 @@ interface EditProjectDialogProps {
 export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogProps) {
   const queryClient = useQueryClient();
 
+  // Fetch client users
+  const { data: clients = [] } = useQuery({
+    queryKey: ['client-users'],
+    queryFn: async () => {
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'client');
+      
+      if (rolesError) throw rolesError;
+      if (!roles || roles.length === 0) return [];
+
+      const userIds = roles.map(r => r.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name')
+        .in('user_id', userIds);
+      
+      if (profilesError) throw profilesError;
+      return (profiles || []) as ClientUser[];
+    },
+    enabled: !!project,
+  });
+
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       project_name: '',
       client_name: '',
+      client_id: '',
       project_type: '',
       total_budget: '',
       paid_amount: '0',
@@ -105,6 +137,7 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
       form.reset({
         project_name: project.project_name,
         client_name: project.client_name,
+        client_id: project.client_id || '',
         project_type: project.project_type,
         total_budget: String(project.total_budget),
         paid_amount: String(project.paid_amount),
@@ -126,6 +159,7 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
         .update({
           project_name: data.project_name,
           client_name: data.client_name,
+          client_id: data.client_id || null,
           project_type: data.project_type,
           total_budget: parseFloat(data.total_budget),
           paid_amount: parseFloat(data.paid_amount),
@@ -182,11 +216,36 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
                 control={form.control}
                 name="client_name"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
+                  <FormItem>
                     <FormLabel>Client Name *</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="client_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign Client User</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select client (optional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">No client assigned</SelectItem>
+                        {clients.map((client) => (
+                          <SelectItem key={client.user_id} value={client.user_id}>
+                            {client.full_name || client.email || 'Unknown'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
