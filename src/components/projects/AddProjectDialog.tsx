@@ -262,8 +262,8 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                 control={form.control}
                 name="total_budget"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Budget ($) *</FormLabel>
+                <FormItem>
+                    <FormLabel>Total Budget (৳) *</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} placeholder="0.00" />
                     </FormControl>
@@ -276,7 +276,7 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                 name="paid_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Paid Amount ($)</FormLabel>
+                    <FormLabel>Paid Amount (৳)</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} placeholder="0.00" />
                     </FormControl>

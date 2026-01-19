@@ -329,8 +329,8 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
                 control={form.control}
                 name="total_budget"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Budget ($) *</FormLabel>
+                <FormItem>
+                    <FormLabel>Total Budget (৳) *</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -343,7 +343,7 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
                 name="paid_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Paid Amount ($)</FormLabel>
+                    <FormLabel>Paid Amount (৳)</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
