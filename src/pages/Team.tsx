@@ -6,11 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Users, DollarSign, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { UserPlus, Users, DollarSign, MoreVertical, Edit, Trash2, Calendar, Receipt } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { AddEmployeeDialog } from '@/components/team/AddEmployeeDialog';
 import { EditEmployeeDialog } from '@/components/team/EditEmployeeDialog';
+import { LeaveManagement } from '@/components/team/LeaveManagement';
+import { PayrollManagement } from '@/components/team/PayrollManagement';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,7 +103,7 @@ export default function Team() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Team</h1>
-            <p className="text-muted-foreground mt-1">Manage your team members and payroll.</p>
+            <p className="text-muted-foreground mt-1">Manage your team members, leave, and payroll.</p>
           </div>
           {isAdmin && (
             <Button className="gradient-primary" onClick={() => setAddOpen(true)}>
@@ -110,115 +113,185 @@ export default function Team() {
           )}
         </div>
 
-        {isAdmin && (
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="glass-card">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Team Members</p>
-                    <div className="text-2xl font-bold">{employees.length}</div>
-                    <p className="text-xs text-muted-foreground">{activeEmployees.length} active</p>
+        {isAdmin ? (
+          <Tabs defaultValue="team" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="team" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Team
+              </TabsTrigger>
+              <TabsTrigger value="leave" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Leave
+              </TabsTrigger>
+              <TabsTrigger value="payroll" className="flex items-center gap-2">
+                <Receipt className="h-4 w-4" />
+                Payroll
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="team" className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card className="glass-card">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Total Team Members</p>
+                        <div className="text-2xl font-bold">{employees.length}</div>
+                        <p className="text-xs text-muted-foreground">{activeEmployees.length} active</p>
+                      </div>
+                      <Users className="h-8 w-8 text-primary" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="glass-card">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Monthly Burn Rate</p>
+                        <div className="text-2xl font-bold">${totalBurnRate.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">Total monthly salaries</p>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-warning" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {employees.map((employee) => (
+                  <Card key={employee.id} className="glass-card hover:shadow-medium transition-shadow group">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {(employee.profile?.full_name || 'U')
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold truncate">
+                              {employee.profile?.full_name || 'Unknown User'}
+                            </h3>
+                            <Badge
+                              variant={employee.status === 'active' ? 'default' : 'secondary'}
+                              className={employee.status === 'active' ? 'bg-success' : ''}
+                            >
+                              {employee.status === 'active' ? 'Active' : employee.status === 'on_leave' ? 'On Leave' : 'Inactive'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{employee.designation}</p>
+                          {employee.department && (
+                            <p className="text-xs text-muted-foreground">{employee.department}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {employee.profile?.email || employee.phone}
+                          </p>
+                          <p className="text-sm font-medium mt-2">
+                            ${Number(employee.base_salary).toLocaleString()}/mo
+                          </p>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setEditEmployee(employee)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => setDeleteEmployee(employee)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {employees.length === 0 && (
+                  <Card className="glass-card col-span-full">
+                    <CardContent className="py-12 text-center">
+                      <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No team members yet. Add your first employee.</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="leave">
+              <LeaveManagement />
+            </TabsContent>
+
+            <TabsContent value="payroll">
+              <PayrollManagement />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          // Non-admin view - just show team list
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {employees.map((employee) => (
+              <Card key={employee.id} className="glass-card hover:shadow-medium transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {(employee.profile?.full_name || 'U')
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold truncate">
+                          {employee.profile?.full_name || 'Unknown User'}
+                        </h3>
+                        <Badge
+                          variant={employee.status === 'active' ? 'default' : 'secondary'}
+                          className={employee.status === 'active' ? 'bg-success' : ''}
+                        >
+                          {employee.status === 'active' ? 'Active' : employee.status === 'on_leave' ? 'On Leave' : 'Inactive'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{employee.designation}</p>
+                      {employee.department && (
+                        <p className="text-xs text-muted-foreground">{employee.department}</p>
+                      )}
+                    </div>
                   </div>
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="glass-card">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Monthly Burn Rate</p>
-                    <div className="text-2xl font-bold">${totalBurnRate.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">Total monthly salaries</p>
-                  </div>
-                  <DollarSign className="h-8 w-8 text-warning" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
+
+            {employees.length === 0 && (
+              <Card className="glass-card col-span-full">
+                <CardContent className="py-12 text-center">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No team members found.</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {employees.map((employee) => (
-            <Card key={employee.id} className="glass-card hover:shadow-medium transition-shadow group">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {(employee.profile?.full_name || 'U')
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold truncate">
-                        {employee.profile?.full_name || 'Unknown User'}
-                      </h3>
-                      <Badge
-                        variant={employee.status === 'active' ? 'default' : 'secondary'}
-                        className={employee.status === 'active' ? 'bg-success' : ''}
-                      >
-                        {employee.status === 'active' ? 'Active' : employee.status === 'on_leave' ? 'On Leave' : 'Inactive'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{employee.designation}</p>
-                    {employee.department && (
-                      <p className="text-xs text-muted-foreground">{employee.department}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {employee.profile?.email || employee.phone}
-                    </p>
-                    {isAdmin && (
-                      <p className="text-sm font-medium mt-2">
-                        ${Number(employee.base_salary).toLocaleString()}/mo
-                      </p>
-                    )}
-                  </div>
-                  {isAdmin && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditEmployee(employee)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => setDeleteEmployee(employee)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remove
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {employees.length === 0 && (
-            <Card className="glass-card col-span-full">
-              <CardContent className="py-12 text-center">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No team members yet. Add your first employee.</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
       </div>
 
       {/* Add Employee Dialog */}
