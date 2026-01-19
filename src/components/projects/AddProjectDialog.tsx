@@ -188,14 +188,17 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Assign Client User</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={(val) => field.onChange(val === 'none' ? '' : val)} 
+                      value={field.value || 'none'}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select client (optional)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">No client assigned</SelectItem>
+                        <SelectItem value="none">No client assigned</SelectItem>
                         {clients.map((client) => (
                           <SelectItem key={client.user_id} value={client.user_id}>
                             {client.full_name || client.email || 'Unknown'}
