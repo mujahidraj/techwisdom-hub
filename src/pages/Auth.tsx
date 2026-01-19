@@ -10,12 +10,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Sparkles, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Building2, Sparkles, ArrowRight, Loader2, ArrowLeft, Shield, User, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  role: z.enum(['admin', 'employee', 'client'], { required_error: 'Please select a role' }),
 });
 
 const signUpSchema = z.object({
@@ -36,16 +44,22 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type SignUpFormData = z.infer<typeof signUpSchema>;
 type ResetFormData = z.infer<typeof resetSchema>;
 
+const roleInfo = {
+  admin: { icon: Shield, label: 'Admin', description: 'Full access to all features' },
+  employee: { icon: Briefcase, label: 'Employee', description: 'View projects and your profile' },
+  client: { icon: User, label: 'Client', description: 'View your projects and updates' },
+};
+
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, role: userRole } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', role: 'admin' },
   });
 
   const signUpForm = useForm<SignUpFormData>({
@@ -59,43 +73,73 @@ export default function Auth() {
   });
 
   useEffect(() => {
-    if (!loading && user) {
-      navigate('/dashboard');
+    if (!loading && user && userRole) {
+      // Redirect based on role
+      if (userRole === 'client') {
+        navigate('/client-portal');
+      } else if (userRole === 'employee') {
+        navigate('/employee-portal');
+      } else {
+        navigate('/dashboard');
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, userRole, navigate]);
 
   const handleLogin = async (data: LoginFormData) => {
     setIsSubmitting(true);
     const { error } = await signIn(data.email, data.password);
-    setIsSubmitting(false);
-
+    
     if (error) {
+      setIsSubmitting(false);
       if (error.message.includes('Invalid login credentials')) {
         toast.error('Invalid email or password. Please try again.');
       } else {
         toast.error(error.message);
       }
-    } else {
-      toast.success('Welcome back!');
-      navigate('/dashboard');
+      return;
     }
+
+    // After successful login, verify the role
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData?.user) {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userData.user.id)
+        .maybeSingle();
+
+      if (!roleData) {
+        await supabase.auth.signOut();
+        setIsSubmitting(false);
+        toast.error('No role assigned to this account. Please contact an administrator.');
+        return;
+      }
+
+      if (roleData.role !== data.role) {
+        await supabase.auth.signOut();
+        setIsSubmitting(false);
+        toast.error(`You are not registered as ${roleInfo[data.role].label}. Your role is ${roleInfo[roleData.role as keyof typeof roleInfo].label}.`);
+        return;
+      }
+
+      toast.success(`Welcome back, ${roleInfo[data.role].label}!`);
+      
+      // Redirect based on role
+      if (data.role === 'client') {
+        navigate('/client-portal');
+      } else if (data.role === 'employee') {
+        navigate('/employee-portal');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+    setIsSubmitting(false);
   };
 
   const handleSignUp = async (data: SignUpFormData) => {
     setIsSubmitting(true);
-    const { error } = await signUp(data.email, data.password, data.fullName);
+    toast.info('Public registration is disabled. Please contact an administrator to create an account.');
     setIsSubmitting(false);
-
-    if (error) {
-      if (error.message.includes('already registered')) {
-        toast.error('This email is already registered. Please sign in instead.');
-      } else {
-        toast.error(error.message);
-      }
-    } else {
-      toast.success('Account created successfully!');
-      navigate('/dashboard');
-    }
   };
 
   const handlePasswordReset = async (data: ResetFormData) => {
@@ -232,8 +276,8 @@ export default function Auth() {
                 </CardTitle>
                 <CardDescription>
                   {activeTab === 'login' 
-                    ? 'Enter your credentials to access your dashboard'
-                    : 'Fill in your details to get started'
+                    ? 'Select your role and enter credentials to access your dashboard'
+                    : 'Contact an administrator to create your account'
                   }
                 </CardDescription>
               </CardHeader>
@@ -246,6 +290,32 @@ export default function Auth() {
 
                   <TabsContent value="login" className="space-y-4">
                     <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                      {/* Role Selection */}
+                      <div className="space-y-2">
+                        <Label>Login as</Label>
+                        <Select
+                          value={loginForm.watch('role')}
+                          onValueChange={(value: 'admin' | 'employee' | 'client') => loginForm.setValue('role', value)}
+                        >
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select your role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(roleInfo).map(([key, info]) => (
+                              <SelectItem key={key} value={key}>
+                                <div className="flex items-center gap-2">
+                                  <info.icon className="h-4 w-4" />
+                                  <span>{info.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {loginForm.formState.errors.role && (
+                          <p className="text-sm text-destructive">{loginForm.formState.errors.role.message}</p>
+                        )}
+                      </div>
+
                       <div className="space-y-2">
                         <Label htmlFor="login-email">Email</Label>
                         <Input
@@ -298,74 +368,13 @@ export default function Auth() {
                   </TabsContent>
 
                   <TabsContent value="signup" className="space-y-4">
-                    <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-name">Full Name</Label>
-                        <Input
-                          id="signup-name"
-                          type="text"
-                          placeholder="John Doe"
-                          {...signUpForm.register('fullName')}
-                          className="h-11"
-                        />
-                        {signUpForm.formState.errors.fullName && (
-                          <p className="text-sm text-destructive">{signUpForm.formState.errors.fullName.message}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-email">Email</Label>
-                        <Input
-                          id="signup-email"
-                          type="email"
-                          placeholder="you@company.com"
-                          {...signUpForm.register('email')}
-                          className="h-11"
-                        />
-                        {signUpForm.formState.errors.email && (
-                          <p className="text-sm text-destructive">{signUpForm.formState.errors.email.message}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-password">Password</Label>
-                        <Input
-                          id="signup-password"
-                          type="password"
-                          placeholder="••••••••"
-                          {...signUpForm.register('password')}
-                          className="h-11"
-                        />
-                        {signUpForm.formState.errors.password && (
-                          <p className="text-sm text-destructive">{signUpForm.formState.errors.password.message}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-confirm">Confirm Password</Label>
-                        <Input
-                          id="signup-confirm"
-                          type="password"
-                          placeholder="••••••••"
-                          {...signUpForm.register('confirmPassword')}
-                          className="h-11"
-                        />
-                        {signUpForm.formState.errors.confirmPassword && (
-                          <p className="text-sm text-destructive">{signUpForm.formState.errors.confirmPassword.message}</p>
-                        )}
-                      </div>
-
-                      <Button type="submit" className="w-full h-11 gradient-primary" disabled={isSubmitting}>
-                        {isSubmitting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            Create Account
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </>
-                        )}
-                      </Button>
-                    </form>
+                    <div className="text-center py-8">
+                      <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="font-semibold mb-2">Registration Disabled</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Public registration is disabled for security. Please contact an administrator to create your account.
+                      </p>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </CardContent>
