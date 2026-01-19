@@ -4,10 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CRM from "./pages/CRM";
+import Projects from "./pages/Projects";
+import Team from "./pages/Team";
+import Finances from "./pages/Finances";
+import Invoices from "./pages/Invoices";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +28,11 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/crm" element={<CRM />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/finances" element={<Finances />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

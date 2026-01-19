@@ -10,12 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
+type LeadCategory = 'study_abroad' | 'fashion' | 'real_estate' | 'healthcare' | 'technology' | 'education' | 'retail' | 'hospitality' | 'other';
+
 const schema = z.object({
   business_name: z.string().min(1, 'Business name is required'),
   contact_person: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
-  category: z.string().optional(),
+  category: z.enum(['study_abroad', 'fashion', 'real_estate', 'healthcare', 'technology', 'education', 'retail', 'hospitality', 'other']).optional(),
   city: z.string().optional(),
 });
 
@@ -30,16 +32,32 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { category: 'other' },
   });
 
   const onSubmit = async (data: FormData) => {
     try {
-      const { error } = await supabase.from('leads').insert({
-        ...data,
-        category: data.category || 'other',
+      const insertData: {
+        business_name: string;
+        contact_person?: string;
+        phone?: string;
+        email?: string;
+        category: LeadCategory;
+        city?: string;
+        status: 'new';
+        source: string;
+      } = {
+        business_name: data.business_name,
+        contact_person: data.contact_person || undefined,
+        phone: data.phone || undefined,
+        email: data.email || undefined,
+        category: (data.category as LeadCategory) || 'other',
+        city: data.city || undefined,
         status: 'new',
         source: 'manual',
-      });
+      };
+
+      const { error } = await supabase.from('leads').insert(insertData);
       if (error) throw error;
       toast.success('Lead added successfully!');
       queryClient.invalidateQueries({ queryKey: ['leads'] });
@@ -79,7 +97,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Category</Label>
-              <Select onValueChange={(v) => setValue('category', v)}>
+              <Select onValueChange={(v) => setValue('category', v as LeadCategory)} defaultValue="other">
                 <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="study_abroad">Study Abroad</SelectItem>
