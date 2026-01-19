@@ -1,39 +1,194 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Receipt, PiggyBank } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { TrendingUp, TrendingDown, DollarSign, Receipt, PiggyBank, Pencil, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { toast } from 'sonner';
+import { AddExpenseDialog } from '@/components/finances/AddExpenseDialog';
+import { EditExpenseDialog } from '@/components/finances/EditExpenseDialog';
+import type { Tables } from '@/integrations/supabase/types';
 
-const monthlyData = [
-  { month: 'Jan', revenue: 12000, expenses: 8000 },
-  { month: 'Feb', revenue: 15000, expenses: 9000 },
-  { month: 'Mar', revenue: 18000, expenses: 10000 },
-  { month: 'Apr', revenue: 22000, expenses: 11000 },
-  { month: 'May', revenue: 25000, expenses: 12000 },
-  { month: 'Jun', revenue: 28000, expenses: 13000 },
-];
+type Expense = Tables<'expenses'>;
 
-const revenueByType = [
-  { name: 'Web Development', value: 45000, color: 'hsl(217, 91%, 60%)' },
-  { name: 'Mobile Apps', value: 30000, color: 'hsl(271, 81%, 56%)' },
-  { name: 'SEO Services', value: 15000, color: 'hsl(142, 71%, 45%)' },
-  { name: 'UI/UX Design', value: 10000, color: 'hsl(38, 92%, 50%)' },
-];
+const CATEGORY_COLORS: Record<string, string> = {
+  rent: 'hsl(217, 91%, 60%)',
+  server: 'hsl(271, 81%, 56%)',
+  software: 'hsl(142, 71%, 45%)',
+  marketing: 'hsl(38, 92%, 50%)',
+  salary: 'hsl(0, 84%, 60%)',
+  utilities: 'hsl(199, 89%, 48%)',
+  office_supplies: 'hsl(262, 83%, 58%)',
+  travel: 'hsl(25, 95%, 53%)',
+  other: 'hsl(215, 14%, 34%)',
+};
 
 export default function Finances() {
-  const totalRevenue = monthlyData.reduce((sum, d) => sum + d.revenue, 0);
-  const totalExpenses = monthlyData.reduce((sum, d) => sum + d.expenses, 0);
-  const netProfit = totalRevenue - totalExpenses;
-  const profitMargin = Math.round((netProfit / totalRevenue) * 100);
+  const queryClient = useQueryClient();
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null);
+
+  // Fetch all expenses
+  const { data: expenses = [], isLoading: expensesLoading } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return data as Expense[];
+    },
+  });
+
+  // Fetch projects for revenue
+  const { data: projects = [] } = useQuery({
+    queryKey: ['finance-projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('active_projects')
+        .select('id, total_budget, paid_amount, project_type, start_date');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch payroll for costs
+  const { data: payroll = [] } = useQuery({
+    queryKey: ['finance-payroll'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payroll_log')
+        .select('amount_paid, payment_date');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('expenses').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-expenses'] });
+      toast.success('Expense deleted successfully');
+      setDeleteExpense(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete expense: ' + error.message);
+    },
+  });
+
+  // Calculate totals
+  const totalRevenue = projects.reduce((sum, p) => sum + Number(p.total_budget || 0), 0);
+  const totalPaid = projects.reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  const totalPayroll = payroll.reduce((sum, p) => sum + Number(p.amount_paid || 0), 0);
+  const totalCosts = totalExpenses + totalPayroll;
+  const netProfit = totalRevenue - totalCosts;
+  const profitMargin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
+
+  // Generate monthly data for chart (last 6 months)
+  const monthlyData = Array.from({ length: 6 }, (_, i) => {
+    const date = subMonths(new Date(), 5 - i);
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
+
+    const monthRevenue = projects
+      .filter(p => {
+        const startDate = new Date(p.start_date);
+        return startDate >= monthStart && startDate <= monthEnd;
+      })
+      .reduce((sum, p) => sum + Number(p.total_budget || 0), 0);
+
+    const monthExpenses = expenses
+      .filter(e => {
+        const expDate = new Date(e.date);
+        return expDate >= monthStart && expDate <= monthEnd;
+      })
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+    return {
+      month: format(date, 'MMM'),
+      revenue: monthRevenue,
+      expenses: monthExpenses,
+    };
+  });
+
+  // Revenue by project type
+  const revenueByType = projects.reduce((acc, p) => {
+    const type = p.project_type || 'Other';
+    acc[type] = (acc[type] || 0) + Number(p.total_budget || 0);
+    return acc;
+  }, {} as Record<string, number>);
+
+  const pieData = Object.entries(revenueByType).map(([name, value], index) => ({
+    name,
+    value,
+    color: Object.values(CATEGORY_COLORS)[index % Object.values(CATEGORY_COLORS).length],
+  }));
+
+  // Expenses by category
+  const expensesByCategory = expenses.reduce((acc, e) => {
+    acc[e.category] = (acc[e.category] || 0) + Number(e.amount || 0);
+    return acc;
+  }, {} as Record<string, number>);
+
+  const expensePieData = Object.entries(expensesByCategory).map(([name, value]) => ({
+    name: name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    value,
+    color: CATEGORY_COLORS[name] || CATEGORY_COLORS.other,
+  }));
+
+  const getCategoryBadgeColor = (category: string) => {
+    switch (category) {
+      case 'salary': return 'bg-red-100 text-red-800';
+      case 'rent': return 'bg-blue-100 text-blue-800';
+      case 'software': return 'bg-green-100 text-green-800';
+      case 'server': return 'bg-purple-100 text-purple-800';
+      case 'marketing': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Financial Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Track revenue, expenses, and profitability.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Financial Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Track revenue, expenses, and profitability.</p>
+          </div>
+          <AddExpenseDialog />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* KPI Cards */}
+        <div className="grid gap-4 md:grid-cols-4">
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -42,10 +197,11 @@ export default function Finances() {
             <CardContent>
               <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
               <p className="text-xs text-success flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3" /> +12% from last period
+                <TrendingUp className="h-3 w-3" /> ${totalPaid.toLocaleString()} collected
               </p>
             </CardContent>
           </Card>
+
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
@@ -53,23 +209,40 @@ export default function Finances() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${totalExpenses.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                <TrendingDown className="h-3 w-3" /> -5% from last period
+              <p className="text-xs text-muted-foreground mt-1">
+                {expenses.length} transactions
               </p>
             </CardContent>
           </Card>
+
+          <Card className="glass-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Payroll Costs</CardTitle>
+              <TrendingDown className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${totalPayroll.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {payroll.length} payments
+              </p>
+            </CardContent>
+          </Card>
+
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
               <PiggyBank className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">${netProfit.toLocaleString()}</div>
+              <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                ${netProfit.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">{profitMargin}% profit margin</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Charts */}
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="glass-card">
             <CardHeader>
@@ -84,14 +257,15 @@ export default function Finances() {
                     <XAxis dataKey="month" className="text-xs" />
                     <YAxis className="text-xs" />
                     <Tooltip 
+                      formatter={(value: number) => `$${value.toLocaleString()}`}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px'
                       }} 
                     />
-                    <Bar dataKey="revenue" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="revenue" fill="hsl(217, 91%, 60%)" name="Revenue" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expenses" fill="hsl(0, 84%, 60%)" name="Expenses" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -100,15 +274,61 @@ export default function Finances() {
 
           <Card className="glass-card">
             <CardHeader>
-              <CardTitle>Revenue by Service Type</CardTitle>
+              <CardTitle>Revenue by Project Type</CardTitle>
               <CardDescription>Distribution of income sources</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
+                {pieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number) => `$${value.toLocaleString()}`}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }} 
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    No project data available
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Expenses by Category Chart */}
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle>Expenses by Category</CardTitle>
+            <CardDescription>Breakdown of your spending</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              {expensePieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={revenueByType}
+                      data={expensePieData}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
@@ -116,7 +336,7 @@ export default function Finances() {
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {revenueByType.map((entry, index) => (
+                      {expensePieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -131,11 +351,119 @@ export default function Finances() {
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  No expense data available
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Expenses Table */}
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle>Recent Expenses</CardTitle>
+            <CardDescription>Manage and track all expenses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {expensesLoading ? (
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            ) : expenses.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Receipt className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                <p>No expenses recorded yet</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expenses.map((expense) => (
+                      <TableRow key={expense.id}>
+                        <TableCell>{format(new Date(expense.date), 'MMM d, yyyy')}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{expense.title}</p>
+                            {expense.description && (
+                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                {expense.description}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getCategoryBadgeColor(expense.category)}>
+                            {expense.category.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          ${Number(expense.amount).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditingExpense(expense)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteExpense(expense)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Edit Dialog */}
+      <EditExpenseDialog
+        expense={editingExpense}
+        open={!!editingExpense}
+        onOpenChange={(open) => !open && setEditingExpense(null)}
+      />
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteExpense} onOpenChange={(open) => !open && setDeleteExpense(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteExpense?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteExpense && deleteMutation.mutate(deleteExpense.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
