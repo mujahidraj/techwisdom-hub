@@ -5,6 +5,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { TopBar } from './TopBar';
 import { Loader2 } from 'lucide-react';
+import { AIChatButton } from '@/components/AIChatButton';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -41,6 +42,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <main className="flex-1 p-6 overflow-auto">
             {children}
           </main>
+          <AIChatButton />
         </div>
       </div>
     </SidebarProvider>

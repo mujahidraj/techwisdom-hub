@@ -15,6 +15,7 @@ import {
   Briefcase,
   StickyNote,
   BarChart3,
+  ShieldCheck, // <--- Imported Icon
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,6 +46,7 @@ const mainNavItems = [
 
 const managementItems = [
   { title: 'Team', url: '/team', icon: UserCircle },
+  { title: 'Maintenance', url: '/maintenance', icon: ShieldCheck }, // <--- Added Here
   { title: 'Finances', url: '/finances', icon: DollarSign },
   { title: 'Invoices', url: '/invoices', icon: FileText },
   { title: 'Reports', url: '/reports', icon: BarChart3 },
@@ -79,6 +81,8 @@ export function AppSidebar() {
   const getVisibleManagementItems = () => {
     if (role === 'client') return [];
     if (role === 'employee') {
+      // Employees might need to see maintenance logs, depending on your logic. 
+      // Keeping it consistent with previous logic (only Team).
       return managementItems.filter(item => item.url === '/team');
     }
     return managementItems;

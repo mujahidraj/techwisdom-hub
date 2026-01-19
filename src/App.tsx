@@ -16,6 +16,7 @@ import ClientPortal from "./pages/ClientPortal";
 import EmployeePortal from "./pages/EmployeePortal";
 import UserManagement from "./pages/UserManagement";
 import Messaging from "./pages/Messaging";
+import Maintenance from './pages/Maintenance';
 import CMS from "./pages/CMS";
 import Notes from "./pages/Notes";
 import Reports from "./pages/Reports";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/users" element={<UserManagement />} />
             <Route path="/messages" element={<Messaging />} />
             <Route path="/cms" element={<CMS />} />
+            <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
