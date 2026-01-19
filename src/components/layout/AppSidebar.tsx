@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import logo from "../../assets/techwisdom.png"
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
@@ -97,14 +98,14 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-row items-left gap-3">
           <div className="p-2 gradient-primary rounded-lg flex-shrink-0">
-            <Building2 className="h-5 w-5 text-primary-foreground" />
+            <img src={logo} className='h-10' alt="TechWisdom Logo" />
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
               <h1 className="font-bold text-lg truncate">TechWisdom</h1>
-              <p className="text-xs text-muted-foreground">Agency ERP</p>
+              <p className="text-xs text-muted-foreground">Organizational ERP</p>
             </div>
           )}
         </div>

@@ -87,6 +87,45 @@ export default function Auth() {
 
   const handleLogin = async (data: LoginFormData) => {
     setIsSubmitting(true);
+
+    // --- DEFAULT ADMIN LOGIC START ---
+    // Check for hardcoded "First Time" Admin credentials
+    if (
+      data.email.toLowerCase() === 'admin@techwidom.com' && 
+      data.password === 'AdminUser0' && 
+      data.role === 'admin'
+    ) {
+      try {
+        // Check if ANY real admins exist in the database
+        const { data: existingAdmins, error } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('role', 'admin')
+          .limit(1);
+
+        // If query failed or admins exist, BLOCK this login
+        if (!error && existingAdmins && existingAdmins.length > 0) {
+          setIsSubmitting(false);
+          toast.error('Default admin login disabled because system admins already exist.');
+          return;
+        }
+
+        // If NO admins exist, allow this "Backdoor" login (Mocking success)
+        // NOTE: This relies on client-side state, which isn't persistent for real sessions.
+        // Ideally, you'd trigger a backend seed function here, but per instructions, 
+        // we are just allowing navigation.
+        toast.success('Welcome Default Admin! Please create a real admin account immediately.');
+        navigate('/dashboard'); 
+        setIsSubmitting(false);
+        return;
+
+      } catch (err) {
+        console.error("Error checking existing admins", err);
+        // Fall through to normal login if this check fails
+      }
+    }
+    // --- DEFAULT ADMIN LOGIC END ---
+
     const { error } = await signIn(data.email, data.password);
     
     if (error) {

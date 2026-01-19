@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, LogOut, User, Menu } from 'lucide-react';
+import { Search, LogOut, User, Menu, Building2 } from 'lucide-react'; // Added Building2 for Logo
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client'; // Added Supabase client
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Added AvatarImage
 import { Badge } from '@/components/ui/badge';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { GlobalSearch } from '@/components/GlobalSearch';
@@ -20,6 +22,31 @@ import { NotificationBell } from '@/components/notifications/NotificationBell';
 export function TopBar() {
   const navigate = useNavigate();
   const { user, role, signOut } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Fetch the user's avatar when the component loads
+  useEffect(() => {
+    async function getProfile() {
+      if (!user?.id) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.avatar_url) {
+        // Transform the filepath into a public URL that the <img> tag can read
+        const { data: publicData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(data.avatar_url);
+        
+        setAvatarUrl(publicData.publicUrl);
+      }
+    }
+
+    getProfile();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -53,6 +80,15 @@ export function TopBar() {
             <Menu className="h-5 w-5" />
           </SidebarTrigger>
 
+          {/* --- BRANDING / LOGO --- */}
+          <div className="flex items-center gap-2 mr-2 lg:hidden"> 
+            <div className="p-1.5 bg-primary/10 rounded-lg">
+              <Building2 className="h-5 w-5 text-primary" />
+            </div>
+            <span className="font-bold text-lg hidden sm:block">TechWisdom</span>
+          </div>
+          {/* ----------------------- */}
+
           {/* Search - opens CMD+K dialog */}
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -61,7 +97,6 @@ export function TopBar() {
               className="w-72 pl-9 h-9 bg-muted/50 border-transparent focus:border-primary/50 cursor-pointer"
               readOnly
               onClick={() => {
-                // Trigger CMD+K
                 const event = new KeyboardEvent('keydown', {
                   key: 'k',
                   metaKey: true,
@@ -99,6 +134,8 @@ export function TopBar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 px-2">
                 <Avatar className="h-8 w-8">
+                  {/* Shows image if URL exists, otherwise falls back to initials */}
+                  <AvatarImage src={avatarUrl || ''} className="object-cover" />
                   <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
                     {getInitials()}
                   </AvatarFallback>

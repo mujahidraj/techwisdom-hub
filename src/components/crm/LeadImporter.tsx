@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, FileSpreadsheet, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,6 +19,8 @@ interface LeadImporterProps {
 export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<any[]>([]);
+  // New state to control how many rows are shown (default to 10)
+  const [previewLimit, setPreviewLimit] = useState<string>('10');
   const [importing, setImporting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -37,7 +40,7 @@ export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
     const workbook = XLSX.read(data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const json = XLSX.utils.sheet_to_json(sheet);
-    setPreview(json.slice(0, 5));
+    setPreview(json);
   };
 
   const mapCategory = (cat: string | undefined): LeadCategory => {
@@ -97,9 +100,14 @@ export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
     }
   };
 
+  // Logic to slice the data based on the selection
+  const displayedPreview = previewLimit === 'all' 
+    ? preview 
+    : preview.slice(0, parseInt(previewLimit));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Import Leads from Excel</DialogTitle>
           <DialogDescription>Upload your Excel file to import leads into the CRM.</DialogDescription>
@@ -109,35 +117,56 @@ export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="border-2 border-dashed border-primary/30 rounded-lg p-12 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => document.getElementById('file-upload')?.click()}
           >
-            <Upload className="h-12 w-12 mx-auto text-primary/50 mb-4" />
-            <p className="text-lg font-medium">Drop your Excel file here</p>
-            <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
+            <Upload className="h-10 w-10 mx-auto text-primary/50 mb-3" />
+            <p className="text-base font-medium">Drop your Excel file here</p>
+            <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
             <input id="file-upload" type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-              <FileSpreadsheet className="h-8 w-8 text-primary" />
+              <FileSpreadsheet className="h-6 w-6 text-primary" />
               <div>
-                <p className="font-medium">{file.name}</p>
-                <p className="text-sm text-muted-foreground">{preview.length}+ rows detected</p>
+                <p className="font-medium text-sm">{file.name}</p>
+                <p className="text-xs text-muted-foreground">{preview.length} rows detected</p>
               </div>
-              <Check className="h-5 w-5 text-success ml-auto" />
+              <Check className="h-4 w-4 text-success ml-auto" />
             </div>
 
             <div className="text-sm">
-              <p className="font-medium mb-2">Preview (first 5 rows):</p>
-              <div className="overflow-x-auto max-h-48 border rounded">
-                <pre className="p-2 text-xs">{JSON.stringify(preview, null, 2)}</pre>
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-medium text-xs">Preview Data:</p>
+                
+                {/* --- CUSTOMIZATION DROPDOWN --- */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Show rows:</span>
+                  <Select value={previewLimit} onValueChange={setPreviewLimit}>
+                    <SelectTrigger className="h-7 w-[90px] text-xs">
+                      <SelectValue placeholder="10" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 Rows</SelectItem>
+                      <SelectItem value="50">50 Rows</SelectItem>
+                      <SelectItem value="all">Show All</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* ----------------------------- */}
+              </div>
+
+              <div className="overflow-x-auto max-h-64 border rounded bg-background/50">
+                <pre className="p-2 text-[10px] leading-tight">
+                  {JSON.stringify(displayedPreview, null, 2)}
+                </pre>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => { setFile(null); setPreview([]); }}>Cancel</Button>
-              <Button onClick={handleImport} disabled={importing} className="gradient-primary">
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => { setFile(null); setPreview([]); }}>Cancel</Button>
+              <Button onClick={handleImport} disabled={importing} size="sm" className="gradient-primary">
                 {importing ? 'Importing...' : 'Import Leads'}
               </Button>
             </div>

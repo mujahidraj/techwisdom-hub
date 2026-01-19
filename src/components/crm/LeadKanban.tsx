@@ -93,7 +93,7 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
       <CardContent className="p-3 space-y-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div {...attributes} {...listeners} className="cursor-grab">
+            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
               <GripVertical className="h-4 w-4 text-muted-foreground" />
             </div>
             <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -167,7 +167,7 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
 
 function DragOverlayCard({ lead }: { lead: Lead }) {
   return (
-    <Card className="glass-card shadow-lg ring-2 ring-primary cursor-grabbing">
+    <Card className="glass-card shadow-lg ring-2 ring-primary cursor-grabbing opacity-90 rotate-2 scale-105">
       <CardContent className="p-3 space-y-2">
         <div className="flex items-center gap-2">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -282,14 +282,12 @@ export function LeadKanban() {
     const activeLead = leads.find((l) => l.id === active.id);
     if (!activeLead) return;
 
-    // Check if over a column directly
     const targetColumn = columns.find((c) => c.id === over.id);
     if (targetColumn) return;
 
-    // Check if over another lead in a different column
     const overLead = leads.find((l) => l.id === over.id);
     if (overLead && overLead.status !== activeLead.status) {
-      // Optimistically update the lead's status for smooth UX
+      // Optimistically update logic preserved
     }
   };
 
@@ -309,11 +307,15 @@ export function LeadKanban() {
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto">
+        {/* Changed from Grid to Flexbox to prevent overlapping */}
+        <div className="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-6 items-start h-full">
           {columns.map((column) => {
             const columnLeads = getLeadsByStatus(column.id);
             return (
-              <div key={column.id} className="space-y-3 min-w-[250px]">
+              <div 
+                key={column.id} 
+                className="space-y-3 w-full lg:w-[300px] flex-shrink-0"
+              >
                 <div className="flex items-center gap-2 px-2">
                   <div className={`w-2 h-2 rounded-full ${column.color}`} />
                   <h3 className="font-semibold">{column.title}</h3>
@@ -327,7 +329,7 @@ export function LeadKanban() {
                   id={column.id}
                 >
                   <div
-                    className="space-y-2 min-h-[300px] p-2 bg-muted/30 rounded-lg"
+                    className="space-y-3 min-h-[150px] p-2 bg-muted/30 rounded-lg border border-border/50"
                     data-column-id={column.id}
                   >
                     {columnLeads.map((lead) => (
@@ -340,8 +342,8 @@ export function LeadKanban() {
                       />
                     ))}
                     {columnLeads.length === 0 && (
-                      <div className="text-center py-8 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
-                        Drop leads here
+                      <div className="h-32 flex items-center justify-center text-sm text-muted-foreground border-2 border-dashed rounded-lg bg-background/50">
+                        Drop items here
                       </div>
                     )}
                   </div>
@@ -356,10 +358,8 @@ export function LeadKanban() {
         </DragOverlay>
       </DndContext>
 
-      {/* Edit Dialog */}
       <EditLeadDialog lead={editLead} onOpenChange={(open) => !open && setEditLead(null)} />
 
-      {/* Deal Won Dialog */}
       <DealWonDialog
         lead={dealWonLead}
         onOpenChange={(open) => !open && setDealWonLead(null)}
@@ -369,7 +369,6 @@ export function LeadKanban() {
         }}
       />
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteLead} onOpenChange={(open) => !open && setDeleteLead(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

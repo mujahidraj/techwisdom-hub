@@ -33,7 +33,6 @@ Deno.serve(async (req) => {
     
     const { data: { user: callingUser }, error: authError } = await userClient.auth.getUser()
     if (authError || !callingUser) {
-      console.error('Auth error:', authError)
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -48,7 +47,6 @@ Deno.serve(async (req) => {
       .single()
 
     if (roleError || roleData?.role !== 'admin') {
-      console.error('Role check failed:', roleError, roleData)
       return new Response(
         JSON.stringify({ error: 'Only admins can create users' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -82,7 +80,7 @@ Deno.serve(async (req) => {
       }
     })
 
-    // Create the new user
+    // 1. CREATE AUTH USER
     console.log('Creating user:', email)
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
@@ -101,8 +99,26 @@ Deno.serve(async (req) => {
 
     console.log('User created:', newUser.user?.id)
 
-    // Assign the role
     if (newUser.user) {
+      // 2. CREATE PROFILE (Crucial Step Added)
+      // We manually insert the profile now that the trigger is gone.
+      const { error: profileError } = await adminClient
+        .from('profiles')
+        .insert({
+            id: newUser.user.id,
+            email: email,
+            full_name: fullName || email.split('@')[0],
+            created_at: new Date().toISOString()
+        })
+
+      if (profileError) {
+          console.error('Profile creation error:', profileError)
+          // We continue even if this fails, to try and assign the role
+      } else {
+          console.log('Profile created successfully')
+      }
+
+      // 3. ASSIGN ROLE
       const { error: roleInsertError } = await adminClient
         .from('user_roles')
         .insert({
@@ -112,7 +128,6 @@ Deno.serve(async (req) => {
 
       if (roleInsertError) {
         console.error('Role insert error:', roleInsertError)
-        // User was created but role assignment failed
         return new Response(
           JSON.stringify({ 
             user: newUser.user, 
