@@ -64,7 +64,7 @@ export default function CMS() {
   const [portfolioDialog, setPortfolioDialog] = useState(false);
   const [serviceDialog, setServiceDialog] = useState(false);
   const [pricingDialog, setPricingDialog] = useState(false);
-  const [deleteItem, setDeleteItem] = useState<{ type: string; id: string; name: string } | null>(null);
+  const [deleteItem, setDeleteItem] = useState<{ type: 'portfolio' | 'services' | 'pricing_tiers'; id: string; name: string } | null>(null);
 
   // Form states
   const [portfolioForm, setPortfolioForm] = useState({

@@ -155,6 +155,34 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {getVisibleAdminItems().length > 0 && (
+          <SidebarGroup className="mt-4">
+            {!collapsed && <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3">Admin</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {getVisibleAdminItems().map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                          'hover:bg-sidebar-accent/50',
+                          isActive(item.url) && 'bg-primary/10 text-primary font-medium'
+                        )}
+                        activeClassName="bg-primary/10 text-primary font-medium"
+                      >
+                        <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-2">
