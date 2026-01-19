@@ -17,11 +17,14 @@ import {
   MoreVertical,
   Edit,
   Trash2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { AddProjectDialog } from '@/components/projects/AddProjectDialog';
 import { EditProjectDialog } from '@/components/projects/EditProjectDialog';
+import { ProjectDocuments } from '@/components/projects/ProjectDocuments';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,6 +85,7 @@ export default function Projects() {
   const [addOpen, setAddOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
   const [deleteProject, setDeleteProject] = useState<Project | null>(null);
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
@@ -364,6 +368,34 @@ export default function Projects() {
                     Paid: ${Number(project.paid_amount).toLocaleString()}
                   </span>
                 </div>
+
+                {/* Documents Section (Expandable) */}
+                {isAdmin && (
+                  <div className="pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-between"
+                      onClick={() => setExpandedProject(
+                        expandedProject === project.id ? null : project.id
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        Documents
+                      </span>
+                      {expandedProject === project.id ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                    {expandedProject === project.id && (
+                      <div className="mt-3 p-4 bg-muted/30 rounded-lg">
+                        <ProjectDocuments projectId={project.id} isAdmin={isAdmin} />
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

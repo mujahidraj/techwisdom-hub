@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { User, Bell, Shield, Palette, LogOut, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AvatarUpload } from '@/components/settings/AvatarUpload';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Settings() {
   const [darkMode, setDarkMode] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Fetch profile data
   const { data: profile, isLoading } = useQuery({
@@ -43,6 +45,7 @@ export default function Settings() {
     if (profile) {
       setFullName(profile.full_name || '');
       setPhone(profile.phone || '');
+      setAvatarUrl(profile.avatar_url || null);
     }
   }, [profile]);
 
@@ -108,7 +111,17 @@ export default function Settings() {
             </CardTitle>
             <CardDescription>Update your personal details.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            <AvatarUpload
+              userId={user?.id || ''}
+              currentAvatarUrl={avatarUrl}
+              userEmail={user?.email || ''}
+              onAvatarChange={(url) => {
+                setAvatarUrl(url);
+                queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+              }}
+            />
+            <Separator />
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label>Email</Label>

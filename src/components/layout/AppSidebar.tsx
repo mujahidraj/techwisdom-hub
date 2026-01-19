@@ -13,6 +13,7 @@ import {
   MessageSquare,
   UserCog,
   Briefcase,
+  StickyNote,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,6 +38,7 @@ const mainNavItems = [
   { title: 'CRM & Leads', url: '/crm', icon: Users },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
   { title: 'Messages', url: '/messages', icon: MessageSquare },
+  { title: 'Notes', url: '/notes', icon: StickyNote },
 ];
 
 const managementItems = [
@@ -61,7 +63,12 @@ export function AppSidebar() {
   // Filter nav items based on role
   const getVisibleItems = (items: typeof mainNavItems) => {
     if (role === 'client') {
-      return items.filter(item => item.url === '/dashboard' || item.url === '/projects' || item.url === '/messages');
+      return items.filter(item => 
+        item.url === '/dashboard' || 
+        item.url === '/projects' || 
+        item.url === '/messages' ||
+        item.url === '/notes'
+      );
     }
     return items;
   };
