@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, Phone, Users, Shield, Loader2, Maximize2, PhoneOff, Lock, Badge } from 'lucide-react';
+import { Video, Phone, Users, Shield, Loader2, Maximize2, PhoneOff, Lock, Mic } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,7 +15,7 @@ declare global {
 }
 
 export default function Meeting() {
-  const { user, role } = useAuth(); // Get user role
+  const { user, role } = useAuth();
   const jitsiContainerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [meetingJoined, setMeetingJoined] = useState(false);
@@ -30,7 +30,6 @@ export default function Meeting() {
     }
   });
 
-  // Function to handle ending the call manually
   const handleHangup = () => {
     if (api) {
         api.dispose();
@@ -44,16 +43,16 @@ export default function Meeting() {
     setMeetingJoined(true);
     setLoading(true);
 
+    // Force remove loading screen after 2s (Discord-like instant feel)
     const timeout = setTimeout(() => {
         setLoading(false);
-    }, 3000); // Faster fallback
+    }, 2000);
 
     const loadJitsiScript = () => {
       if (window.JitsiMeetExternalAPI) {
         initializeJitsi(type);
         return;
       }
-
       const script = document.createElement("script");
       script.src = "https://meet.jit.si/external_api.js";
       script.async = true;
@@ -66,10 +65,10 @@ export default function Meeting() {
 
       jitsiContainerRef.current.innerHTML = "";
 
-      // 1. UNIQUE ROOM NAME
-      // We append a fixed suffix to ensure it's unique to your company, 
-      // avoiding "Waiting for moderator" issues from public room conflicts.
-      const roomName = "TechWisdom-Internal-Sync-Room-V1"; 
+      // --- CRITICAL FIX: UNIQUE ROOM NAME ---
+      // This long name ensures the room is empty/fresh when you join.
+      // It acts like a persistent Discord channel.
+      const roomName = "TechWisdom-ERP-Secure-Channel-Alpha-9988"; 
 
       const domain = "meet.jit.si";
       const options = {
@@ -80,31 +79,24 @@ export default function Meeting() {
         lang: "en",
         configOverwrite: {
           startWithAudioMuted: false,
-          startWithVideoMuted: callType === 'audio',
-          disableDeepLinking: true, 
-          prejoinPageEnabled: false, // SKIP PRE-JOIN SCREEN
+          startWithVideoMuted: callType === 'audio', // Audio call = No Video
+          prejoinPageEnabled: false, // DISCORD MODE: Skip the "Ready to join?" screen
+          disableDeepLinking: true,  // Don't try to open mobile app
           enableLobbyChat: false,
-          enableClosePage: false, // Don't show "You left the meeting" page
         },
         interfaceConfigOverwrite: {
+          // Clean UI settings
           SHOW_JITSI_WATERMARK: false,
           SHOW_WATERMARK_FOR_GUESTS: false,
           TOOLBAR_BUTTONS: [
-            'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-            'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
-            'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
-            'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
-            'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
-            'security'
+            'microphone', 'camera', 'desktop', 'fullscreen',
+            'fodeviceselection', 'hangup', 'chat', 
+            'raisehand', 'videoquality', 'tileview', 'mute-everyone'
           ],
-          APP_NAME: 'TechWisdom ERP',
-          NATIVE_APP_NAME: 'TechWisdom ERP',
           DEFAULT_BACKGROUND: '#0f172a',
-          // Hiding elements that might confuse users
-          HIDE_INVITE_MORE_HEADER: true,
         },
         userInfo: {
-          displayName: profile?.full_name || user?.email?.split('@')[0] || "Team Member",
+          displayName: profile?.full_name || "Team Member",
           email: user?.email
         }
       };
@@ -115,13 +107,13 @@ export default function Meeting() {
         videoConferenceJoined: () => {
           clearTimeout(timeout);
           setLoading(false);
-          // Force set display name again to be sure
           newApi.executeCommand('displayName', profile?.full_name || "Team Member");
         },
         videoConferenceLeft: () => {
           handleHangup();
         },
-        // If the room requires a password (it shouldn't), this handles it gracefully
+        // If password prompt appears, it means the room name collided. 
+        // With the complex name above, this shouldn't happen.
         passwordRequired: () => {
             setLoading(false); 
         }
@@ -133,16 +125,13 @@ export default function Meeting() {
     loadJitsiScript();
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (api) {
-        api.dispose();
-      }
+      if (api) api.dispose();
     };
   }, [api]);
 
-  // --- ACCESS CONTROL: Only Admin & Employee ---
+  // Restrict Access
   if (role !== 'admin' && role !== 'employee') {
     return (
         <DashboardLayout>
@@ -150,10 +139,7 @@ export default function Meeting() {
                 <div className="p-4 bg-red-100 rounded-full">
                     <Lock className="h-10 w-10 text-red-600" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">Access Restricted</h1>
-                <p className="text-muted-foreground max-w-md">
-                    This conference line is reserved for internal team communication (Admins & Employees) only.
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900">Restricted Channel</h1>
                 <Button onClick={() => window.history.back()}>Go Back</Button>
             </div>
         </DashboardLayout>
@@ -168,88 +154,87 @@ export default function Meeting() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Video className="h-6 w-6 text-primary" /> TechWisdom Conference
+              <Mic className="h-6 w-6 text-primary" /> TechWisdom General
             </h1>
             <p className="text-muted-foreground text-sm">
-              Internal Team Bridge • {role === 'admin' ? 'Administrator' : 'Employee'} Access
+              Always-on voice & video channel. Hop in to talk.
             </p>
           </div>
           
           <div className="flex items-center gap-3">
             {meetingJoined && (
-                <>
-                    <Badge  className="bg-green-50 text-green-700 border-green-200 animate-pulse hidden sm:flex">
-                    <Shield className="h-3 w-3 mr-1" /> Encrypted
-                    </Badge>
-                    
-                    <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        onClick={handleHangup}
-                        className="shadow-md"
-                    >
-                        <PhoneOff className="h-4 w-4 mr-2" /> End Call
-                    </Button>
-                </>
+                <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={handleHangup}
+                    className="shadow-md animate-in fade-in"
+                >
+                    <PhoneOff className="h-4 w-4 mr-2" /> Disconnect
+                </Button>
             )}
           </div>
         </div>
 
         {/* MEETING CONTAINER */}
-        <Card className="flex-1 overflow-hidden border-2 bg-slate-900 relative shadow-2xl">
+        <Card className="flex-1 overflow-hidden border-2 bg-slate-900 relative shadow-2xl flex flex-col">
           
           {!meetingJoined ? (
-            // LOBBY VIEW
-            <div className="h-full flex flex-col items-center justify-center space-y-6 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 text-center">
-              <div className="bg-white/10 p-6 rounded-full ring-4 ring-white/5">
-                <Users className="h-16 w-16 text-blue-400" />
+            // DISCORD-STYLE LOBBY VIEW
+            <div className="h-full flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 text-center">
+              
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-20 rounded-full"></div>
+                <div className="bg-white/10 p-8 rounded-full ring-1 ring-white/10 relative z-10">
+                  <Users className="h-20 w-20 text-blue-400" />
+                </div>
               </div>
+
               <div className="max-w-md space-y-2">
-                <h2 className="text-3xl font-bold">Team Sync Room</h2>
+                <h2 className="text-3xl font-bold">General Channel</h2>
                 <p className="text-slate-400">
-                  Ready to join? Select your preferred mode below.
-                  <br/>
-                  <span className="text-xs text-slate-500">(First person to join becomes the Host automatically)</span>
+                  No one is here right now. <br/>
+                  Click below to jump in and wait for others.
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Button 
                   size="lg" 
-                  onClick={() => startMeeting('video')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg shadow-lg shadow-blue-500/20 w-full sm:w-auto"
+                  onClick={() => startMeeting('audio')}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg w-full sm:w-64 transition-all hover:scale-105"
                 >
-                  <Video className="mr-2 h-6 w-6" /> Join with Video
+                  <Phone className="mr-2 h-6 w-6" /> Join Voice
                 </Button>
+                
                 <Button 
                   size="lg" 
                   variant="secondary"
-                  onClick={() => startMeeting('audio')}
-                  className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-6 text-lg w-full sm:w-auto"
+                  onClick={() => startMeeting('video')}
+                  className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-6 text-lg w-full sm:w-64 transition-all hover:scale-105"
                 >
-                  <Phone className="mr-2 h-6 w-6" /> Audio Only
+                  <Video className="mr-2 h-6 w-6" /> Join Video
                 </Button>
               </div>
               
-              <div className="mt-8 flex items-center gap-4 text-sm text-slate-500">
-                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Secure</span>
+              <div className="mt-8 flex items-center gap-4 text-xs text-slate-500">
+                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Encrypted</span>
                 <span className="flex items-center"><Maximize2 className="h-3 w-3 mr-1" /> Low Latency</span>
               </div>
             </div>
           ) : (
             // ACTIVE MEETING VIEW
-            <>
+            <div className="flex-1 relative bg-black">
               {loading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-50 text-white pointer-events-none">
                   <div className="flex flex-col items-center bg-slate-800/80 p-6 rounded-xl backdrop-blur-sm">
                     <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
-                    <p>Connecting to secure server...</p>
+                    <p>Connecting to channel...</p>
                   </div>
                 </div>
               )}
               {/* Jitsi Iframe Target */}
               <div ref={jitsiContainerRef} className="w-full h-full" />
-            </>
+            </div>
           )}
         </Card>
       </div>
