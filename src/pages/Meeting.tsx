@@ -43,19 +43,21 @@ export default function Meeting() {
     setMeetingJoined(true);
     setLoading(true);
 
-    // Force remove loading screen after 2s (Discord-like instant feel)
+    // Force remove loading screen after 2.5s (Discord-like instant feel)
     const timeout = setTimeout(() => {
         setLoading(false);
-    }, 2000);
+    }, 2500);
 
     const loadJitsiScript = () => {
-      if (window.JitsiMeetExternalAPI) {
-        initializeJitsi(type);
-        return;
-      }
+      // Clean up any existing script to avoid conflicts
+      const existingScript = document.getElementById('jitsi-script');
+      if (existingScript) existingScript.remove();
+
       const script = document.createElement("script");
-      script.src = "https://meet.jit.si/external_api.js";
+      // Use the script from the new open server
+      script.src = "https://jitsi.riot.im/external_api.js";
       script.async = true;
+      script.id = 'jitsi-script';
       script.onload = () => initializeJitsi(type);
       document.body.appendChild(script);
     };
@@ -65,12 +67,13 @@ export default function Meeting() {
 
       jitsiContainerRef.current.innerHTML = "";
 
-      // --- CRITICAL FIX: UNIQUE ROOM NAME ---
-      // This long name ensures the room is empty/fresh when you join.
-      // It acts like a persistent Discord channel.
-      const roomName = "TechWisdom-ERP-Secure-Channel-Alpha-9988"; 
+      // --- SERVER CHANGE ---
+      // 'jitsi.riot.im' allows anonymous rooms (No "Waiting for Moderator")
+      const domain = "jitsi.riot.im"; 
+      
+      // Unique room name for your organization
+      const roomName = "TechWisdom-ERP-General-Channel-Secure"; 
 
-      const domain = "meet.jit.si";
       const options = {
         roomName: roomName,
         width: "100%",
@@ -80,20 +83,25 @@ export default function Meeting() {
         configOverwrite: {
           startWithAudioMuted: false,
           startWithVideoMuted: callType === 'audio', // Audio call = No Video
-          prejoinPageEnabled: false, // DISCORD MODE: Skip the "Ready to join?" screen
-          disableDeepLinking: true,  // Don't try to open mobile app
+          prejoinPageEnabled: false, // Skip "Ready to join?"
+          disableDeepLinking: true,  // Don't open mobile app
           enableLobbyChat: false,
+          // Disable features that confuse users
+          toolbarButtons: [
+            'microphone', 'camera', 'desktop', 'fullscreen',
+            'fodeviceselection', 'hangup', 'chat', 
+            'raisehand', 'videoquality', 'tileview', 'mute-everyone'
+          ],
         },
         interfaceConfigOverwrite: {
-          // Clean UI settings
           SHOW_JITSI_WATERMARK: false,
           SHOW_WATERMARK_FOR_GUESTS: false,
+          DEFAULT_BACKGROUND: '#0f172a',
           TOOLBAR_BUTTONS: [
             'microphone', 'camera', 'desktop', 'fullscreen',
             'fodeviceselection', 'hangup', 'chat', 
             'raisehand', 'videoquality', 'tileview', 'mute-everyone'
           ],
-          DEFAULT_BACKGROUND: '#0f172a',
         },
         userInfo: {
           displayName: profile?.full_name || "Team Member",
@@ -112,11 +120,6 @@ export default function Meeting() {
         videoConferenceLeft: () => {
           handleHangup();
         },
-        // If password prompt appears, it means the room name collided. 
-        // With the complex name above, this shouldn't happen.
-        passwordRequired: () => {
-            setLoading(false); 
-        }
       });
 
       setApi(newApi);
