@@ -49,15 +49,15 @@ export default function Meeting() {
     }, 3000);
 
     const loadJitsiScript = () => {
-      // Clean up previous scripts
-      const existingScript = document.getElementById('jitsi-script');
+      // 1. CLEANUP: Remove any old scripts
+      const existingScript = document.getElementById('jitsi-external-api');
       if (existingScript) existingScript.remove();
 
+      // 2. LOAD SCRIPT: Use the official stable script from Jitsi
       const script = document.createElement("script");
-      // SWITCHED TO FRAMATALK (Allows anonymous rooms)
-      script.src = "https://framatalk.org/jitsi_api.js"; 
+      script.src = "https://meet.jit.si/external_api.js"; 
       script.async = true;
-      script.id = 'jitsi-script';
+      script.id = 'jitsi-external-api';
       script.onload = () => initializeJitsi(type);
       document.body.appendChild(script);
     };
@@ -67,11 +67,13 @@ export default function Meeting() {
 
       jitsiContainerRef.current.innerHTML = "";
 
-      // Unique Room Name to avoid collisions
-      const roomName = "TechWisdom-Internal-Sync-Alpha-99"; 
-
-      const domain = "framatalk.org";
+      // 3. SERVER SELECTION: Use a server that allows ANONYMOUS rooms
+      // 'meet.guifi.net' is a community server that usually allows this.
+      // If this ever fails, try 'framatalk.org' or 'meet.golem.de'
+      const domain = "meet.guifi.net"; 
       
+      const roomName = "TechWisdom-ERP-Global-Sync-9988"; 
+
       const options = {
         roomName: roomName,
         width: "100%",
@@ -79,7 +81,6 @@ export default function Meeting() {
         parentNode: jitsiContainerRef.current,
         lang: "en",
         configOverwrite: {
-          // Force Audio ON, Video depends on button clicked
           startWithAudioMuted: false,
           startWithVideoMuted: callType === 'audio',
           
@@ -93,7 +94,6 @@ export default function Meeting() {
           SHOW_JITSI_WATERMARK: false,
           SHOW_WATERMARK_FOR_GUESTS: false,
           DEFAULT_BACKGROUND: '#0f172a',
-          // Clean Toolbar
           TOOLBAR_BUTTONS: [
             'microphone', 'camera', 'desktop', 'fullscreen',
             'fodeviceselection', 'hangup', 'chat', 
@@ -112,10 +112,8 @@ export default function Meeting() {
         videoConferenceJoined: () => {
           clearTimeout(timeout);
           setLoading(false);
-          // Set name immediately
           newApi.executeCommand('displayName', profile?.full_name || "Team Member");
           
-          // If audio-only mode, ensure video is OFF
           if (callType === 'audio') {
              newApi.executeCommand('videoMute');
           }
@@ -223,7 +221,7 @@ export default function Meeting() {
               </div>
               
               <div className="mt-8 flex items-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Secure (Framatalk)</span>
+                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Secure (Guifi.net)</span>
                 <span className="flex items-center"><Maximize2 className="h-3 w-3 mr-1" /> HD</span>
               </div>
             </div>
