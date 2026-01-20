@@ -25,6 +25,8 @@ import LeadDetails from "./pages/LeadDetails";
 import EventsTasks from "./pages/EventsTasks";
 import ProjectDetails from "./pages/ProjectDetails";
 import Meeting from "./pages/Meeting";
+import Messages from "./pages/Messages";
+
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,7 @@ const App = () => (
             <Route path="/events" element={<EventsTasks />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
             <Route path="/meeting" element={<Meeting />} />
+            <Route path="/teamChat" element={<Messages />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

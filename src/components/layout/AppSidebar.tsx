@@ -10,14 +10,15 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
-  MessageSquare,
+  MessageSquare, // Icon for Team Chat
+  Handshake,      // Icon for Client Interaction
   UserCog,
   Briefcase,
   StickyNote,
   BarChart3,
   ShieldCheck,
   Calendar,
-  Video, // <--- Imported Video Icon
+  Video,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,10 +43,11 @@ const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'CRM & Leads', url: '/crm', icon: Users },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
-  { title: 'Messages', url: '/messages', icon: MessageSquare },
+  { title: 'Team Chat', url: '/teamChat', icon: MessageSquare }, // <--- Path Updated
+  { title: 'Client Interaction', url: '/client-interaction', icon: Handshake }, // <--- Renamed
   { title: 'Notes', url: '/notes', icon: StickyNote },
   { title: "Schedule", url: "/events", icon: Calendar },
-  { title: "Conference", url: "/meeting", icon: Video }, // <--- Added Here
+  { title: "Conference", url: "/meeting", icon: Video },
 ];
 
 const managementItems = [
@@ -69,15 +71,14 @@ export function AppSidebar() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Filter nav items based on role
   const getVisibleItems = (items: typeof mainNavItems) => {
     if (role === 'client') {
       return items.filter(item => 
         item.url === '/dashboard' || 
         item.url === '/projects' || 
-        item.url === '/messages' ||
+        item.url === '/client-interaction' || 
         item.url === '/notes' ||
-        item.url === '/meeting' // Assuming clients can also join meetings
+        item.url === '/meeting'
       );
     }
     return items;
