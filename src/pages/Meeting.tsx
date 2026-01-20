@@ -43,17 +43,17 @@ export default function Meeting() {
     setMeetingJoined(true);
     setLoading(true);
 
-    // Fallback: Force remove loading screen after 3s to ensure UI access
+    // Force remove loading screen after 3s (Fallback)
     const timeout = setTimeout(() => {
         setLoading(false);
     }, 3000);
 
     const loadJitsiScript = () => {
-      // Cleanup previous scripts
+      // 1. CLEANUP: Remove any old scripts
       const existingScript = document.getElementById('jitsi-external-api');
       if (existingScript) existingScript.remove();
 
-      // Load official script
+      // 2. LOAD SCRIPT: Use the official stable script from Jitsi
       const script = document.createElement("script");
       script.src = "https://meet.jit.si/external_api.js"; 
       script.async = true;
@@ -67,11 +67,12 @@ export default function Meeting() {
 
       jitsiContainerRef.current.innerHTML = "";
 
-      // Server: Community hosted (allows anonymous rooms)
+      // 3. SERVER SELECTION: Use a server that allows ANONYMOUS rooms
+      // 'meet.guifi.net' is a community server that usually allows this.
+      // If this ever fails, try 'framatalk.org' or 'meet.golem.de'
       const domain = "meet.guifi.net"; 
       
-      // Unique Room Name
-      const roomName = "TechWisdom-Technologies-Global-Sync-9988"; 
+      const roomName = "TechWisdom-ERP-Global-Sync-9988"; 
 
       const options = {
         roomName: roomName,
@@ -82,6 +83,8 @@ export default function Meeting() {
         configOverwrite: {
           startWithAudioMuted: false,
           startWithVideoMuted: callType === 'audio',
+          
+          // Disable "Lobby" features that trigger moderator checks
           prejoinPageEnabled: false, 
           requireDisplayName: false,
           disableDeepLinking: true,
@@ -91,8 +94,6 @@ export default function Meeting() {
           SHOW_JITSI_WATERMARK: false,
           SHOW_WATERMARK_FOR_GUESTS: false,
           DEFAULT_BACKGROUND: '#0f172a',
-          APP_NAME: 'TechWisdom Technologies',
-          NATIVE_APP_NAME: 'TechWisdom Technologies',
           TOOLBAR_BUTTONS: [
             'microphone', 'camera', 'desktop', 'fullscreen',
             'fodeviceselection', 'hangup', 'chat', 
@@ -134,7 +135,7 @@ export default function Meeting() {
     };
   }, [api]);
 
-  // Access Control: Admins & Employees Only
+  // Access Control
   if (role !== 'admin' && role !== 'employee') {
     return (
         <DashboardLayout>
@@ -193,7 +194,7 @@ export default function Meeting() {
               </div>
 
               <div className="max-w-md space-y-2">
-                <h2 className="text-3xl font-bold">TechWisdom Sync</h2>
+                <h2 className="text-3xl font-bold">General Channel</h2>
                 <p className="text-slate-400">
                   Click below to join immediately. <br/>
                   First person in creates the room automatically.
@@ -220,8 +221,8 @@ export default function Meeting() {
               </div>
               
               <div className="mt-8 flex items-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Secured by TechWisdom Technologies</span>
-                <span className="flex items-center"><Maximize2 className="h-3 w-3 mr-1" /> HD Quality</span>
+                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Secure TechWisdom Technologies</span>
+                <span className="flex items-center"><Maximize2 className="h-3 w-3 mr-1" /> HD</span>
               </div>
             </div>
           ) : (
@@ -231,7 +232,7 @@ export default function Meeting() {
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-50 text-white pointer-events-none">
                   <div className="flex flex-col items-center bg-slate-800/80 p-6 rounded-xl backdrop-blur-sm">
                     <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
-                    <p>Connecting to secure channel...</p>
+                    <p>Connecting to open channel...</p>
                   </div>
                 </div>
               )}
