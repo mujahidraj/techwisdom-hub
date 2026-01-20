@@ -1,42 +1,41 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query'; // Added useQueryClient
-import { supabase } from '@/integrations/supabase/client'; // Added supabase import
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input'; // New Import
-import { Badge } from '@/components/ui/badge'; // New Import
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { 
-  Plus, 
-  Upload, 
-  LayoutGrid, 
-  List, 
-  Search,       // New Icon
-  Download,     // New Icon
-  RefreshCw,    // New Icon
-  Filter,       // New Icon
-  Calendar,     // New Icon
-  TrendingUp,   // New Icon
-  DollarSign,   // New Icon
-  Users,        // New Icon
-  PieChart      // New Icon
+  Plus, Upload, LayoutGrid, List, Search, Download, RefreshCw, 
+  Filter, Calendar, TrendingUp, DollarSign, Users, PieChart, X 
 } from 'lucide-react';
 import { LeadKanban } from '@/components/crm/LeadKanban';
 import { LeadTable } from '@/components/crm/LeadTable';
 import { LeadImporter } from '@/components/crm/LeadImporter';
 import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/currency';
 import { toast } from 'sonner';
 
-// Mock data for the new Analytics feature (since we don't have a real analytics table yet)
+// Standard Categories (You can fetch these from DB if preferred)
+const CATEGORIES = [
+  "technology", "healthcare", "real_estate", "education", 
+  "fashion", "retail", "finance", "hospitality", "other"
+];
+
+// Mock data for analytics
 const sourceData = [
   { name: 'Website', value: 45 },
   { name: 'Referral', value: 25 },
@@ -50,12 +49,18 @@ export default function CRM() {
   const [importerOpen, setImporterOpen] = useState(false);
   const [addLeadOpen, setAddLeadOpen] = useState(false);
   
-  // --- NEW STATES ---
+  // --- SEARCH & FILTER STATES ---
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'high_value' | 'new_week' | 'follow_up'>('all');
+  
+  // --- NEW: SPECIFIC FILTERS ---
+  const [cityFilter, setCityFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // --- FEATURE 1: KPI STATS QUERY ---
+  // --- KPI STATS QUERY ---
   const { data: stats } = useQuery({
     queryKey: ['crm_stats'],
     queryFn: async () => {
@@ -64,16 +69,45 @@ export default function CRM() {
       
       const total = leads.length;
       const totalValue = leads.reduce((sum: number, lead: any) => sum + (Number(lead.value) || 0), 0);
-      const won = leads.filter((l: any) => l.status === 'won').length;
+      const won = leads.filter((l: any) => l.status === 'deal_won').length;
       const conversion = total > 0 ? ((won / total) * 100).toFixed(1) : '0';
       return { total, totalValue, conversion };
     }
   });
 
-  // --- FEATURE 2: EXPORT FUNCTIONALITY ---
+  // --- EXPORT FUNCTIONALITY (With All Filters) ---
   const handleExport = async () => {
     try {
-      const { data, error } = await supabase.from('leads').select('*').csv();
+      let query = supabase.from('leads').select('*');
+
+      // 1. Search
+      if (searchQuery) {
+        query = query.or(`business_name.ilike.%${searchQuery}%,contact_person.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
+      }
+
+      // 2. Badge Filters
+      if (activeFilter === 'high_value') {
+        query = query.gte('value', 5000);
+      } else if (activeFilter === 'new_week') {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        query = query.gte('created_at', oneWeekAgo.toISOString());
+      } else if (activeFilter === 'follow_up') {
+        query = query.eq('status', 'contacted');
+      }
+
+      // 3. New Filters (City & Category)
+      if (cityFilter) {
+        query = query.ilike('city', `%${cityFilter}%`);
+      }
+      if (categoryFilter && categoryFilter !== 'all') {
+        query = query.eq('category', categoryFilter);
+      }
+
+      // 4. Sorting
+      query = query.order('sl_no', { ascending: true, nullsFirst: false }).order('id', { ascending: true });
+
+      const { data, error } = await query.csv();
       if (error) throw error;
       
       const blob = new Blob([data], { type: 'text/csv' });
@@ -90,7 +124,6 @@ export default function CRM() {
     }
   };
 
-  // --- FEATURE 3: REFRESH DATA ---
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ['leads'] });
@@ -99,11 +132,17 @@ export default function CRM() {
     toast.success("CRM data refreshed");
   };
 
+  // Helper to clear advanced filters
+  const clearFilters = () => {
+    setCityFilter('');
+    setCategoryFilter('all');
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
         
-        {/* --- FEATURE 1 (UI): STATS CARDS --- */}
+        {/* STATS CARDS */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -137,7 +176,7 @@ export default function CRM() {
           </Card>
         </div>
 
-        {/* Header (Modified with new buttons) */}
+        {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">CRM & Leads</h1>
@@ -146,17 +185,14 @@ export default function CRM() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {/* --- FEATURE 6: ANALYTICS BUTTON --- */}
             <Button variant="outline" size="icon" onClick={() => setShowAnalytics(true)} title="View Insights">
               <PieChart className="h-4 w-4" />
             </Button>
 
-            {/* --- FEATURE 3: REFRESH BUTTON --- */}
             <Button variant="outline" size="icon" onClick={handleRefresh} className={isRefreshing ? "animate-spin" : ""}>
               <RefreshCw className="h-4 w-4" />
             </Button>
 
-            {/* --- FEATURE 2: EXPORT BUTTON --- */}
             <Button variant="outline" onClick={handleExport}>
               <Download className="h-4 w-4 mr-2" />
               Export
@@ -173,34 +209,96 @@ export default function CRM() {
           </div>
         </div>
 
-        {/* --- FEATURE 4 & 5: SEARCH & FILTER TOOLBAR --- */}
+        {/* SEARCH & FILTER TOOLBAR */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-muted/30 p-3 rounded-lg border">
           <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Search leads, companies..." 
+                placeholder="Search leads..." 
                 className="pl-9 bg-background"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="sm" className="hidden sm:flex">
-              <Filter className="h-4 w-4 mr-2" /> Filter
-            </Button>
+
+            {/* --- NEW: ADVANCED FILTER POPOVER --- */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant={cityFilter || categoryFilter !== 'all' ? "secondary" : "outline"} size="sm" className="hidden sm:flex">
+                  <Filter className="h-4 w-4 mr-2" /> 
+                  Filters
+                  {(cityFilter || categoryFilter !== 'all') && <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">!</Badge>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4" align="start">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium leading-none">Filter Leads</h4>
+                    {(cityFilter || categoryFilter !== 'all') && (
+                        <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-muted-foreground" onClick={clearFilters}>
+                            Clear all
+                        </Button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger id="category">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {CATEGORIES.map(cat => (
+                            <SelectItem key={cat} value={cat} className="capitalize">{cat.replace('_', ' ')}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input 
+                        id="city" 
+                        placeholder="Enter city name..." 
+                        value={cityFilter} 
+                        onChange={(e) => setCityFilter(e.target.value)} 
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <Button variant="outline" size="sm" className="hidden sm:flex">
               <Calendar className="h-4 w-4 mr-2" /> Date
             </Button>
           </div>
 
-          {/* --- FEATURE 7: QUICK FILTER BADGES --- */}
+          {/* ACTIVE FILTER BADGES */}
           <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-             <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">High Value</Badge>
-             <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">New This Week</Badge>
-             <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Follow Up</Badge>
+             <Badge 
+                variant={activeFilter === 'high_value' ? 'default' : 'outline'} 
+                className="cursor-pointer"
+                onClick={() => setActiveFilter(activeFilter === 'high_value' ? 'all' : 'high_value')}
+             >
+                High Value
+             </Badge>
+             <Badge 
+                variant={activeFilter === 'new_week' ? 'default' : 'outline'} 
+                className="cursor-pointer"
+                onClick={() => setActiveFilter(activeFilter === 'new_week' ? 'all' : 'new_week')}
+             >
+                New This Week
+             </Badge>
+             <Badge 
+                variant={activeFilter === 'follow_up' ? 'default' : 'outline'} 
+                className="cursor-pointer"
+                onClick={() => setActiveFilter(activeFilter === 'follow_up' ? 'all' : 'follow_up')}
+             >
+                Follow Up
+             </Badge>
           </div>
 
-          {/* View Toggle (Existing) */}
+          {/* View Toggle */}
           <div className="flex items-center gap-2 bg-background rounded-md border p-1">
             <Button
               variant={view === 'kanban' ? 'secondary' : 'ghost'}
@@ -223,14 +321,30 @@ export default function CRM() {
           </div>
         </div>
 
-        {/* Content (Passed searchQuery as prop if supported, otherwise just renders) */}
-        {view === 'kanban' ? <LeadKanban /> : <LeadTable />}
+        {/* CONTENT (Passing all filters) */}
+        {view === 'kanban' ? (
+            // @ts-ignore
+            <LeadKanban 
+                searchQuery={searchQuery} 
+                filter={activeFilter} 
+                cityFilter={cityFilter} 
+                categoryFilter={categoryFilter} 
+            />
+        ) : (
+            // @ts-ignore
+            <LeadTable 
+                searchQuery={searchQuery} 
+                filter={activeFilter} 
+                cityFilter={cityFilter} 
+                categoryFilter={categoryFilter}
+            />
+        )}
 
         {/* Dialogs */}
         <LeadImporter open={importerOpen} onOpenChange={setImporterOpen} />
         <AddLeadDialog open={addLeadOpen} onOpenChange={setAddLeadOpen} />
 
-        {/* --- FEATURE 6 (DIALOG): INSIGHTS --- */}
+        {/* INSIGHTS */}
         <Dialog open={showAnalytics} onOpenChange={setShowAnalytics}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>

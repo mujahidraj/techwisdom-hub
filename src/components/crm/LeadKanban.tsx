@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Phone, Building2, MoreVertical, Edit, Trash2, ChevronRight, GripVertical } from 'lucide-react';
+import { Phone, Building2, MoreVertical, Edit, Trash2, ChevronRight, GripVertical, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { EditLeadDialog } from './EditLeadDialog';
 import { DealWonDialog } from './DealWonDialog';
@@ -59,6 +60,7 @@ const columns: { id: LeadStatus; title: string; color: string }[] = [
   { id: 'deal_lost', title: 'Deal Lost', color: 'bg-red-500' },
 ];
 
+// ... (LeadCard and DragOverlayCard components remain exactly the same as previous step) ...
 interface LeadCardProps {
   lead: Lead;
   onEdit: (lead: Lead) => void;
@@ -100,6 +102,11 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
             <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
               <GripVertical className="h-4 w-4 text-muted-foreground" />
             </div>
+            
+            <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                #{(lead as any).sl_no || lead.id.slice(0,4)}
+            </span>
+
             <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="font-medium text-sm truncate">{lead.business_name}</span>
           </div>
@@ -176,6 +183,9 @@ function DragOverlayCard({ lead }: { lead: Lead }) {
       <CardContent className="p-3 space-y-2">
         <div className="flex items-center gap-2">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+             #{(lead as any).sl_no || lead.id.slice(0,4)}
+          </span>
           <Building2 className="h-4 w-4 text-muted-foreground" />
           <span className="font-medium text-sm truncate">{lead.business_name}</span>
         </div>
@@ -187,12 +197,26 @@ function DragOverlayCard({ lead }: { lead: Lead }) {
   );
 }
 
-export function LeadKanban() {
+// --- UPDATED SIGNATURE TO ACCEPT NEW FILTERS ---
+export function LeadKanban({ 
+    searchQuery = '', 
+    filter = 'all',
+    cityFilter = '',
+    categoryFilter = 'all'
+}: { 
+    searchQuery?: string, 
+    filter?: string,
+    cityFilter?: string,
+    categoryFilter?: string
+}) {
   const queryClient = useQueryClient();
   const [editLead, setEditLead] = useState<Lead | null>(null);
   const [deleteLead, setDeleteLead] = useState<Lead | null>(null);
   const [dealWonLead, setDealWonLead] = useState<Lead | null>(null);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
+  
+  const [columnLimits, setColumnLimits] = useState<Record<string, number>>({});
+  const INITIAL_LIMIT = 10;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -212,6 +236,43 @@ export function LeadKanban() {
       if (error) throw error;
       return data as Lead[];
     },
+  });
+
+  // --- FILTERING LOGIC ---
+  const filteredLeads = leads.filter(lead => {
+    // 1. Search Filter
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+            lead.business_name?.toLowerCase().includes(query) ||
+            lead.contact_person?.toLowerCase().includes(query) ||
+            lead.email?.toLowerCase().includes(query) ||
+            lead.phone?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+    }
+
+    // 2. Badge Filter
+    if (filter === 'high_value') {
+        return (lead.value || 0) >= 5000;
+    } else if (filter === 'new_week') {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        return new Date(lead.created_at) >= oneWeekAgo;
+    } else if (filter === 'follow_up') {
+        return lead.status === 'contacted';
+    }
+
+    // 3. City Filter
+    if (cityFilter && lead.city) {
+        if (!lead.city.toLowerCase().includes(cityFilter.toLowerCase())) return false;
+    }
+
+    // 4. Category Filter
+    if (categoryFilter && categoryFilter !== 'all') {
+        if (lead.category !== categoryFilter) return false;
+    }
+
+    return true; 
   });
 
   const updateStatusMutation = useMutation({
@@ -266,14 +327,12 @@ export function LeadKanban() {
     const lead = leads.find((l) => l.id === leadId);
     if (!lead) return;
 
-    // Check if dropped over a column
     const targetColumn = columns.find((c) => c.id === over.id);
     if (targetColumn && targetColumn.id !== lead.status) {
       handleStatusChange(lead, targetColumn.id);
       return;
     }
 
-    // Check if dropped over another lead
     const overLead = leads.find((l) => l.id === over.id);
     if (overLead && overLead.status !== lead.status) {
       handleStatusChange(lead, overLead.status);
@@ -297,7 +356,14 @@ export function LeadKanban() {
   };
 
   const getLeadsByStatus = (status: LeadStatus) =>
-    leads.filter((lead) => lead.status === status);
+    filteredLeads.filter((lead) => lead.status === status);
+
+  const showMore = (columnId: string) => {
+    setColumnLimits(prev => ({
+        ...prev,
+        [columnId]: (prev[columnId] || INITIAL_LIMIT) + 50
+    }));
+  };
 
   if (isLoading) {
     return <div className="text-center py-8 text-muted-foreground">Loading leads...</div>;
@@ -312,10 +378,13 @@ export function LeadKanban() {
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
       >
-        {/* Changed from Grid to Flexbox to prevent overlapping */}
         <div className="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-6 items-start h-full">
           {columns.map((column) => {
-            const columnLeads = getLeadsByStatus(column.id);
+            const allColumnLeads = getLeadsByStatus(column.id);
+            const limit = columnLimits[column.id] || INITIAL_LIMIT;
+            const visibleLeads = allColumnLeads.slice(0, limit);
+            const hasMore = allColumnLeads.length > limit;
+
             return (
               <div 
                 key={column.id} 
@@ -325,11 +394,11 @@ export function LeadKanban() {
                   <div className={`w-2 h-2 rounded-full ${column.color}`} />
                   <h3 className="font-semibold">{column.title}</h3>
                   <Badge variant="secondary" className="ml-auto">
-                    {columnLeads.length}
+                    {allColumnLeads.length}
                   </Badge>
                 </div>
                 <SortableContext
-                  items={columnLeads.map((l) => l.id)}
+                  items={visibleLeads.map((l) => l.id)}
                   strategy={verticalListSortingStrategy}
                   id={column.id}
                 >
@@ -337,7 +406,7 @@ export function LeadKanban() {
                     className="space-y-3 min-h-[150px] p-2 bg-muted/30 rounded-lg border border-border/50"
                     data-column-id={column.id}
                   >
-                    {columnLeads.map((lead) => (
+                    {visibleLeads.map((lead) => (
                       <LeadCard
                         key={lead.id}
                         lead={lead}
@@ -346,7 +415,20 @@ export function LeadKanban() {
                         onStatusChange={handleStatusChange}
                       />
                     ))}
-                    {columnLeads.length === 0 && (
+                    
+                    {hasMore && (
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full text-xs text-muted-foreground hover:bg-white"
+                            onClick={() => showMore(column.id)}
+                        >
+                            <ChevronDown className="h-3 w-3 mr-1" />
+                            Show More ({allColumnLeads.length - limit} remaining)
+                        </Button>
+                    )}
+
+                    {allColumnLeads.length === 0 && (
                       <div className="h-32 flex items-center justify-center text-sm text-muted-foreground border-2 border-dashed rounded-lg bg-background/50">
                         Drop items here
                       </div>

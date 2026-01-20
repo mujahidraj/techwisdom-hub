@@ -282,6 +282,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          value: number
           address: string | null
           business_name: string
           category: Database["public"]["Enums"]["lead_category"] | null
