@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, Phone, Users, Shield, Loader2, Maximize2, Badge } from 'lucide-react';
+import { Video, Phone, Users, Shield, Loader2, Maximize2, PhoneOff, Badge } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,32 +30,55 @@ export default function Meeting() {
     }
   });
 
-  const startMeeting = () => {
+  // Function to handle ending the call manually
+  const handleHangup = () => {
+    if (api) {
+        api.dispose(); // Kill the Jitsi instance
+    }
+    setApi(null);
+    setMeetingJoined(false);
+    setLoading(true);
+  };
+
+  const startMeeting = (type: 'audio' | 'video') => {
     setMeetingJoined(true);
     setLoading(true);
 
+    // SAFETY FALLBACK: Remove loading screen after 4s if Jitsi is slow
+    const timeout = setTimeout(() => {
+        setLoading(false);
+    }, 4000);
+
     const loadJitsiScript = () => {
+      if (window.JitsiMeetExternalAPI) {
+        initializeJitsi(type);
+        return;
+      }
+
       const script = document.createElement("script");
       script.src = "https://meet.jit.si/external_api.js";
       script.async = true;
-      script.onload = () => initializeJitsi();
+      script.onload = () => initializeJitsi(type);
       document.body.appendChild(script);
     };
 
-    const initializeJitsi = () => {
-      if (!window.JitsiMeetExternalAPI) return;
+    const initializeJitsi = (callType: 'audio' | 'video') => {
+      if (!window.JitsiMeetExternalAPI || !jitsiContainerRef.current) return;
+
+      jitsiContainerRef.current.innerHTML = "";
 
       const domain = "meet.jit.si";
       const options = {
-        roomName: "TechWisdom-ERP-General-Conference-8821", // Unique room name
+        roomName: "TechWisdom-ERP-General-Conference-8821",
         width: "100%",
         height: "100%",
         parentNode: jitsiContainerRef.current,
         lang: "en",
         configOverwrite: {
-          startWithAudioMuted: false,
+          startWithAudioMuted: false, // Audio always ON
+          startWithVideoMuted: callType === 'audio', // Video OFF if audio call
           disableDeepLinking: true,
-          prejoinPageEnabled: false, // Skip prejoin for instant access
+          prejoinPageEnabled: false,
         },
         interfaceConfigOverwrite: {
           SHOW_JITSI_WATERMARK: false,
@@ -70,7 +93,7 @@ export default function Meeting() {
           ],
           APP_NAME: 'TechWisdom ERP',
           NATIVE_APP_NAME: 'TechWisdom ERP',
-          DEFAULT_BACKGROUND: '#0f172a', // Match your dark theme
+          DEFAULT_BACKGROUND: '#0f172a',
         },
         userInfo: {
           displayName: profile?.full_name || user?.email?.split('@')[0] || "TechWisdom User",
@@ -82,26 +105,18 @@ export default function Meeting() {
       
       newApi.addEventListeners({
         videoConferenceJoined: () => {
+          clearTimeout(timeout);
           setLoading(false);
         },
         videoConferenceLeft: () => {
-          setMeetingJoined(false);
-          setApi(null);
-          // Remove the iframe manually to clean up
-          if (jitsiContainerRef.current) {
-            jitsiContainerRef.current.innerHTML = '';
-          }
+          handleHangup(); // Handle hangup from inside Jitsi toolbar
         },
       });
 
       setApi(newApi);
     };
 
-    if (window.JitsiMeetExternalAPI) {
-      initializeJitsi();
-    } else {
-      loadJitsiScript();
-    }
+    loadJitsiScript();
   };
 
   // Cleanup on unmount
@@ -127,11 +142,26 @@ export default function Meeting() {
               Secure internal video & audio communication channel.
             </p>
           </div>
-          {meetingJoined && (
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 animate-pulse text-sm font-medium">
-              <Shield className="h-3 w-3" /> Encrypted Connection
-            </div>
-          )}
+          
+          <div className="flex items-center gap-3">
+            {meetingJoined && (
+                <>
+                    <Badge className="bg-green-50 text-green-700 border-green-200 animate-pulse hidden sm:flex">
+                    <Shield className="h-3 w-3 mr-1" /> Encrypted Connection
+                    </Badge>
+                    
+                    {/* NEW: Explicit End Call Button */}
+                    <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={handleHangup}
+                        className="shadow-md"
+                    >
+                        <PhoneOff className="h-4 w-4 mr-2" /> End Call
+                    </Button>
+                </>
+            )}
+          </div>
         </div>
 
         {/* MEETING CONTAINER */}
@@ -151,19 +181,19 @@ export default function Meeting() {
                 </p>
               </div>
               
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Button 
                   size="lg" 
-                  onClick={startMeeting}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg shadow-lg shadow-blue-500/20"
+                  onClick={() => startMeeting('video')} // Explicitly Video
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg shadow-lg shadow-blue-500/20 w-full sm:w-auto"
                 >
                   <Video className="mr-2 h-6 w-6" /> Join Video Call
                 </Button>
                 <Button 
                   size="lg" 
                   variant="secondary"
-                  onClick={startMeeting} // Jitsi handles audio-only toggle inside
-                  className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-6 text-lg"
+                  onClick={() => startMeeting('audio')} // Explicitly Audio
+                  className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-6 text-lg w-full sm:w-auto"
                 >
                   <Phone className="mr-2 h-6 w-6" /> Join Audio Only
                 </Button>
@@ -178,8 +208,8 @@ export default function Meeting() {
             // ACTIVE MEETING VIEW
             <>
               {loading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-50 text-white">
-                  <div className="flex flex-col items-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-50 text-white pointer-events-none">
+                  <div className="flex flex-col items-center bg-slate-800/80 p-6 rounded-xl backdrop-blur-sm">
                     <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
                     <p>Connecting to secure server...</p>
                   </div>
