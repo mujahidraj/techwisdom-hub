@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Send, Paperclip, Smile, Search, MoreVertical, Phone, Video, 
-  Reply, X, FileText, Loader2 
+  Reply, X, FileText, Loader2, Trash2, Pencil, Check, Volume2, VolumeX
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +20,8 @@ import { useNavigate } from 'react-router-dom';
 const CLOUDINARY_CLOUD_NAME = "dljiukpd4"; 
 const CLOUDINARY_PRESET = "chat_upload"; 
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+
+// Sound link - High quality notification
 const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
 const QUICK_EMOJIS = ["😀", "😂", "❤️", "👍", "🙌", "🔥"];
 
@@ -29,14 +31,20 @@ export default function Messages() {
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   
+  // States
   const [activeChat, setActiveChat] = useState<any>(null); 
   const [messageText, setMessageText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [replyTo, setReplyTo] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   
-  // 1. Fetch Users - Added enabled check to fix "undefined" error
+  // Edit State
+  const [editingMessage, setEditingMessage] = useState<any>(null);
+  const [editText, setEditText] = useState('');
+
+  // 1. Fetch Users
   const { data: users = [] } = useQuery({
     queryKey: ['chat_users', user?.id],
     enabled: !!user?.id, 
@@ -46,17 +54,14 @@ export default function Messages() {
     }
   });
 
-  // 2. Fetch Messages from 'team_messages'
-  const { data: messages = [], isError, isLoading } = useQuery({
+  // 2. Fetch Messages
+  const { data: messages = [], isLoading } = useQuery({
     queryKey: ['team_messages', activeChat?.id || 'general', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       let query = supabase
         .from('team_messages')
-        .select(`
-          *,
-          sender:profiles!team_messages_sender_id_fkey (full_name, avatar_url)
-        `)
+        .select(`*, sender:profiles!team_messages_sender_id_fkey (full_name, avatar_url)`)
         .order('created_at', { ascending: true });
 
       if (activeChat) {
@@ -64,51 +69,88 @@ export default function Messages() {
       } else {
         query = query.is('receiver_id', null);
       }
-      
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
     }
   });
 
-  // 3. Realtime Listener
+  // 3. Realtime + Multi-Sensory Notifications
   useEffect(() => {
     if (!user?.id) return;
 
     const channel = supabase
       .channel('team_chat_live')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'team_messages' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'team_messages' }, (payload) => {
         queryClient.invalidateQueries({ queryKey: ['team_messages'] });
+
+        if (payload.eventType === 'INSERT' && payload.new.sender_id !== user?.id) {
+          // Play Sound
+          if (!isMuted) {
+            const audio = new Audio(NOTIFICATION_SOUND);
+            audio.play().catch(e => console.log("Audio play blocked by browser:", e));
+          }
+
+          // Visual Toast
+          toast("New Team Message", {
+            description: payload.new.content?.substring(0, 40) || "Shared a file",
+          });
+
+          // Browser Notification
+          if (Notification.permission === "granted") {
+            new Notification("TechWisdom ERP", { body: "New message in chat" });
+          }
+        }
       })
       .subscribe();
       
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id, activeChat, queryClient]);
+  }, [user?.id, activeChat, queryClient, isMuted]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 4. Send Logic
+  // Request Notifications on first load
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+  }, []);
+
+  // 4. Mutations
   const sendMessageMutation = useMutation({
     mutationFn: async ({ content, type = 'text', fileUrl = null }: any) => {
-      await (supabase.from('team_messages') as any).insert({
+      await supabase.from('team_messages').insert({
         sender_id: user?.id,
         receiver_id: activeChat?.id || null, 
-        content,
-        type,
-        file_url: fileUrl,
+        content, type, file_url: fileUrl,
         reply_to: replyTo?.id || null
       });
     }
   });
+
+  const deleteMessage = async (id: string) => {
+    const { error } = await supabase.from('team_messages').delete().eq('id', id);
+    if (error) toast.error("Delete failed");
+    else queryClient.invalidateQueries({ queryKey: ['team_messages'] });
+  };
+
+  const saveEdit = async () => {
+    if (!editText.trim()) return;
+    const { error } = await supabase.from('team_messages').update({ content: editText }).eq('id', editingMessage);
+    if (error) toast.error("Edit failed");
+    else {
+        setEditingMessage(null);
+        queryClient.invalidateQueries({ queryKey: ['team_messages'] });
+    }
+  };
 
   const handleSend = () => {
     if (!messageText.trim()) return;
     sendMessageMutation.mutate({ content: messageText });
     setMessageText('');
     setReplyTo(null);
-    setShowEmoji(false);
   };
 
   const handleFileUpload = async (e: any) => {
@@ -126,7 +168,7 @@ export default function Messages() {
             sendMessageMutation.mutate({ content: file.name, type, fileUrl: data.secure_url });
         }
     } catch (err) {
-        toast.error("Cloud upload failed");
+        toast.error("Upload error");
     } finally {
         setIsUploading(false);
     }
@@ -140,7 +182,12 @@ export default function Messages() {
         {/* SIDEBAR */}
         <Card className="w-80 flex flex-col border-r glass-card hidden md:flex overflow-hidden">
           <div className="p-4 border-b">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-3">Team Channels</h3>
+            <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Channels</h3>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsMuted(!isMuted)}>
+                    {isMuted ? <VolumeX className="h-4 w-4 text-red-500" /> : <Volume2 className="h-4 w-4 text-green-500" />}
+                </Button>
+            </div>
             <button onClick={() => setActiveChat(null)} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${!activeChat ? 'bg-primary text-white shadow-md' : 'hover:bg-slate-100'}`}>
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center font-bold">#</div>
               <div className="text-left font-semibold">General Feed</div>
@@ -162,10 +209,7 @@ export default function Messages() {
           <div className="p-4 border-b bg-white/50 backdrop-blur-md flex justify-between items-center">
             <div className="flex items-center gap-3">
               <Avatar className="ring-2 ring-primary/20"><AvatarImage src={activeChat?.avatar_url} /><AvatarFallback>#</AvatarFallback></Avatar>
-              <div>
-                <h2 className="font-bold">{activeChat ? activeChat.full_name : 'Team General'}</h2>
-                <p className="text-[10px] text-green-500 font-medium uppercase tracking-tighter">Live Sync Enabled</p>
-              </div>
+              <h2 className="font-bold">{activeChat ? activeChat.full_name : 'Team General'}</h2>
             </div>
             <div className="flex gap-1">
                <Button variant="ghost" size="icon" onClick={() => navigate('/meeting')}><Phone className="h-5 w-5"/></Button>
@@ -174,42 +218,62 @@ export default function Messages() {
           </div>
 
           <ScrollArea className="flex-1 p-4 bg-slate-50/30">
-            {isLoading && <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-primary" /></div>}
             <div className="space-y-4">
-              {messages.map((msg: any) => (
-                <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`p-3 rounded-2xl max-w-[75%] shadow-sm relative group ${msg.sender_id === user?.id ? 'bg-primary text-white rounded-tr-none' : 'bg-white border rounded-tl-none'}`}>
-                    {!activeChat && msg.sender_id !== user?.id && <div className="text-[10px] font-bold mb-1 text-primary">{msg.sender?.full_name}</div>}
-                    {msg.type === 'text' && <p className="text-sm leading-relaxed">{msg.content}</p>}
-                    {msg.type === 'image' && <img src={msg.file_url} className="rounded-lg max-h-60" onClick={() => window.open(msg.file_url)} />}
-                    {msg.type === 'file' && <a href={msg.file_url} target="_blank" className="flex items-center gap-2 text-xs underline"><FileText className="h-4 w-4"/>{msg.content}</a>}
-                    <div className="text-[9px] mt-1 opacity-70 text-right">{format(new Date(msg.created_at), 'h:mm a')}</div>
-                    <button className="absolute -right-8 top-2 hidden group-hover:block transition-all" onClick={() => setReplyTo(msg)}><Reply className="h-4 w-4 text-slate-400"/></button>
+              {messages.map((msg: any) => {
+                const isMe = msg.sender_id === user?.id;
+                const isEditing = editingMessage === msg.id;
+                return (
+                  <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col group relative`}>
+                      {!isMe && !activeChat && <div className="text-[10px] font-bold mb-1 text-primary">{msg.sender?.full_name}</div>}
+                      
+                      <div className={`p-3 rounded-2xl shadow-sm ${isMe ? 'bg-primary text-white rounded-tr-none' : 'bg-white border rounded-tl-none'}`}>
+                        {isEditing ? (
+                            <div className="flex flex-col gap-2">
+                                <Input className="text-black bg-white h-8" value={editText} onChange={e => setEditText(e.target.value)} />
+                                <div className="flex justify-end gap-1">
+                                  <Button size="sm" variant="ghost" className="h-6 text-white" onClick={() => setEditingMessage(null)}>Cancel</Button>
+                                  <Button size="sm" className="h-6 bg-white text-primary" onClick={saveEdit}>Save</Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                {msg.type === 'text' && <p className="text-sm">{msg.content}</p>}
+                                {msg.type === 'image' && <img src={msg.file_url} className="rounded-lg max-h-60" />}
+                                {msg.type === 'file' && <a href={msg.file_url} target="_blank" className="flex items-center gap-2 text-xs underline"><FileText className="h-4 w-4"/>{msg.content}</a>}
+                            </>
+                        )}
+                        <div className="text-[9px] mt-1 opacity-70 text-right">{format(new Date(msg.created_at), 'h:mm a')}</div>
+                      </div>
+
+                      {/* ACTIONS MENU - VISIBLE ON HOVER */}
+                      <div className={`absolute -top-4 ${isMe ? 'left-0' : 'right-0'} hidden group-hover:flex items-center gap-1 bg-white border rounded-full px-2 py-1 shadow-md z-10`}>
+                          <button className="p-1 hover:text-blue-500 transition-colors" onClick={() => setReplyTo(msg)}><Reply className="h-3 w-3"/></button>
+                          {isMe && (
+                              <>
+                                <button className="p-1 hover:text-amber-500 transition-colors" onClick={() => { setEditingMessage(msg.id); setEditText(msg.content); }}><Pencil className="h-3 w-3"/></button>
+                                <button className="p-1 hover:text-red-500 transition-colors" onClick={() => deleteMessage(msg.id)}><Trash2 className="h-3 w-3"/></button>
+                              </>
+                          )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={scrollRef} />
             </div>
           </ScrollArea>
 
-          {/* INPUT */}
           <div className="p-4 bg-white border-t relative">
-            {replyTo && <div className="p-2 mb-2 bg-slate-50 rounded text-xs flex justify-between border-l-4 border-primary"><span>Replying...</span><button onClick={() => setReplyTo(null)}><X className="h-4 w-4"/></button></div>}
-            {showEmoji && (
-                <div className="absolute bottom-20 left-4 bg-white border rounded-full p-2 shadow-xl flex gap-2 animate-in slide-in-from-bottom-2 z-50">
-                    {QUICK_EMOJIS.map(e => (
-                        <button key={e} onClick={() => {setMessageText(prev => prev + e); setShowEmoji(false);}} className="hover:scale-125 transition-transform p-1 text-lg">{e}</button>
-                    ))}
-                </div>
-            )}
+            {replyTo && <div className="p-2 mb-2 bg-slate-50 rounded text-xs flex justify-between border-l-4 border-primary"><span>Replying to: {replyTo.content?.substring(0, 30)}</span><button onClick={() => setReplyTo(null)}><X className="h-4 w-4"/></button></div>}
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => setShowEmoji(!showEmoji)}><Smile className="h-5 w-5"/></Button>
                 <div className="relative">
                     <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileUpload} disabled={isUploading}/>
                     <Button variant="ghost" size="icon">{isUploading ? <Loader2 className="animate-spin h-5 w-5"/> : <Paperclip className="h-5 w-5"/>}</Button>
                 </div>
-                <Input className="flex-1 bg-slate-100 border-0 focus-visible:ring-0" placeholder="Message Team..." value={messageText} onChange={e => setMessageText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}/>
-                <Button onClick={handleSend} disabled={!messageText.trim() && !isUploading} className="rounded-full"><Send className="h-4 w-4"/></Button>
+                <Input className="flex-1 bg-slate-100 border-0" placeholder="Message Team..." value={messageText} onChange={e => setMessageText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}/>
+                <Button onClick={handleSend} className="rounded-full h-10 w-10" disabled={!messageText.trim()}><Send className="h-5 w-5"/></Button>
             </div>
           </div>
         </Card>
