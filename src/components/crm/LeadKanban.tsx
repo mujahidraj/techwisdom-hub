@@ -46,6 +46,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { Tables } from '@/integrations/supabase/types';
+import { useNavigate } from 'react-router';
 
 type Lead = Tables<'leads'>;
 type LeadStatus = Lead['status'];
@@ -82,18 +83,21 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
     opacity: isSortableDragging ? 0.5 : 1,
   };
 
+  const navigate = useNavigate();
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
+      onClick={() => navigate(`/crm/${lead.id}`)}
       className={`glass-card cursor-grab hover:shadow-medium transition-shadow group ${
         isDragging ? 'shadow-lg ring-2 ring-primary' : ''
       }`}
     >
-      <CardContent className="p-3 space-y-2">
+      <CardContent  className="p-3 space-y-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
               <GripVertical className="h-4 w-4 text-muted-foreground" />
             </div>
             <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -105,12 +109,13 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(lead)}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(lead); }}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
@@ -125,7 +130,7 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
                     .map((col) => (
                       <DropdownMenuItem
                         key={col.id}
-                        onClick={() => onStatusChange(lead, col.id)}
+                        onClick={(e) => { e.stopPropagation(); onStatusChange(lead, col.id); }}
                       >
                         <div className={`w-2 h-2 rounded-full ${col.color} mr-2`} />
                         {col.title}
@@ -135,7 +140,7 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
               </DropdownMenuSub>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => onDelete(lead)}
+                onClick={(e) => { e.stopPropagation(); onDelete(lead); }}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />

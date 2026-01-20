@@ -15,7 +15,8 @@ import {
   Briefcase,
   StickyNote,
   BarChart3,
-  ShieldCheck, // <--- Imported Icon
+  ShieldCheck,
+  Calendar, // <--- Imported Icon
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,6 +43,7 @@ const mainNavItems = [
   { title: 'Projects', url: '/projects', icon: FolderKanban },
   { title: 'Messages', url: '/messages', icon: MessageSquare },
   { title: 'Notes', url: '/notes', icon: StickyNote },
+  { title: "Schedule", url: "/events", icon: Calendar },
 ];
 
 const managementItems = [

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Added Import
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input'; // Imported Input
+import { Input } from '@/components/ui/input';
 import {
   FolderKanban,
   Clock,
@@ -21,11 +22,11 @@ import {
   ChevronDown,
   ChevronUp,
   Archive,
-  Search,       // New Icon
-  LayoutGrid,   // New Icon
-  LayoutList,   // New Icon
-  ArrowUpDown,  // New Icon
-  Download      // New Icon
+  Search,
+  LayoutGrid,
+  LayoutList,
+  ArrowUpDown,
+  Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -85,6 +86,7 @@ const stageLabels: Record<ProjectStage, string> = {
 };
 
 export default function Projects() {
+  const navigate = useNavigate(); // Added Hook
   const { role, user } = useAuth();
   const isAdmin = role === 'admin';
   const queryClient = useQueryClient();
@@ -354,8 +356,12 @@ export default function Projects() {
         <div className={viewMode === 'grid' ? "space-y-4" : "grid gap-4"}>
           {filteredProjects.map((project) => (
             viewMode === 'grid' ? (
-              // --- GRID CARD VIEW (Existing UI) ---
-              <Card key={project.id} className="glass-card group">
+              // --- GRID CARD VIEW ---
+              <Card 
+                key={project.id} 
+                className="glass-card group cursor-pointer hover:shadow-md transition-all"
+                onClick={() => navigate(`/projects/${project.id}`)}
+              >
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -378,22 +384,23 @@ export default function Projects() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => e.stopPropagation()} // Stop propagation
                             >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditProject(project)}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditProject(project); }}>
                               <Edit className="h-4 w-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setCompleteProject(project)}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setCompleteProject(project); }}>
                               <Archive className="h-4 w-4 mr-2" />
                               Mark Complete
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => setDeleteProject(project)}
+                              onClick={(e) => { e.stopPropagation(); setDeleteProject(project); }}
                               className="text-destructive focus:text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
@@ -407,7 +414,7 @@ export default function Projects() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Stage Selector */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                     <Label className="text-sm text-muted-foreground min-w-[60px]">Stage:</Label>
                     {isAdmin ? (
                       <Select
@@ -446,7 +453,7 @@ export default function Projects() {
 
                   {/* Deployment Checklist */}
                   {project.stage === 'deployment' && isAdmin && (
-                    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <div className="p-4 bg-muted/50 rounded-lg space-y-3" onClick={(e) => e.stopPropagation()}>
                       <h4 className="font-medium text-sm">Deployment Checklist</h4>
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -489,7 +496,7 @@ export default function Projects() {
 
                   {/* Maintenance Retainer */}
                   {project.stage === 'maintenance' && isAdmin && (
-                    <div className="p-4 bg-muted/50 rounded-lg">
+                    <div className="p-4 bg-muted/50 rounded-lg" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-between">
                         <Label htmlFor={`retainer-${project.id}`} className="text-sm font-medium">
                           Retainer Paid?
@@ -522,9 +529,12 @@ export default function Projects() {
                         variant="ghost"
                         size="sm"
                         className="w-full justify-between"
-                        onClick={() => setExpandedProject(
-                          expandedProject === project.id ? null : project.id
-                        )}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Stop propagation here too
+                          setExpandedProject(
+                            expandedProject === project.id ? null : project.id
+                          )
+                        }}
                       >
                         <span className="flex items-center gap-2">
                           Documents
@@ -536,7 +546,7 @@ export default function Projects() {
                         )}
                       </Button>
                       {expandedProject === project.id && (
-                        <div className="mt-3 p-4 bg-muted/30 rounded-lg">
+                        <div className="mt-3 p-4 bg-muted/30 rounded-lg" onClick={(e) => e.stopPropagation()}>
                           <ProjectDocuments projectId={project.id} isAdmin={isAdmin} />
                         </div>
                       )}
@@ -546,7 +556,11 @@ export default function Projects() {
               </Card>
             ) : (
               // --- NEW: LIST VIEW ---
-              <Card key={project.id} className="hover:bg-muted/50 transition-colors">
+              <Card 
+                key={project.id} 
+                className="hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => navigate(`/projects/${project.id}`)}
+              >
                 <div className="p-4 flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-[200px]">
                     <div className="font-semibold text-base">{project.project_name}</div>
@@ -577,18 +591,23 @@ export default function Projects() {
                     {isAdmin && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={(e) => e.stopPropagation()} // Stop propagation
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setEditProject(project)}>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditProject(project); }}>
                             <Edit className="h-4 w-4 mr-2" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setCompleteProject(project)}>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setCompleteProject(project); }}>
                             <Archive className="h-4 w-4 mr-2" /> Mark Complete
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteProject(project)}>
+                          <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteProject(project); }}>
                             <Trash2 className="h-4 w-4 mr-2" /> Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
