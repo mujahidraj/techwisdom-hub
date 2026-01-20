@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import logo from '@/assets/techwisdom.png';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -205,7 +206,7 @@ export default function EmployeePortal() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 gradient-primary rounded-lg">
-              <Building2 className="h-6 w-6 text-primary-foreground" />
+             <img src={logo} className="h-10 w-10" alt="TechWisdom Logo" />
             </div>
             <div>
               <span className="font-bold text-lg">TechWisdom</span>

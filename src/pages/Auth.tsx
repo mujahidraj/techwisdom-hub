@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import logo from '@/assets/techwisdom.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -212,12 +214,9 @@ export default function Auth() {
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 text-primary-foreground">
           <div className="flex items-center gap-3 mb-8">
             <div className="p-3 bg-primary-foreground/10 backdrop-blur-sm rounded-xl">
-              <Building2 className="h-10 w-10" />
+              <img src={logo} className='h-32 w-full' alt="TechWisdom Logo" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold">TechWisdom</h1>
-              <p className="text-primary-foreground/80 text-sm">Agency ERP</p>
-            </div>
+            
           </div>
           
           <h2 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
