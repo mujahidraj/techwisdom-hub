@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -7,11 +9,10 @@ import {
   DollarSign,
   FileText,
   Settings,
-  Building2,
   ChevronLeft,
   ChevronRight,
-  MessageSquare, // Icon for Team Chat
-  Handshake,      // Icon for Client Interaction
+  MessageSquare,
+  Handshake,
   UserCog,
   Briefcase,
   StickyNote,
@@ -37,14 +38,16 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import logo from "../../assets/techwisdom.png"
+import logo from "../../assets/techwisdom.png";
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'CRM & Leads', url: '/crm', icon: Users },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
-  { title: 'Team Chat', url: '/teamChat', icon: MessageSquare }, // <--- Path Updated
-  { title: 'Client Interaction', url: '/client-interaction', icon: Handshake }, // <--- Renamed
+  { title: 'Team Chat', url: '/teamChat', icon: MessageSquare, badge: true }, 
+  { title: 'Client Interaction', url: '/client-interaction', icon: Handshake },
   { title: 'Notes', url: '/notes', icon: StickyNote },
   { title: "Schedule", url: "/events", icon: Calendar },
   { title: "Conference", url: "/meeting", icon: Video },
@@ -67,18 +70,71 @@ export function AppSidebar() {
   const location = useLocation();
   const { role, user } = useAuth();
   const { state, toggleSidebar } = useSidebar();
+  const queryClient = useQueryClient();
   const collapsed = state === 'collapsed';
+  const SOFT_NOTIFY_SOUND = "https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3";
+
+  // --- GLOWING UNREAD COUNT LOGIC ---
+  // Inside AppSidebar.tsx
+const { data: unreadCount = 0 } = useQuery({
+  queryKey: ['unread_sidebar_count', user?.id],
+  enabled: !!user?.id,
+  queryFn: async () => {
+    const { count, error } = await supabase
+      .from('team_messages')
+      .select('*', { count: 'exact', head: true })
+      // This is the most important part: "Does NOT contain my ID"
+      .not('seen_by', 'cs', `{${user?.id}}`) 
+      .neq('sender_id', user?.id);
+    
+    if (error) return 0;
+    return count || 0;
+  },
+  // Refetch every time you navigate or click back to dashboard
+  refetchOnWindowFocus: true 
+});
+
+  // 2. Place this inside your AppSidebar component function:
+useEffect(() => {
+  if (!user?.id) return;
+
+  const channel = supabase
+    .channel('global_notifications')
+    .on('postgres_changes', { 
+      event: 'INSERT', 
+      schema: 'public', 
+      table: 'team_messages' 
+    }, (payload) => {
+      // Refresh the unread count badge
+      queryClient.invalidateQueries({ queryKey: ['unread_sidebar_count'] });
+
+      // Play sound only if the message is from someone else
+      if (payload.new.sender_id !== user.id) {
+        const audio = new Audio(SOFT_NOTIFY_SOUND);
+        audio.volume = 0.4; // Soft volume
+        audio.play().catch(() => {
+          console.log("Audio play blocked: Browser requires user interaction first.");
+        });
+
+        // Show a toast if you are NOT currently on the chat page
+        if (location.pathname !== '/teamChat') {
+          toast.info("New Team Message", {
+            description: payload.new.content?.substring(0, 30) + "...",
+          });
+        }
+      }
+    })
+    .subscribe();
+
+  return () => { supabase.removeChannel(channel); };
+}, [user?.id, queryClient, location.pathname]);
 
   const isActive = (path: string) => location.pathname === path;
 
   const getVisibleItems = (items: typeof mainNavItems) => {
     if (role === 'client') {
       return items.filter(item => 
-        item.url === '/dashboard' || 
-        item.url === '/projects' || 
-        item.url === '/client-interaction' || 
-        item.url === '/notes' ||
-        item.url === '/meeting'
+        ['/dashboard', '/projects', '/client-interaction', '/notes', '/meeting'].includes(item.url)
       );
     }
     return items;
@@ -86,25 +142,14 @@ export function AppSidebar() {
 
   const getVisibleManagementItems = () => {
     if (role === 'client') return [];
-    if (role === 'employee') {
-      return managementItems.filter(item => item.url === '/team');
-    }
+    if (role === 'employee') return managementItems.filter(item => item.url === '/team');
     return managementItems;
   };
 
-  const getVisibleAdminItems = () => {
-    if (role !== 'admin') return [];
-    return adminItems;
-  };
+  const getVisibleAdminItems = () => (role === 'admin' ? adminItems : []);
 
   return (
-    <Sidebar
-      className={cn(
-        'glass-sidebar transition-all duration-300',
-        collapsed ? 'w-16' : 'w-64'
-      )}
-      collapsible="icon"
-    >
+    <Sidebar className={cn('glass-sidebar transition-all duration-300', collapsed ? 'w-16' : 'w-64')} collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex flex-row items-left gap-3">
           <div className="p-2 gradient-primary rounded-lg flex-shrink-0">
@@ -130,14 +175,22 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       className={cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative',
                         'hover:bg-sidebar-accent/50',
                         isActive(item.url) && 'bg-primary/10 text-primary font-medium'
                       )}
-                      activeClassName="bg-primary/10 text-primary font-medium"
                     >
                       <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
                       {!collapsed && <span>{item.title}</span>}
+                      
+                      {item.badge && unreadCount > 0 && (
+                        <div className={cn(
+                          "absolute flex items-center justify-center rounded-full bg-red-600 text-white font-bold animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]",
+                          collapsed ? "top-1 right-1 h-2 w-2" : "right-3 h-5 min-w-[20px] px-1.5 text-[10px]"
+                        )}>
+                           {!collapsed && unreadCount}
+                        </div>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -154,15 +207,7 @@ export function AppSidebar() {
                 {getVisibleManagementItems().map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        className={cn(
-                          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                          'hover:bg-sidebar-accent/50',
-                          isActive(item.url) && 'bg-primary/10 text-primary font-medium'
-                        )}
-                        activeClassName="bg-primary/10 text-primary font-medium"
-                      >
+                      <NavLink to={item.url} className={cn('flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors', isActive(item.url) && 'bg-primary/10 text-primary font-medium')}>
                         <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
@@ -182,15 +227,7 @@ export function AppSidebar() {
                 {getVisibleAdminItems().map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        className={cn(
-                          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                          'hover:bg-sidebar-accent/50',
-                          isActive(item.url) && 'bg-primary/10 text-primary font-medium'
-                        )}
-                        activeClassName="bg-primary/10 text-primary font-medium"
-                      >
+                      <NavLink to={item.url} className={cn('flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors', isActive(item.url) && 'bg-primary/10 text-primary font-medium')}>
                         <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
@@ -204,31 +241,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink
-                to="/settings"
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                  'hover:bg-sidebar-accent/50',
-                  isActive('/settings') && 'bg-primary/10 text-primary font-medium'
-                )}
-                activeClassName="bg-primary/10 text-primary font-medium"
-              >
-                <Settings className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span>Settings</span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleSidebar}
-          className="w-full justify-center mt-2"
-        >
+        <Button variant="ghost" size="sm" onClick={toggleSidebar} className="w-full justify-center mt-2">
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </SidebarFooter>
