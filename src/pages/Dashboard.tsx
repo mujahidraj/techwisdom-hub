@@ -13,14 +13,14 @@ import { Input } from '@/components/ui/input';
 import { 
   Users, FolderKanban, TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight, 
   Clock, Plus, FileText, Zap, Calendar, CheckSquare, 
-  PieChart, Server, Lightbulb, Trash2, X, MoreHorizontal, AlertCircle 
+  PieChart, Lightbulb, Trash2, X, MoreHorizontal, AlertCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/currency';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart as RePieChart, Pie, Cell, Legend 
+  PieChart as RePieChart, Pie, Cell
 } from 'recharts';
 import { toast } from 'sonner';
 import {
@@ -49,11 +49,34 @@ export default function Dashboard() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', start_time: '' });
 
-  // --- 1. AUTOMATIC STATUS UPDATE ---
+  // --- 1. REAL-TIME STATUS UPDATE ---
   useEffect(() => {
-    if (user?.id) {
-      supabase.from('profiles' as any).update({ status: 'online' }).eq('id', user.id).then();
-    }
+    if (!user?.id) return;
+
+    // Function to set status online
+    const setOnline = async () => {
+      await supabase.from('profiles' as any).update({ status: 'online' }).eq('id', user.id);
+    };
+
+    // Function to set status offline
+    const setOffline = async () => {
+      await supabase.from('profiles' as any).update({ status: 'offline' }).eq('id', user.id);
+    };
+
+    // 1. Set Online immediately when component mounts
+    setOnline();
+
+    // 2. Set Offline when browser window/tab is closed
+    const handleBeforeUnload = () => {
+        setOffline();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // 3. Set Offline when navigating away (Unmount)
+    return () => {
+      setOffline();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [user?.id]);
 
   // Mutation to manually change status
@@ -69,14 +92,14 @@ export default function Dashboard() {
 
   // --- 2. DATA QUERIES ---
 
-  // A. Team Status (Real Data)
+  // A. Team Status (Real Data - Polls every 5s to check if others came online)
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team_status'],
     queryFn: async () => {
       const { data } = await supabase.from('profiles' as any).select('id, full_name, avatar_url, status');
       return data || [];
     },
-    refetchInterval: 10000 
+    refetchInterval: 5000 // Faster polling for real-time feel
   });
 
   // B. Today's Focus
@@ -116,7 +139,6 @@ export default function Dashboard() {
   // D. Standard Dashboard Data
   const { data: leadsData } = useQuery({ queryKey: ['dash_leads'], queryFn: async () => (await supabase.from('leads').select('id, status')).data });
   const { data: projectsData } = useQuery({ queryKey: ['dash_projects'], queryFn: async () => (await supabase.from('active_projects').select('*')).data });
-  const { data: expensesData } = useQuery({ queryKey: ['dash_expenses'], queryFn: async () => (await supabase.from('expenses').select('amount')).data });
   const { data: unreadMessages } = useQuery({ queryKey: ['dash_msgs'], queryFn: async () => (await supabase.from('client_messages').select('id').eq('is_read', false)).data?.length || 0 });
   const { data: recentLeads } = useQuery({ queryKey: ['dash_recent'], queryFn: async () => (await supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(5)).data });
 
@@ -205,7 +227,7 @@ export default function Dashboard() {
     }
   };
 
-  const chartData = projectsData?.slice(0, 7).map((p: any, i: number) => ({
+  const chartData = projectsData?.slice(0, 7).map((p: any) => ({
     name: p.project_name.substring(0, 10) + '...',
     Budget: p.total_budget || 0,
     Paid: p.paid_amount || 0
@@ -285,7 +307,7 @@ export default function Dashboard() {
           {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* 1. REVENUE CHART (Clickable) */}
+            {/* 1. REVENUE CHART */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/finances')}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500" /> Revenue vs. Collection</CardTitle>
@@ -313,7 +335,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* 2. UPCOMING DEADLINES (Added Back & Clickable) */}
+            {/* 2. UPCOMING DEADLINES */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/projects')}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -345,7 +367,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* 3. RECENT LEADS (Clickable) */}
+            {/* 3. RECENT LEADS */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/crm')}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div className="space-y-1">
@@ -377,7 +399,7 @@ export default function Dashboard() {
           {/* RIGHT COLUMN */}
           <div className="space-y-6">
 
-            {/* 4. REVENUE GOAL (Clickable) */}
+            {/* 4. REVENUE GOAL */}
             <Card 
                 className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0 shadow-xl cursor-pointer hover:scale-[1.02] transition-transform" 
                 onClick={() => navigate('/finances')}
@@ -395,7 +417,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* 5. PROJECT STAGES (Clickable) */}
+            {/* 5. PROJECT STAGES */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/projects')}>
               <CardHeader><CardTitle className="text-sm flex items-center gap-2"><PieChart className="h-4 w-4" /> Active Stages</CardTitle></CardHeader>
               <CardContent className="h-[200px]">

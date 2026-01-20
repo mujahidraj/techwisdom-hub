@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import LeadDetails from "./pages/LeadDetails";
 import EventsTasks from "./pages/EventsTasks";
 import ProjectDetails from "./pages/ProjectDetails";
+import Meeting from "./pages/Meeting";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/crm/:id" element={<LeadDetails />} />
             <Route path="/events" element={<EventsTasks />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
+            <Route path="/meeting" element={<Meeting />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

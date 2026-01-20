@@ -16,7 +16,8 @@ import {
   StickyNote,
   BarChart3,
   ShieldCheck,
-  Calendar, // <--- Imported Icon
+  Calendar,
+  Video, // <--- Imported Video Icon
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,11 +45,12 @@ const mainNavItems = [
   { title: 'Messages', url: '/messages', icon: MessageSquare },
   { title: 'Notes', url: '/notes', icon: StickyNote },
   { title: "Schedule", url: "/events", icon: Calendar },
+  { title: "Conference", url: "/meeting", icon: Video }, // <--- Added Here
 ];
 
 const managementItems = [
   { title: 'Team', url: '/team', icon: UserCircle },
-  { title: 'Maintenance', url: '/maintenance', icon: ShieldCheck }, // <--- Added Here
+  { title: 'Maintenance', url: '/maintenance', icon: ShieldCheck },
   { title: 'Finances', url: '/finances', icon: DollarSign },
   { title: 'Invoices', url: '/invoices', icon: FileText },
   { title: 'Reports', url: '/reports', icon: BarChart3 },
@@ -74,7 +76,8 @@ export function AppSidebar() {
         item.url === '/dashboard' || 
         item.url === '/projects' || 
         item.url === '/messages' ||
-        item.url === '/notes'
+        item.url === '/notes' ||
+        item.url === '/meeting' // Assuming clients can also join meetings
       );
     }
     return items;
@@ -83,8 +86,6 @@ export function AppSidebar() {
   const getVisibleManagementItems = () => {
     if (role === 'client') return [];
     if (role === 'employee') {
-      // Employees might need to see maintenance logs, depending on your logic. 
-      // Keeping it consistent with previous logic (only Team).
       return managementItems.filter(item => item.url === '/team');
     }
     return managementItems;
