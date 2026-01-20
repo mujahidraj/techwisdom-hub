@@ -41,13 +41,14 @@ import { cn } from '@/lib/utils';
 import logo from "../../assets/techwisdom.png";
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'CRM & Leads', url: '/crm', icon: Users },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
   { title: 'Team Chat', url: '/teamChat', icon: MessageSquare, badge: true }, 
-  { title: 'Client Interaction', url: '/client-interaction', icon: Handshake },
+  { title: 'Client Interaction', url: '/messages', icon: Handshake }, 
   { title: 'Notes', url: '/notes', icon: StickyNote },
   { title: "Schedule", url: "/events", icon: Calendar },
   { title: "Conference", url: "/meeting", icon: Video },
@@ -72,69 +73,71 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const queryClient = useQueryClient();
   const collapsed = state === 'collapsed';
-  const SOFT_NOTIFY_SOUND = "https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3";
+  
+  // Soft iPhone chime
+  const SOFT_NOTIFY_SOUND = "https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3";
 
   // --- GLOWING UNREAD COUNT LOGIC ---
-  // Inside AppSidebar.tsx
-const { data: unreadCount = 0 } = useQuery({
-  queryKey: ['unread_sidebar_count', user?.id],
-  enabled: !!user?.id,
-  queryFn: async () => {
-    const { count, error } = await supabase
-      .from('team_messages')
-      .select('*', { count: 'exact', head: true })
-      // This is the most important part: "Does NOT contain my ID"
-      .not('seen_by', 'cs', `{${user?.id}}`) 
-      .neq('sender_id', user?.id);
-    
-    if (error) return 0;
-    return count || 0;
-  },
-  // Refetch every time you navigate or click back to dashboard
-  refetchOnWindowFocus: true 
-});
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['unread_sidebar_count', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      // FIX: Precision filtering - Count only if (Not me) AND (Not Seen) AND (General OR For Me)
+      const { count, error } = await supabase
+        .from('team_messages')
+        .select('id', { count: 'exact', head: true })
+        .not('seen_by', 'cs', `{${user?.id}}`) 
+        .neq('sender_id', user?.id)
+        .or(`receiver_id.is.null,receiver_id.eq.${user?.id}`); // FIX: Prevents seeing counts for others' private chats
+      
+      if (error) return 0;
+      return count || 0;
+    },
+    refetchOnWindowFocus: true 
+  });
 
-  // 2. Place this inside your AppSidebar component function:
-useEffect(() => {
-  if (!user?.id) return;
+  // Global Notification Listener
+  useEffect(() => {
+    if (!user?.id) return;
 
-  const channel = supabase
-    .channel('global_notifications')
-    .on('postgres_changes', { 
-      event: 'INSERT', 
-      schema: 'public', 
-      table: 'team_messages' 
-    }, (payload) => {
-      // Refresh the unread count badge
-      queryClient.invalidateQueries({ queryKey: ['unread_sidebar_count'] });
+    const channel = supabase
+      .channel('global_notifications')
+      .on('postgres_changes', { 
+        event: '*', // FIX: Listen to UPDATE too, so counts clear immediately when you read them
+        schema: 'public', 
+        table: 'team_messages' 
+      }, (payload) => {
+        // Refresh the unread count badge for any database change
+        queryClient.invalidateQueries({ queryKey: ['unread_sidebar_count'] });
 
-      // Play sound only if the message is from someone else
-      if (payload.new.sender_id !== user.id) {
-        const audio = new Audio(SOFT_NOTIFY_SOUND);
-        audio.volume = 0.4; // Soft volume
-        audio.play().catch(() => {
-          console.log("Audio play blocked: Browser requires user interaction first.");
-        });
+        // Play sound ONLY on new incoming messages meant for you or everyone
+        if (payload.eventType === 'INSERT' && payload.new.sender_id !== user.id) {
+          const isForMe = !payload.new.receiver_id || payload.new.receiver_id === user.id;
+          
+          if (isForMe) {
+            const audio = new Audio(SOFT_NOTIFY_SOUND);
+            audio.volume = 0.4;
+            audio.play().catch(() => {});
 
-        // Show a toast if you are NOT currently on the chat page
-        if (location.pathname !== '/teamChat') {
-          toast.info("New Team Message", {
-            description: payload.new.content?.substring(0, 30) + "...",
-          });
+            if (location.pathname !== '/teamChat') {
+              toast.info("New Team Message", {
+                description: payload.new.content?.substring(0, 30) + "...",
+              });
+            }
+          }
         }
-      }
-    })
-    .subscribe();
+      })
+      .subscribe();
 
-  return () => { supabase.removeChannel(channel); };
-}, [user?.id, queryClient, location.pathname]);
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, queryClient, location.pathname]);
 
   const isActive = (path: string) => location.pathname === path;
 
   const getVisibleItems = (items: typeof mainNavItems) => {
     if (role === 'client') {
       return items.filter(item => 
-        ['/dashboard', '/projects', '/client-interaction', '/notes', '/meeting'].includes(item.url)
+        ['/dashboard', '/projects', '/messages', '/notes', '/meeting'].includes(item.url)
       );
     }
     return items;
