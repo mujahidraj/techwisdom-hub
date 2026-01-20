@@ -43,19 +43,19 @@ export default function Meeting() {
     setMeetingJoined(true);
     setLoading(true);
 
-    // Force remove loading screen after 2.5s (Discord-like instant feel)
+    // Force remove loading screen after 3s (Fallback)
     const timeout = setTimeout(() => {
         setLoading(false);
-    }, 2500);
+    }, 3000);
 
     const loadJitsiScript = () => {
-      // Clean up any existing script to avoid conflicts
+      // Clean up previous scripts
       const existingScript = document.getElementById('jitsi-script');
       if (existingScript) existingScript.remove();
 
       const script = document.createElement("script");
-      // Use the script from the new open server
-      script.src = "https://jitsi.riot.im/external_api.js";
+      // SWITCHED TO FRAMATALK (Allows anonymous rooms)
+      script.src = "https://framatalk.org/jitsi_api.js"; 
       script.async = true;
       script.id = 'jitsi-script';
       script.onload = () => initializeJitsi(type);
@@ -67,13 +67,11 @@ export default function Meeting() {
 
       jitsiContainerRef.current.innerHTML = "";
 
-      // --- SERVER CHANGE ---
-      // 'jitsi.riot.im' allows anonymous rooms (No "Waiting for Moderator")
-      const domain = "jitsi.riot.im"; 
-      
-      // Unique room name for your organization
-      const roomName = "TechWisdom-ERP-General-Channel-Secure"; 
+      // Unique Room Name to avoid collisions
+      const roomName = "TechWisdom-Internal-Sync-Alpha-99"; 
 
+      const domain = "framatalk.org";
+      
       const options = {
         roomName: roomName,
         width: "100%",
@@ -81,22 +79,21 @@ export default function Meeting() {
         parentNode: jitsiContainerRef.current,
         lang: "en",
         configOverwrite: {
+          // Force Audio ON, Video depends on button clicked
           startWithAudioMuted: false,
-          startWithVideoMuted: callType === 'audio', // Audio call = No Video
-          prejoinPageEnabled: false, // Skip "Ready to join?"
-          disableDeepLinking: true,  // Don't open mobile app
+          startWithVideoMuted: callType === 'audio',
+          
+          // Disable "Lobby" features that trigger moderator checks
+          prejoinPageEnabled: false, 
+          requireDisplayName: false,
+          disableDeepLinking: true,
           enableLobbyChat: false,
-          // Disable features that confuse users
-          toolbarButtons: [
-            'microphone', 'camera', 'desktop', 'fullscreen',
-            'fodeviceselection', 'hangup', 'chat', 
-            'raisehand', 'videoquality', 'tileview', 'mute-everyone'
-          ],
         },
         interfaceConfigOverwrite: {
           SHOW_JITSI_WATERMARK: false,
           SHOW_WATERMARK_FOR_GUESTS: false,
           DEFAULT_BACKGROUND: '#0f172a',
+          // Clean Toolbar
           TOOLBAR_BUTTONS: [
             'microphone', 'camera', 'desktop', 'fullscreen',
             'fodeviceselection', 'hangup', 'chat', 
@@ -115,7 +112,13 @@ export default function Meeting() {
         videoConferenceJoined: () => {
           clearTimeout(timeout);
           setLoading(false);
+          // Set name immediately
           newApi.executeCommand('displayName', profile?.full_name || "Team Member");
+          
+          // If audio-only mode, ensure video is OFF
+          if (callType === 'audio') {
+             newApi.executeCommand('videoMute');
+          }
         },
         videoConferenceLeft: () => {
           handleHangup();
@@ -134,7 +137,7 @@ export default function Meeting() {
     };
   }, [api]);
 
-  // Restrict Access
+  // Access Control
   if (role !== 'admin' && role !== 'employee') {
     return (
         <DashboardLayout>
@@ -160,7 +163,7 @@ export default function Meeting() {
               <Mic className="h-6 w-6 text-primary" /> TechWisdom General
             </h1>
             <p className="text-muted-foreground text-sm">
-              Always-on voice & video channel. Hop in to talk.
+              Open Team Channel • No Moderator Needed
             </p>
           </div>
           
@@ -182,7 +185,7 @@ export default function Meeting() {
         <Card className="flex-1 overflow-hidden border-2 bg-slate-900 relative shadow-2xl flex flex-col">
           
           {!meetingJoined ? (
-            // DISCORD-STYLE LOBBY VIEW
+            // LOBBY VIEW
             <div className="h-full flex flex-col items-center justify-center space-y-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 text-center">
               
               <div className="relative">
@@ -195,8 +198,8 @@ export default function Meeting() {
               <div className="max-w-md space-y-2">
                 <h2 className="text-3xl font-bold">General Channel</h2>
                 <p className="text-slate-400">
-                  No one is here right now. <br/>
-                  Click below to jump in and wait for others.
+                  Click below to join immediately. <br/>
+                  First person in creates the room automatically.
                 </p>
               </div>
               
@@ -220,8 +223,8 @@ export default function Meeting() {
               </div>
               
               <div className="mt-8 flex items-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Encrypted</span>
-                <span className="flex items-center"><Maximize2 className="h-3 w-3 mr-1" /> Low Latency</span>
+                <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Secure (Framatalk)</span>
+                <span className="flex items-center"><Maximize2 className="h-3 w-3 mr-1" /> HD</span>
               </div>
             </div>
           ) : (
@@ -231,7 +234,7 @@ export default function Meeting() {
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-50 text-white pointer-events-none">
                   <div className="flex flex-col items-center bg-slate-800/80 p-6 rounded-xl backdrop-blur-sm">
                     <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
-                    <p>Connecting to channel...</p>
+                    <p>Connecting to open channel...</p>
                   </div>
                 </div>
               )}
