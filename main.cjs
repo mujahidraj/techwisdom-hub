@@ -4,16 +4,21 @@ const path = require('path');
 let mainWindow;
 let tray;
 
+function getIconPath() {
+  // CRITICAL FIX: In production, the 'public' folder doesn't exist. 
+  // Vite copies everything from 'public' to 'dist'.
+  // So we always look inside 'dist' for the icon.
+  return path.join(__dirname, 'dist/techwisdom.ico');
+}
+
 function createWindow() {
-  // CORRECT ICON PATH: Checks dist first (production), then public (dev), then root
-  const iconPath = path.join(__dirname, 'public/techwisdom.ico'); 
-  // If you want to use the png: path.join(__dirname, 'public/techwisdom.png')
+  const iconPath = getIconPath();
 
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     title: "TechWisdom ERP",
-    icon: iconPath, 
+    icon: iconPath,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -21,10 +26,14 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
+  
+  // Remove the top menu bar
   Menu.setApplicationMenu(null);
 
-  // Prevent closing; minimize to tray instead
+  // --- PREVENT CLOSING LOGIC ---
   mainWindow.on('close', (event) => {
+    // If the user clicked "Quit" in the tray, actually quit.
+    // Otherwise, just hide the window.
     if (!app.isQuitting) {
       event.preventDefault();
       mainWindow.hide();
@@ -34,32 +43,22 @@ function createWindow() {
 }
 
 function createTray() {
-  // ROBUST ICON PATH LOGIC
-  // Windows usually prefers .ico for the tray. If you only have png, it might be invisible or scaled badly.
-  // Let's try to find the icon in the likely locations.
-  let trayIconPath = path.join(__dirname, 'public/techwisdom.ico');
+  const iconPath = getIconPath();
   
-  // If running in production ('dist' exists), point there if the asset is copied
-  // Ideally, use: path.join(__dirname, 'dist/favicon.ico') if you have one.
+  // Create the tray icon using the .ico file
+  // We use nativeImage to ensure it loads reliably from the ASAR package
+  const trayIcon = nativeImage.createFromPath(iconPath);
   
-  // Create a native image to ensure it resizes correctly
-  const icon = nativeImage.createFromPath(trayIconPath);
-
-  // Fallback: If techwisdom.png fails, try favicon.ico which usually exists
-  if (icon.isEmpty()) {
-      console.log("Custom icon not found, trying favicon...");
-      tray = new Tray(path.join(__dirname, 'public/favicon.ico'));
-  } else {
-      tray = new Tray(icon.resize({ width: 16, height: 16 })); // Resize for tray
-  }
+  tray = new Tray(trayIcon);
   
   const contextMenu = Menu.buildFromTemplate([
     { 
-      label: 'Show App', 
+      label: 'Open TechWisdom', 
       click: () => mainWindow.show() 
     },
+    { type: 'separator' },
     { 
-      label: 'Quit TechWisdom', 
+      label: 'Quit', 
       click: () => {
         app.isQuitting = true;
         app.quit();
@@ -70,20 +69,24 @@ function createTray() {
   tray.setToolTip('TechWisdom ERP');
   tray.setContextMenu(contextMenu);
 
+  // Restore the app when clicking the tray icon
   tray.on('click', () => {
     if (mainWindow.isVisible()) {
       mainWindow.hide();
     } else {
       mainWindow.show();
+      mainWindow.focus();
     }
   });
 }
 
+// Initialize
 app.whenReady().then(() => {
   createWindow();
   createTray();
 });
 
+// Single Instance Lock (Prevents opening 2 apps)
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
