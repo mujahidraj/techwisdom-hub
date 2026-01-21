@@ -24,7 +24,7 @@ const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}
 const QUICK_EMOJIS = ["😀", "😂", "❤️", "👍", "🙌", "🔥", "✨", "✅"];
 
 // Updated: Soft iPhone-style notification sound (Short, high-pitched chime)
-const IPHONE_NOTIFY_SOUND = "dist/techwidom-noti.mp3";
+const IPHONE_NOTIFY_SOUND = "techwidom-noti.mp3";
 
 export default function Messages() {
   const { user } = useAuth();
