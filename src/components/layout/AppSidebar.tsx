@@ -97,29 +97,53 @@ export function AppSidebar() {
   });
 
   // Global Notification Listener
-  useEffect(() => {
+ useEffect(() => {
     if (!user?.id) return;
+
+    // 1. Request permission immediately (Electron usually grants this by default)
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
 
     const channel = supabase
       .channel('global_notifications')
       .on('postgres_changes', { 
-        event: '*', // FIX: Listen to UPDATE too, so counts clear immediately when you read them
+        event: '*', 
         schema: 'public', 
         table: 'team_messages' 
       }, (payload) => {
-        // Refresh the unread count badge for any database change
         queryClient.invalidateQueries({ queryKey: ['unread_sidebar_count'] });
 
-        // Play sound ONLY on new incoming messages meant for you or everyone
         if (payload.eventType === 'INSERT' && payload.new.sender_id !== user.id) {
           const isForMe = !payload.new.receiver_id || payload.new.receiver_id === user.id;
           
           if (isForMe) {
+            // Play Sound
             const audio = new Audio(SOFT_NOTIFY_SOUND);
             audio.volume = 0.4;
             audio.play().catch(() => {});
 
-            if (location.pathname !== '/teamChat') {
+            // --- SEND WINDOWS NOTIFICATION ---
+            // Only notify if we are NOT on the chat page OR if the window is hidden/minimized
+            if (location.pathname !== '/teamChat' || document.hidden) {
+              
+              // This triggers the native Windows "Toast"
+              const notif = new Notification("TechWisdom ERP", {
+                body: `New Message: ${payload.new.content}`,
+                silent: true, // We already played a custom sound above
+              });
+              
+              // Optional: Click the notification to open the app & go to chat
+              notif.onclick = () => {
+                // This focuses the Electron window if it's minimized
+                window.focus(); 
+                // Navigate to chat
+                // Note: You might need to use a navigation helper here or just let the user click
+              };
+            }
+
+            // Show internal toast if inside the app
+            if (location.pathname !== '/teamChat' && !document.hidden) {
               toast.info("New Team Message", {
                 description: payload.new.content?.substring(0, 30) + "...",
               });
