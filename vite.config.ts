@@ -5,6 +5,8 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // IMPORTANT: This line ensures assets work in the PC app
+  base: "./", 
   server: {
     host: "::",
     port: 8080,
