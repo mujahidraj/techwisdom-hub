@@ -24,7 +24,7 @@ const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}
 const QUICK_EMOJIS = ["😀", "😂", "❤️", "👍", "🙌", "🔥", "✨", "✅"];
 
 // Updated: Soft iPhone-style notification sound (Short, high-pitched chime)
-const IPHONE_NOTIFY_SOUND = "https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3";
+const IPHONE_NOTIFY_SOUND = "/public/techwidom-noti.mp3";
 
 export default function Messages() {
   const { user } = useAuth();
@@ -125,7 +125,7 @@ export default function Messages() {
     const formData = new FormData();
     formData.append("file", file); formData.append("upload_preset", CLOUDINARY_PRESET);
     try {
-        const res = await fetch(IPHONE_NOTIFY_SOUND, { method: "POST", body: formData });
+        const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
         const data = await res.json();
         if (data.secure_url) {
             const type = file.type.startsWith('image/') ? 'image' : 'file';

@@ -75,7 +75,7 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   
   // Soft iPhone chime
-  const SOFT_NOTIFY_SOUND = "https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3";
+  const SOFT_NOTIFY_SOUND = "/public/techwidom-noti.mp3";
 
   // --- GLOWING UNREAD COUNT LOGIC ---
   const { data: unreadCount = 0 } = useQuery({
