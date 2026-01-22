@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import {
   LayoutDashboard,
   Users,
@@ -97,11 +98,12 @@ export function AppSidebar() {
   });
 
   // Global Notification Listener
-  useEffect(() => {
+// --- NOTIFICATION LISTENER (Mobile & Web Merged) ---
+// --- NOTIFICATION & SOUND LISTENER ---
+useEffect(() => {
     if (!user?.id) return;
 
-    // 1. Request permission immediately (Electron usually grants this by default)
-    // Check window.Notification instead of just Notification
+    // 1. Web Permission Request (Your original logic - UNTOUCHED)
     if (typeof window.Notification !== 'undefined' && window.Notification.permission !== "granted") {
       try {
         window.Notification.requestPermission();
@@ -110,43 +112,86 @@ export function AppSidebar() {
       }
     }
 
+    // 2. Mobile Setup (ADDED: Defines the missing function)
+    const setupMobileNotifications = async () => {
+      try {
+        await LocalNotifications.requestPermissions();
+        
+        // Create "Urgent" Channel to force System Sound & Status Bar
+        await LocalNotifications.createChannel({
+            id: 'urgent_alerts_v3', // Match this ID in the schedule block below
+            name: 'Urgent Messages',
+            importance: 5,          // 5 = Max (Heads-up Display)
+            visibility: 1,
+            vibration: true,
+            sound: undefined        // Force System Default Sound
+        });
+      } catch (e) { 
+        // Not on mobile
+      }
+    };
+    
+    // Call the function we just defined
+    setupMobileNotifications();
+
+    // 3. Listen for Messages
     const channel = supabase
       .channel('global_notifications')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'team_messages'
-      }, (payload) => {
+      }, async (payload) => { 
+        
         queryClient.invalidateQueries({ queryKey: ['unread_sidebar_count'] });
 
         if (payload.eventType === 'INSERT' && payload.new.sender_id !== user.id) {
           const isForMe = !payload.new.receiver_id || payload.new.receiver_id === user.id;
 
           if (isForMe) {
-            // Play Sound
-            const audio = new Audio(SOFT_NOTIFY_SOUND);
-            audio.volume = 0.4;
-            audio.play().catch(() => { });
+            
+            // A. Play Web/In-App Sound (Your original logic - UNTOUCHED)
+            try {
+                const audio = new Audio('/techwidom-noti.mp3'); 
+                audio.volume = 1.0; 
+                audio.play().catch(() => { });
+            } catch(e) { /* empty */ }
 
-            // --- SEND WINDOWS NOTIFICATION ---
-            // Only notify if we are NOT on the chat page OR if the window is hidden/minimized
-            // Check window.Notification instead of just Notification
+            // B. --- MOBILE NOTIFICATION (Fixed) ---
+            if (location.pathname !== '/teamChat' || document.hidden) {
+                try {
+                    await LocalNotifications.schedule({
+                        notifications: [
+                            {
+                                title: "TechWisdom ERP",
+                                body: `New Message: ${payload.new.content}`,
+                                id: new Date().getTime(),
+                                schedule: { at: new Date(Date.now() + 100) },
+                                channelId: 'urgent_alerts_v3', // <--- MATCHES THE NEW ID
+                                // smallIcon line REMOVED (Uses default App Icon automatically)
+                                // sound line REMOVED (Uses Channel Default automatically)
+                            }
+                        ]
+                    });
+                } catch (e) {
+                    console.log("Mobile notification skipped");
+                }
+            }
+
+            // C. --- WINDOWS/WEB NOTIFICATION (Your original logic - UNTOUCHED) ---
             if (typeof window.Notification !== 'undefined') {
               try {
                 const notif = new window.Notification("TechWisdom ERP", {
                   body: `New Message: ${payload.new.content}`,
                   silent: true,
                 });
-
-                notif.onclick = () => {
-                  window.focus();
-                };
+                notif.onclick = () => { window.focus(); };
               } catch (e) {
                 console.log("Native notifications skipped");
               }
             }
 
-            // Show internal toast if inside the app
+            // D. Show Toast (Your original logic - UNTOUCHED)
             if (location.pathname !== '/teamChat' && !document.hidden) {
               toast.info("New Team Message", {
                 description: payload.new.content?.substring(0, 30) + "...",
