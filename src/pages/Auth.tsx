@@ -171,7 +171,7 @@ export default function Auth() {
       } else if (data.role === 'employee') {
         navigate('/employee-portal');
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     }
     setIsSubmitting(false);

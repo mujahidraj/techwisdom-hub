@@ -47,8 +47,8 @@ const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'CRM & Leads', url: '/crm', icon: Users },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
-  { title: 'Team Chat', url: '/teamChat', icon: MessageSquare, badge: true }, 
-  { title: 'Client Interaction', url: '/messages', icon: Handshake }, 
+  { title: 'Team Chat', url: '/teamChat', icon: MessageSquare, badge: true },
+  { title: 'Client Interaction', url: '/messages', icon: Handshake },
   { title: 'Notes', url: '/notes', icon: StickyNote },
   { title: "Schedule", url: "/events", icon: Calendar },
   { title: "Conference", url: "/meeting", icon: Video },
@@ -73,7 +73,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const queryClient = useQueryClient();
   const collapsed = state === 'collapsed';
-  
+
   // Soft iPhone chime
   const SOFT_NOTIFY_SOUND = "techwidom-noti.mp3";
 
@@ -86,60 +86,64 @@ export function AppSidebar() {
       const { count, error } = await supabase
         .from('team_messages')
         .select('id', { count: 'exact', head: true })
-        .not('seen_by', 'cs', `{${user?.id}}`) 
+        .not('seen_by', 'cs', `{${user?.id}}`)
         .neq('sender_id', user?.id)
         .or(`receiver_id.is.null,receiver_id.eq.${user?.id}`); // FIX: Prevents seeing counts for others' private chats
-      
+
       if (error) return 0;
       return count || 0;
     },
-    refetchOnWindowFocus: true 
+    refetchOnWindowFocus: true
   });
 
   // Global Notification Listener
- useEffect(() => {
+  useEffect(() => {
     if (!user?.id) return;
 
     // 1. Request permission immediately (Electron usually grants this by default)
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
+    // Check window.Notification instead of just Notification
+    if (typeof window.Notification !== 'undefined' && window.Notification.permission !== "granted") {
+      try {
+        window.Notification.requestPermission();
+      } catch (e) {
+        console.log("Notifications not supported");
+      }
     }
 
     const channel = supabase
       .channel('global_notifications')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'team_messages' 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'team_messages'
       }, (payload) => {
         queryClient.invalidateQueries({ queryKey: ['unread_sidebar_count'] });
 
         if (payload.eventType === 'INSERT' && payload.new.sender_id !== user.id) {
           const isForMe = !payload.new.receiver_id || payload.new.receiver_id === user.id;
-          
+
           if (isForMe) {
             // Play Sound
             const audio = new Audio(SOFT_NOTIFY_SOUND);
             audio.volume = 0.4;
-            audio.play().catch(() => {});
+            audio.play().catch(() => { });
 
             // --- SEND WINDOWS NOTIFICATION ---
             // Only notify if we are NOT on the chat page OR if the window is hidden/minimized
-            if (location.pathname !== '/teamChat' || document.hidden) {
-              
-              // This triggers the native Windows "Toast"
-              const notif = new Notification("TechWisdom ERP", {
-                body: `New Message: ${payload.new.content}`,
-                silent: true, // We already played a custom sound above
-              });
-              
-              // Optional: Click the notification to open the app & go to chat
-              notif.onclick = () => {
-                // This focuses the Electron window if it's minimized
-                window.focus(); 
-                // Navigate to chat
-                // Note: You might need to use a navigation helper here or just let the user click
-              };
+            // Check window.Notification instead of just Notification
+            if (typeof window.Notification !== 'undefined') {
+              try {
+                const notif = new window.Notification("TechWisdom ERP", {
+                  body: `New Message: ${payload.new.content}`,
+                  silent: true,
+                });
+
+                notif.onclick = () => {
+                  window.focus();
+                };
+              } catch (e) {
+                console.log("Native notifications skipped");
+              }
             }
 
             // Show internal toast if inside the app
@@ -160,7 +164,7 @@ export function AppSidebar() {
 
   const getVisibleItems = (items: typeof mainNavItems) => {
     if (role === 'client') {
-      return items.filter(item => 
+      return items.filter(item =>
         ['/dashboard', '/projects', '/messages', '/notes', '/meeting'].includes(item.url)
       );
     }
@@ -209,13 +213,13 @@ export function AppSidebar() {
                     >
                       <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
                       {!collapsed && <span>{item.title}</span>}
-                      
+
                       {item.badge && unreadCount > 0 && (
                         <div className={cn(
                           "absolute flex items-center justify-center rounded-full bg-red-600 text-white font-bold animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]",
                           collapsed ? "top-1 right-1 h-2 w-2" : "right-3 h-5 min-w-[20px] px-1.5 text-[10px]"
                         )}>
-                           {!collapsed && unreadCount}
+                          {!collapsed && unreadCount}
                         </div>
                       )}
                     </NavLink>

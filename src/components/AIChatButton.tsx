@@ -118,61 +118,64 @@ export function AIChatButton() {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button - Docked to Corner */}
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className={`fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 transition-transform hover:scale-105 ${
+          // CHANGED: Position (bottom-0 right-0), Shape (rounded-tl-xl only), Size (h-12 w-12)
+          className={`fixed bottom-0 right-0 h-12 w-12 rounded-tl-xl rounded-tr-none rounded-bl-none rounded-br-none shadow-lg z-50 transition-transform hover:scale-105 ${
             connectionStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
           }`}
         >
-          {connectionStatus === 'error' ? <AlertTriangle className="h-7 w-7 text-white" /> : <Bot className="h-8 w-8 text-white" />}
+          {/* CHANGED: Icons made slightly smaller (h-6 w-6) to fit new size */}
+          {connectionStatus === 'error' ? <AlertTriangle className="h-5 w-5 text-white" /> : <Bot className="h-6 w-6 text-white" />}
           
-          {/* Status Dot */}
-          <span className={`absolute top-0 right-0 h-4 w-4 rounded-full border-2 border-white ${getStatusColor()}`} />
+          {/* Status Dot - Adjusted position to be inside the square */}
+          <span className={`absolute top-2 right-2 h-3 w-3 rounded-full border-2 border-white ${getStatusColor()}`} />
         </Button>
       )}
 
-      {/* Chat Window */}
+      {/* Chat Window - Docked to Corner */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-80 md:w-96 h-[500px] shadow-2xl z-50 flex flex-col border-blue-500/20 animate-in slide-in-from-bottom-10 fade-in duration-300">
-          <CardHeader className="bg-blue-50/50 border-b p-4 flex flex-row items-center justify-between space-y-0">
+        // CHANGED: Position (bottom-0 right-0), Height/Width (smaller), Border Radius (rounded-tl-xl)
+        <Card className="fixed bottom-0 right-0 w-80 h-[450px] shadow-2xl z-50 flex flex-col border-blue-500/20 animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-tl-xl rounded-tr-none rounded-bl-none rounded-br-none border-r-0 border-b-0">
+          <CardHeader className="bg-blue-50/50 border-b p-3 flex flex-row items-center justify-between space-y-0">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <Bot className={`h-5 w-5 ${connectionStatus === 'error' ? 'text-red-600' : 'text-blue-600'}`} />
-                <CardTitle className="text-base">TechWisdom AI</CardTitle>
+                <CardTitle className="text-sm">TechWisdom AI</CardTitle>
               </div>
               
               {/* Status Text */}
               <div className="flex items-center gap-1.5 px-1">
                 <span className={`h-2 w-2 rounded-full ${getStatusColor()} ${connectionStatus === 'online' ? 'animate-pulse' : ''}`} />
-                <span className={`text-xs font-medium ${
-                    connectionStatus === 'error' ? 'text-red-600' : 
-                    connectionStatus === 'offline' ? 'text-gray-500' : 'text-green-600'
+                <span className={`text-[10px] font-medium ${
+                  connectionStatus === 'error' ? 'text-red-600' : 
+                  connectionStatus === 'offline' ? 'text-gray-500' : 'text-green-600'
                 }`}>
                   {getStatusText()}
                 </span>
               </div>
             </div>
 
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsOpen(false)}>
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
           
-          <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+          <CardContent className="flex-1 overflow-y-auto p-3 space-y-3 text-sm">
             
             {/* Error Banner (Shows when 500 Error happens) */}
             {connectionStatus === 'error' && (
                <div className="flex justify-center my-2 animate-in fade-in zoom-in">
                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    className="text-xs h-8 gap-2 rounded-full shadow-sm"
-                    onClick={retryConnection}
+                   variant="destructive" 
+                   size="sm" 
+                   className="text-[10px] h-7 gap-2 rounded-full shadow-sm"
+                   onClick={retryConnection}
                  >
                    <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-                   Server Error. Tap to Retry.
+                   Retry Connection
                  </Button>
                </div>
             )}
@@ -180,7 +183,7 @@ export function AIChatButton() {
             {/* Offline Banner */}
             {connectionStatus === 'offline' && (
                <div className="flex justify-center my-2">
-                 <div className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full flex items-center gap-2">
+                 <div className="bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full flex items-center gap-2">
                    <WifiOff className="h-3 w-3" />
                    You are offline
                  </div>
@@ -190,7 +193,7 @@ export function AIChatButton() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div 
-                  className={`max-w-[85%] p-3 rounded-lg text-sm ${
+                  className={`max-w-[90%] p-2.5 rounded-lg text-xs ${
                     msg.role === 'user' 
                       ? 'bg-blue-600 text-white rounded-br-none' 
                       : 'bg-muted text-foreground rounded-bl-none'
@@ -202,27 +205,27 @@ export function AIChatButton() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-muted p-3 rounded-lg rounded-bl-none">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <div className="bg-muted p-2.5 rounded-lg rounded-bl-none">
+                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                 </div>
               </div>
             )}
           </CardContent>
 
-          <CardFooter className="p-3 border-t">
+          <CardFooter className="p-2 border-t">
             <form onSubmit={(e) => { e.preventDefault(); handleAsk(); }} className="flex w-full gap-2">
               <Input 
-                placeholder={connectionStatus === 'online' ? "Ask about your data..." : "Connection lost..."}
+                placeholder={connectionStatus === 'online' ? "Ask AI..." : "No connection"}
                 value={query} 
                 onChange={(e) => setQuery(e.target.value)}
-                className="flex-1"
+                className="flex-1 h-9 text-sm"
                 disabled={connectionStatus !== 'online' || loading}
               />
               <Button 
                 type="submit" 
                 size="icon" 
                 disabled={connectionStatus !== 'online' || loading} 
-                className={`${connectionStatus !== 'online' ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'}`}
+                className={`h-9 w-9 ${connectionStatus !== 'online' ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'}`}
               >
                 {connectionStatus === 'online' ? <Send className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
               </Button>

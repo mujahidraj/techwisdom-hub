@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Apply Safe Area padding to the whole body */
+body {
+  /* This reads the phone's notch height automatically */
+  padding-top: env(safe-area-inset-top); 
+  padding-bottom: env(safe-area-inset-bottom);
+  
+  /* Ensure background color fills the notch area */
+  background-color: #ffffff; /* Or your dashboard background color */
+  min-height: 100vh;
+}
+
 /* TechWisdom ERP Design System - Glassmorphic SaaS */
 
 @layer base {

@@ -2,8 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter,HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+
+// --- IMPORT THE ERROR BOUNDARY ---
+import ErrorBoundary from "@/components/ErrorBoundary"; 
+
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CRM from "./pages/CRM";
@@ -37,31 +41,34 @@ const App = () => (
         <Toaster />
         <Sonner />
         <Router>
-          <Routes>
-            <Route path="/" element={<Navigate to="/auth" replace />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/crm" element={<CRM />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/finances" element={<Finances />} />
-            <Route path="/invoices" element={<Invoices />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/client-portal" element={<ClientPortal />} />
-            <Route path="/employee-portal" element={<EmployeePortal />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/messages" element={<Messaging />} />
-            <Route path="/cms" element={<CMS />} />
-            <Route path="/maintenance" element={<Maintenance />} />
-            <Route path="/notes" element={<Notes />} />
-            <Route path="/crm/:id" element={<LeadDetails />} />
-            <Route path="/events" element={<EventsTasks />} />
-            <Route path="/projects/:id" element={<ProjectDetails />} />
-            <Route path="/meeting" element={<Meeting />} />
-            <Route path="/teamChat" element={<Messages />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          {/* WRAP ROUTES IN ERROR BOUNDARY TO CATCH CRASHES */}
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<Navigate to="/auth" replace />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/crm" element={<CRM />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/team" element={<Team />} />
+              <Route path="/finances" element={<Finances />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/client-portal" element={<ClientPortal />} />
+              <Route path="/employee-portal" element={<EmployeePortal />} />
+              <Route path="/users" element={<UserManagement />} />
+              <Route path="/messages" element={<Messaging />} />
+              <Route path="/cms" element={<CMS />} />
+              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/notes" element={<Notes />} />
+              <Route path="/crm/:id" element={<LeadDetails />} />
+              <Route path="/events" element={<EventsTasks />} />
+              <Route path="/projects/:id" element={<ProjectDetails />} />
+              <Route path="/meeting" element={<Meeting />} />
+              <Route path="/teamChat" element={<Messages />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ErrorBoundary>
         </Router>
       </TooltipProvider>
     </AuthProvider>

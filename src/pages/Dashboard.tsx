@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { 
   Users, FolderKanban, TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight, 
   Clock, Plus, FileText, Zap, Calendar, CheckSquare, 
-  PieChart, Lightbulb, Trash2, X, MoreHorizontal, AlertCircle 
+  PieChart, Lightbulb, X, MoreHorizontal, AlertCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -40,46 +40,42 @@ import {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  // 1. ALL HOOKS MUST BE DECLARED FIRST (Top Level)
+  const { user, loading } = useAuth(); // Added loading here
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  // State
+  // State Hooks
   const [todoInput, setTodoInput] = useState('');
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', start_time: '' });
 
-  // --- 1. REAL-TIME STATUS UPDATE ---
+  // Effect Hooks
   useEffect(() => {
     if (!user?.id) return;
 
-    // Function to set status online
     const setOnline = async () => {
       await supabase.from('profiles' as any).update({ status: 'online' }).eq('id', user.id);
     };
 
-    // Function to set status offline
     const setOffline = async () => {
       await supabase.from('profiles' as any).update({ status: 'offline' }).eq('id', user.id);
     };
 
-    // 1. Set Online immediately when component mounts
     setOnline();
 
-    // 2. Set Offline when browser window/tab is closed
     const handleBeforeUnload = () => {
         setOffline();
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // 3. Set Offline when navigating away (Unmount)
     return () => {
       setOffline();
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [user?.id]);
 
-  // Mutation to manually change status
+  // Mutation Hooks
   const updateStatusMutation = useMutation({
     mutationFn: async (status: string) => {
       await supabase.from('profiles' as any).update({ status }).eq('id', user?.id);
@@ -90,19 +86,16 @@ export default function Dashboard() {
     }
   });
 
-  // --- 2. DATA QUERIES ---
-
-  // A. Team Status (Real Data - Polls every 5s to check if others came online)
+  // Query Hooks
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team_status'],
     queryFn: async () => {
       const { data } = await supabase.from('profiles' as any).select('id, full_name, avatar_url, status');
       return data || [];
     },
-    refetchInterval: 5000 // Faster polling for real-time feel
+    refetchInterval: 5000 
   });
 
-  // B. Today's Focus
   const { data: todaysFocus = [] } = useQuery({
     queryKey: ['todays_focus'],
     queryFn: async () => {
@@ -120,7 +113,6 @@ export default function Dashboard() {
     }
   });
 
-  // C. Upcoming Events
   const { data: upcomingEvents = [] } = useQuery({
     queryKey: ['upcoming_events'],
     queryFn: async () => {
@@ -136,14 +128,12 @@ export default function Dashboard() {
     }
   });
 
-  // D. Standard Dashboard Data
   const { data: leadsData } = useQuery({ queryKey: ['dash_leads'], queryFn: async () => (await supabase.from('leads').select('id, status')).data });
   const { data: projectsData } = useQuery({ queryKey: ['dash_projects'], queryFn: async () => (await supabase.from('active_projects').select('*')).data });
   const { data: unreadMessages } = useQuery({ queryKey: ['dash_msgs'], queryFn: async () => (await supabase.from('client_messages').select('id').eq('is_read', false)).data?.length || 0 });
   const { data: recentLeads } = useQuery({ queryKey: ['dash_recent'], queryFn: async () => (await supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(5)).data });
 
-  // --- 3. MUTATIONS (INTERACTIONS) ---
-
+  // More Mutation Hooks
   const addFocusMutation = useMutation({
     mutationFn: async (task: string) => {
       const { error } = await supabase.from('daily_focus' as any).insert({ task });
@@ -198,7 +188,7 @@ export default function Dashboard() {
     }
   });
 
-  // --- 4. CALCULATIONS ---
+  // --- 2. CALCULATIONS (Pure Logic, No Hooks) ---
   const totalLeads = leadsData?.length || 0;
   const activeProjects = projectsData?.filter((p: any) => p.status === 'active')?.length || 0;
   const wonDeals = leadsData?.filter((l: any) => l.status === 'deal_won')?.length || 0;
@@ -242,6 +232,19 @@ export default function Dashboard() {
   const monthlyGoal = 500000;
   const goalProgress = Math.min((totalRevenue / monthlyGoal) * 100, 100);
 
+  // --- 3. LOADING GUARD (Must be AFTER all hooks) ---
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="text-sm text-gray-500 font-medium">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- 4. RENDER (Main Return) ---
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-fade-in pb-10">
