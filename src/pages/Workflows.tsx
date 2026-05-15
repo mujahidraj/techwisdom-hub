@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,7 +67,7 @@ export default function Workflows() {
     mutationFn: async () => {
       const wfData = {
         name, description, trigger_type: triggerType,
-        trigger_config: { conditions } as Record<string, unknown>,
+        trigger_config: { conditions } as any,
         is_active: true, created_by: user?.id || null,
       };
 
@@ -85,7 +86,7 @@ export default function Workflows() {
         const { error } = await supabase.from('workflow_steps').insert(
           steps.map((s, i) => ({
             workflow_id: wfId!, step_order: i + 1,
-            action_type: s.action_type, action_config: s.action_config as Record<string, unknown>,
+            action_type: s.action_type, action_config: s.action_config as any,
           }))
         );
         if (error) throw error;
