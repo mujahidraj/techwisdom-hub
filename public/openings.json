@@ -1,0 +1,196 @@
+{
+  "openings": [
+    {
+    "id": "pt-sdr",
+    "title": "Sales Development Representative",
+    "department": "Sales",
+    "location": "Remote",
+    "type": "Contractual",
+    "shortDescription": "Identify and qualify new sales opportunities through outbound and inbound lead generation strategies.",
+    "aboutRole": "We are looking for an energetic Sales Development Representative to act as the first point of contact for potential clients. You will be responsible for prospecting, qualifying leads, and setting up meetings for the senior sales team to drive our revenue growth.",
+    "responsibilities": [
+      "Conduct outbound cold calling and email outreach to potential clients.",
+      "Qualify inbound leads from marketing campaigns.",
+      "Set up meetings or calls between prospective clients and Account Executives.",
+      "Maintain active engagement with new and existing leads through creative follow-ups.",
+      "Log all activities accurately within the CRM."
+    ],
+    "requirements": [
+      "1+ years of experience in sales, customer service, or a related field.",
+      "Strong communication and negotiation skills.",
+      "Familiarity with CRM software (e.g., Salesforce, HubSpot).",
+      "Ability to handle rejection and remain resilient.",
+      "Self-motivated with a high degree of initiative."
+    ],
+    "salary": "Base + Commission"
+  },
+  {
+    "id": "ct-bda",
+    "title": "Business Development Associate",
+    "department": "Business Development",
+    "location": "Hybrid",
+    "type": "Contractual",
+    "shortDescription": "Support business growth by conducting market research, identifying new partnerships, and assisting the executive team.",
+    "aboutRole": "The Business Development Associate will play a crucial role in expanding our market footprint. You will support the strategic planning process by analyzing industry trends, preparing partnership pitches, and helping transition new clients onboard.",
+    "responsibilities": [
+      "Conduct market research to identify new business opportunities.",
+      "Assist in drafting business proposals and presentation materials.",
+      "Analyze competitor offerings and market trends.",
+      "Coordinate with internal teams to ensure smooth client onboarding.",
+      "Track and report on key business development metrics."
+    ],
+    "requirements": [
+      "Bachelor's degree in Business, Marketing, or a related field.",
+      "Excellent analytical and problem-solving skills.",
+      "Strong written and verbal communication abilities.",
+      "Proficiency in Microsoft Office and data analysis tools.",
+      "Ability to work independently in a fast-paced environment."
+    ],
+    "salary": "Hourly Rate / Project Based"
+  },
+  {
+    "id": "ft-bde",
+    "title": "Business Development Executive",
+    "department": "Business Development",
+    "location": "Remote",
+    "type": "Full-time",
+    "shortDescription": "Drive strategic growth by building high-value partnerships, closing deals, and expanding market presence.",
+    "aboutRole": "We are seeking a seasoned Business Development Executive to lead our expansion efforts. You will take ownership of the full sales cycle for major accounts, cultivate strategic relationships, and work closely with the leadership team to define our market strategy.",
+    "responsibilities": [
+      "Develop and execute a comprehensive business development strategy.",
+      "Identify, negotiate, and close high-value deals and partnerships.",
+      "Build and maintain strong, long-lasting client relationships.",
+      "Represent the company at industry events and conferences.",
+      "Mentor and guide junior members of the sales and development teams."
+    ],
+    "requirements": [
+      "4+ years of proven experience as a Business Development Executive or similar role.",
+      "Demonstrated track record of over-achieving sales quotas.",
+      "In-depth knowledge of market research and negotiation principles.",
+      "Exceptional leadership and organizational skills.",
+      "Ability to build rapport with C-level executives."
+    ],
+    "salary": "Competitive Base + Performance Bonus"
+  },
+  {
+    "id": "pt-vibe",
+    "title": "Vibe Coder",
+    "department": "Engineering",
+    "location": "Hybrid",
+    "type": "Contractual",
+    "shortDescription": "Enhance developer experience by infusing the codebase with excellent documentation, uplifting comments, and smooth integrations.",
+    "aboutRole": "The Vibe Coder is a unique role dedicated to the 'soft' side of software engineering. You aren't just writing features; you're writing code that makes other developers smile. You will curate the developer experience, refactor pain points, and ensure the engineering culture is positive and productive.",
+    "responsibilities": [
+      "Review pull requests to ensure code is not just functional, but readable and elegant.",
+      "Write uplifting, clear, and entertaining documentation.",
+      "Develop internal tooling that improves developer quality of life.",
+      "Organize technical debt hacking sessions and pair programming events.",
+      "Maintain the repository 'vibes' by resolving conflicts amicably and cleanly."
+    ],
+    "requirements": [
+      "2+ years of software development experience.",
+      "Exceptional empathy and communication skills.",
+      "A deep love for clean code and strong architectural principles.",
+      "Experience with modern version control and CI/CD tools.",
+      "A great sense of humor and team-first mentality."
+    ],
+    "salary": "Competitive / Contractual Rate"
+  },
+  {
+    "id": "ct-vider",
+    "title": "Vider Code Cleaner",
+    "department": "Engineering",
+    "location": "Remote",
+    "type": "Contractual",
+    "shortDescription": "Act as the ultimate codebase janitor by mercilessly refactoring legacy code, fixing linting errors, and optimizing performance.",
+    "aboutRole": "We need a meticulous Vider Code Cleaner to deep-clean our existing repositories. Your sole focus will be on eliminating tech debt, removing dead code, updating dependencies, and ensuring every file adheres to our strictest linting and formatting rules.",
+    "responsibilities": [
+      "Audit existing codebases for inefficiencies, security vulnerabilities, and dead code.",
+      "Refactor complex modules into simpler, more maintainable structures.",
+      "Standardize linting rules and enforce them across all repositories.",
+      "Update legacy packages and resolve dependency conflicts.",
+      "Write unit tests for previously untested critical paths."
+    ],
+    "requirements": [
+      "3+ years of experience specifically in code refactoring and maintenance.",
+      "Mastery of Git, linters (ESLint, Prettier, etc.), and testing frameworks.",
+      "Extreme attention to detail and patience for legacy systems.",
+      "Strong understanding of design patterns and clean code principles.",
+      "Ability to work autonomously and deliver clean pull requests."
+    ],
+    "salary": "Project Based / Competitive Hourly"
+  },
+  {
+    "id": "ft-devops",
+    "title": "DevOps Engineer",
+    "department": "Engineering",
+    "location": "Hybrid",
+    "type": "Full-time",
+    "shortDescription": "Build, maintain, and scale our cloud infrastructure and deployment pipelines to ensure high availability and rapid iteration.",
+    "aboutRole": "As a DevOps Engineer, you will bridge the gap between development and operations. You will be responsible for setting up robust CI/CD pipelines, managing our containerized environments, and ensuring our cloud infrastructure is secure, scalable, and cost-effective.",
+    "responsibilities": [
+      "Design and manage automated CI/CD pipelines.",
+      "Provision and maintain infrastructure using Infrastructure as Code (Terraform, CloudFormation).",
+      "Manage container orchestration platforms (Kubernetes, Docker Swarm).",
+      "Monitor system performance, troubleshoot issues, and implement alerting systems.",
+      "Ensure compliance with security best practices across all environments."
+    ],
+    "requirements": [
+      "3+ years of experience in DevOps or Site Reliability Engineering.",
+      "Strong experience with AWS, Azure, or Google Cloud Platform.",
+      "Proficiency with scripting languages (Python, Bash).",
+      "Hands-on experience with Docker, Kubernetes, and CI/CD tools (Jenkins, GitHub Actions).",
+      "Knowledge of networking, load balancing, and security protocols."
+    ],
+    "salary": "Competitive / Equity Options"
+  },
+  {
+    "id": "pt-content",
+    "title": "Content Creator",
+    "department": "Marketing",
+    "location": "Remote",
+    "type": "Part-time",
+    "shortDescription": "Produce engaging, high-quality multimedia content to grow our audience and elevate our brand presence across digital platforms.",
+    "aboutRole": "We are searching for a highly creative Content Creator to produce compelling digital content. You will brainstorm, storyboard, shoot, and edit videos, graphics, and written content tailored for platforms like TikTok, Instagram, LinkedIn, and our company blog.",
+    "responsibilities": [
+      "Develop a content calendar in alignment with marketing goals.",
+      "Shoot and edit engaging short-form video content.",
+      "Write captivating copy for social media posts, blogs, and newsletters.",
+      "Engage with our online community and respond to comments.",
+      "Track content performance and adjust strategies based on analytics."
+    ],
+    "requirements": [
+      "Proven experience as a Content Creator, Social Media Manager, or similar role.",
+      "Portfolio showcasing video editing (CapCut, Premiere Pro) and graphic design (Canva, Photoshop).",
+      "Deep understanding of social media algorithms and trends.",
+      "Excellent storytelling and creative writing skills.",
+      "Ability to produce high-quality work with quick turnaround times."
+    ],
+    "salary": "Hourly Rate / Tiered Output"
+  },
+  {
+    "id": "ft-marketing",
+    "title": "Marketing Executive",
+    "department": "Marketing",
+    "location": "Hybrid",
+    "type": "Full-time",
+    "shortDescription": "Plan, oversee, and execute comprehensive marketing campaigns to drive brand awareness and generate qualified leads.",
+    "aboutRole": "The Marketing Executive will manage our multi-channel marketing initiatives. You will be at the helm of creating dynamic marketing strategies, managing digital advertising budgets, optimizing SEO/SEM, and collaborating with the sales team to ensure cohesive brand messaging.",
+    "responsibilities": [
+      "Develop and manage comprehensive marketing campaigns across various channels.",
+      "Manage digital advertising budgets (Google Ads, Meta Ads, LinkedIn Ads).",
+      "Optimize website content and landing pages for SEO and conversion.",
+      "Analyze marketing data and generate reports on campaign ROI.",
+      "Collaborate with external agencies and internal design/content teams."
+    ],
+    "requirements": [
+      "3+ years of experience in digital marketing or campaign management.",
+      "Strong understanding of SEO, SEM, and performance marketing.",
+      "Proficiency with marketing analytics tools (Google Analytics, HubSpot).",
+      "Creative thinker with data-driven decision-making skills.",
+      "Excellent project management and multitasking abilities."
+    ],
+    "salary": "Competitive Base + Performance Bonus"
+  }
+  ]
+}

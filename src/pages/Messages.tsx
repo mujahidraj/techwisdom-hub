@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Send, Paperclip, Smile, Search, Phone, Video, 
-  Reply, X, FileText, Loader2, Trash2, Pencil, Hash, 
+import {
+  Send, Paperclip, Smile, Search, Phone, Video,
+  Reply, X, FileText, Loader2, Trash2, Pencil, Hash,
   MoreHorizontal, ChevronLeft, SmilePlus
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,19 +18,26 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 
-const CLOUDINARY_CLOUD_NAME = "dljiukpd4"; 
-const CLOUDINARY_PRESET = "chat_upload"; 
+const CLOUDINARY_CLOUD_NAME = "dljiukpd4";
+const CLOUDINARY_PRESET = "chat_upload";
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
 const GENERAL_CHAT = { id: 'general', full_name: 'General Feed', avatar_url: null };
 
 export default function Messages() {
-  const { user } = useAuth();
+  const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
-  
-  const [activeChat, setActiveChat] = useState<any>(null); 
+
+  useEffect(() => {
+    if (!loading && role === 'client') {
+      toast.error('Access denied. Team Chat is for internal team only.');
+      navigate('/client-portal');
+    }
+  }, [user, role, loading, navigate]);
+
+  const [activeChat, setActiveChat] = useState<any>(null);
   const [messageText, setMessageText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [replyTo, setReplyTo] = useState<any>(null);
@@ -38,14 +45,23 @@ export default function Messages() {
   const [isUploading, setIsUploading] = useState(false);
   const [editingMessage, setEditingMessage] = useState<any>(null);
   const [editText, setEditText] = useState('');
-  
+
   const [reactingTo, setReactingTo] = useState<string | null>(null);
 
   const { data: users = [] } = useQuery({
     queryKey: ['chat_users', user?.id],
-    enabled: !!user?.id, 
+    enabled: !!user?.id,
     queryFn: async () => {
-      const { data: profiles } = await supabase.from('profiles').select('id, full_name, avatar_url').neq('id', user?.id);
+      const { data: rolesData } = await supabase.from('user_roles').select('user_id').in('role', ['admin', 'employee']);
+      const validUserIds = rolesData?.map(r => r.user_id) || [];
+      
+      if (validUserIds.length === 0) return [];
+
+      const { data: profiles } = await supabase.from('profiles')
+        .select('id, full_name, avatar_url')
+        .neq('id', user?.id)
+        .in('id', validUserIds);
+        
       const usersWithCounts = await Promise.all((profiles || []).map(async (profile) => {
         const { count } = await supabase
           .from('team_messages')
@@ -108,8 +124,8 @@ export default function Messages() {
   const handleSend = async () => {
     if (!messageText.trim()) return;
     const targetId = (activeChat && activeChat.id !== 'general') ? activeChat.id : null;
-    await supabase.from('team_messages').insert({ 
-      sender_id: user?.id, receiver_id: targetId, 
+    await supabase.from('team_messages').insert({
+      sender_id: user?.id, receiver_id: targetId,
       content: messageText, reply_to: replyTo?.id || null, seen_by: [user?.id]
     });
     setMessageText(''); setReplyTo(null); setShowEmoji(false);
@@ -122,16 +138,16 @@ export default function Messages() {
     const formData = new FormData();
     formData.append("file", file); formData.append("upload_preset", CLOUDINARY_PRESET);
     try {
-        const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
-        const data = await res.json();
-        if (data.secure_url) {
-            const type = file.type.startsWith('image/') ? 'image' : 'file';
-            const targetId = (activeChat && activeChat.id !== 'general') ? activeChat.id : null;
-            await supabase.from('team_messages').insert({ 
-              sender_id: user?.id, receiver_id: targetId, 
-              content: file.name, type, file_url: data.secure_url, seen_by: [user?.id]
-            });
-        }
+      const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.secure_url) {
+        const type = file.type.startsWith('image/') ? 'image' : 'file';
+        const targetId = (activeChat && activeChat.id !== 'general') ? activeChat.id : null;
+        await supabase.from('team_messages').insert({
+          sender_id: user?.id, receiver_id: targetId,
+          content: file.name, type, file_url: data.secure_url, seen_by: [user?.id]
+        });
+      }
     } catch (err) { toast.error("Upload failed"); } finally { setIsUploading(false); }
   };
 
@@ -159,7 +175,7 @@ export default function Messages() {
   return (
     <DashboardLayout>
       <div className="flex h-[calc(100vh-80px)] w-full overflow-hidden bg-white rounded-lg border border-slate-100 shadow-sm">
-        
+
         {/* SIDEBAR */}
         <div className={`w-full md:w-64 flex-col border-r border-slate-100 bg-[#f8f9fa] z-20 ${activeChat ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 md:p-6 pb-2">
@@ -174,7 +190,7 @@ export default function Messages() {
               <span className={`font-bold text-xs ${activeChat?.id === 'general' ? 'text-slate-700' : 'text-white'}`}>General Feed</span>
             </button>
           </div>
-          
+
           <ScrollArea className="flex-1 px-3 mt-2">
             <p className="px-3 mb-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">People</p>
             <div className="space-y-1">
@@ -202,10 +218,10 @@ export default function Messages() {
         <div className={`flex-1 flex flex-col bg-white overflow-hidden ${!activeChat ? 'hidden md:flex' : 'flex'}`}>
           <div className="h-14 px-4 md:px-8 border-b border-slate-100 flex justify-between items-center bg-white/80 backdrop-blur-md z-10 shrink-0">
             <div className="flex items-center gap-2 md:gap-3">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="md:hidden h-8 w-8 -ml-2 mr-1 text-slate-500" 
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-8 w-8 -ml-2 mr-1 text-slate-500"
                 onClick={() => setActiveChat(null)}
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -218,14 +234,14 @@ export default function Messages() {
               </div>
             </div>
             <div className="flex gap-1">
-               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-8 w-8" onClick={() => navigate('/meeting')}><Phone className="h-4 w-4"/></Button>
-               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-8 w-8" onClick={() => navigate('/meeting')}><Video className="h-4 w-4"/></Button>
-               <Button variant="ghost" size="icon" className="text-slate-300 rounded-lg h-8 w-8"><MoreHorizontal className="h-4 w-4"/></Button>
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-8 w-8" onClick={() => navigate('/meeting')}><Phone className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-8 w-8" onClick={() => navigate('/meeting')}><Video className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="text-slate-300 rounded-lg h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
             </div>
           </div>
 
           {/* Messages Area */}
-          <ScrollArea 
+          <ScrollArea
             className="flex-1 px-4 md:px-8 py-6 relative w-full"
             style={{
               backgroundColor: '#fcfdfe',
@@ -233,7 +249,7 @@ export default function Messages() {
               backgroundSize: '150px'
             }}
           >
-            <div className="max-w-5xl mx-auto space-y-4 pb-4 w-full"> 
+            <div className="max-w-5xl mx-auto space-y-4 pb-4 w-full">
               {messages.map((msg: any) => {
                 const isMe = msg.sender_id === user?.id;
                 const isEditing = editingMessage === msg.id;
@@ -242,28 +258,27 @@ export default function Messages() {
 
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group animate-in fade-in slide-in-from-bottom-1 w-full`}>
-                    
+
                     {/* MESSAGE CONTAINER - FIXED RESPONSIVE WIDTH */}
                     {/* w-full ensures it doesn't collapse. max-w-[80%] prevents edge touching on mobile. */}
                     <div className={`max-w-[80%] md:max-w-[75%] min-w-0 flex flex-col ${isMe ? 'items-end' : 'items-start'} relative`}>
-                      
+
                       {!isMe && !activeChat && <span className="text-[9px] font-bold text-slate-400 mb-0.5 ml-2">{msg.sender?.full_name}</span>}
-                      
+
                       {/* Reply Bubble */}
                       {repliedMsg && (
                         <div className={`mb-1 px-3 py-1 rounded-lg text-[10px] border-l-2 bg-slate-50 opacity-70 max-w-full truncate ${isMe ? 'self-end mr-1 border-primary/50' : 'self-start ml-1 border-slate-400'}`}>
-                           <span className="font-bold opacity-70">Replying to: </span>
-                           <span className="italic">{repliedMsg.content?.substring(0, 30)}...</span>
+                          <span className="font-bold opacity-70">Replying to: </span>
+                          <span className="italic">{repliedMsg.content?.substring(0, 30)}...</span>
                         </div>
                       )}
 
                       {/* MESSAGE TEXT BUBBLE - FIXED CLIPPING */}
                       {/* break-all forces long words to break. break-words handles normal text. */}
-                      <div className={`px-3 py-2 rounded-xl transition-all shadow-sm break-words break-all whitespace-pre-wrap relative ${
-                        isMe 
-                          ? 'bg-primary text-white rounded-tr-none shadow-primary/10' 
+                      <div className={`px-3 py-2 rounded-xl transition-all shadow-sm break-words break-all whitespace-pre-wrap relative ${isMe
+                          ? 'bg-primary text-white rounded-tr-none shadow-primary/10'
                           : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
-                      }`}>
+                        }`}>
                         {isEditing ? (
                           <div className="flex flex-col gap-2 min-w-[200px]">
                             <Input className="bg-slate-50 border-none h-8 text-xs text-slate-900" value={editText} onChange={e => setEditText(e.target.value)} autoFocus />
@@ -276,7 +291,7 @@ export default function Messages() {
                           <>
                             {msg.type === 'text' && <p className="text-[13px] leading-relaxed font-medium">{msg.content}</p>}
                             {msg.type === 'image' && <img src={msg.file_url} className="rounded-lg max-h-64 w-full object-cover cursor-pointer shadow-sm border-2 border-white" onClick={() => window.open(msg.file_url)} />}
-                            {msg.type === 'file' && <a href={msg.file_url} target="_blank" className={`flex items-center gap-2 p-2 rounded-lg bg-black/5 text-[12px] font-medium no-underline ${isMe ? 'text-white' : 'text-primary'}`}><FileText className="h-4 w-4"/>{msg.content}</a>}
+                            {msg.type === 'file' && <a href={msg.file_url} target="_blank" className={`flex items-center gap-2 p-2 rounded-lg bg-black/5 text-[12px] font-medium no-underline ${isMe ? 'text-white' : 'text-primary'}`}><FileText className="h-4 w-4" />{msg.content}</a>}
                           </>
                         )}
                         <div className={`text-[9px] mt-1 font-bold opacity-50 text-right uppercase tracking-tighter ${isMe ? 'text-white' : 'text-slate-400'}`}>{format(new Date(msg.created_at), 'h:mm a')}</div>
@@ -296,25 +311,25 @@ export default function Messages() {
                       {/* HOVER ACTIONS */}
                       <div className={`absolute -top-3 ${isMe ? '-left-8' : '-right-8'} hidden group-hover:flex items-center gap-1 bg-white/90 backdrop-blur rounded-full p-1 border shadow-sm z-20`}>
                         <button className="p-1 text-slate-400 hover:text-amber-500 relative" onClick={() => setReactingTo(reactingTo === msg.id ? null : msg.id)}>
-                          <SmilePlus className="h-3.5 w-3.5"/>
+                          <SmilePlus className="h-3.5 w-3.5" />
                           {reactingTo === msg.id && (
-                             <div className="absolute bottom-8 -left-20 z-50">
-                               <EmojiPicker 
-                                  onEmojiClick={(e) => handleReaction(msg, e.emoji)} 
-                                  emojiStyle={EmojiStyle.NATIVE}
-                                  width={250} 
-                                  height={300}
-                                  searchDisabled
-                                  skinTonesDisabled
-                               />
-                             </div>
+                            <div className="absolute bottom-8 -left-20 z-50">
+                              <EmojiPicker
+                                onEmojiClick={(e) => handleReaction(msg, e.emoji)}
+                                emojiStyle={EmojiStyle.NATIVE}
+                                width={250}
+                                height={300}
+                                searchDisabled
+                                skinTonesDisabled
+                              />
+                            </div>
                           )}
                         </button>
-                        <button className="p-1 text-slate-400 hover:text-primary" onClick={() => setReplyTo(msg)}><Reply className="h-3.5 w-3.5"/></button>
+                        <button className="p-1 text-slate-400 hover:text-primary" onClick={() => setReplyTo(msg)}><Reply className="h-3.5 w-3.5" /></button>
                         {isMe && (
                           <>
-                            <button className="p-1 text-slate-400 hover:text-blue-500" onClick={() => { setEditingMessage(msg.id); setEditText(msg.content); }}><Pencil className="h-3.5 w-3.5"/></button>
-                            <button className="p-1 text-slate-400 hover:text-red-500" onClick={async () => { await supabase.from('team_messages').delete().eq('id', msg.id); queryClient.invalidateQueries({ queryKey: ['team_messages'] }); }}><Trash2 className="h-3.5 w-3.5"/></button>
+                            <button className="p-1 text-slate-400 hover:text-blue-500" onClick={() => { setEditingMessage(msg.id); setEditText(msg.content); }}><Pencil className="h-3.5 w-3.5" /></button>
+                            <button className="p-1 text-slate-400 hover:text-red-500" onClick={async () => { await supabase.from('team_messages').delete().eq('id', msg.id); queryClient.invalidateQueries({ queryKey: ['team_messages'] }); }}><Trash2 className="h-3.5 w-3.5" /></button>
                           </>
                         )}
                       </div>
@@ -332,36 +347,36 @@ export default function Messages() {
               {replyTo && (
                 <div className="mb-2 p-2 bg-slate-50 border-l-2 border-primary text-[10px] flex justify-between items-center rounded-lg animate-in slide-in-from-bottom-2">
                   <span className="text-slate-500 italic truncate">Replying to: {replyTo.content}</span>
-                  <button onClick={() => setReplyTo(null)}><X className="h-3 w-3 text-slate-400"/></button>
+                  <button onClick={() => setReplyTo(null)}><X className="h-3 w-3 text-slate-400" /></button>
                 </div>
               )}
               <div className="flex items-center gap-2 md:gap-3 bg-slate-100/50 p-1.5 pl-3 md:pl-4 pr-3 md:pr-12 rounded-2xl border border-slate-100 focus-within:bg-white focus-within:shadow-2xl transition-all">
-                  <div className="relative">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary rounded-lg" onClick={() => setShowEmoji(!showEmoji)}><Smile className="h-5 w-5"/></Button>
-                    
-                    {showEmoji && (
-                      <div className="absolute bottom-12 left-0 z-50 animate-in fade-in zoom-in-95">
-                        <EmojiPicker 
-                           onEmojiClick={(e) => { setMessageText(prev => prev + e.emoji); }}
-                           emojiStyle={EmojiStyle.NATIVE}
-                           width={300}
-                           height={400}
-                           previewConfig={{ showPreview: false }}
-                        />
-                      </div>
-                    )}
-                  </div>
+                <div className="relative">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary rounded-lg" onClick={() => setShowEmoji(!showEmoji)}><Smile className="h-5 w-5" /></Button>
 
-                  <div className="relative">
-                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileUpload} disabled={isUploading}/>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary rounded-lg">{isUploading ? <Loader2 className="animate-spin h-4 w-4"/> : <Paperclip className="h-5 w-5"/>}</Button>
-                  </div>
-                  
-                  <Input className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-slate-800 placeholder:text-slate-400 font-bold text-sm h-10" placeholder="Message..." value={messageText} onChange={e => setMessageText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}/>
-                  
-                  <Button onClick={handleSend} className="rounded-xl h-8 w-8 bg-primary shadow-lg shadow-primary/20 hover:scale-[1.05] transition-transform p-0" disabled={!messageText.trim()}>
-                    <Send className="h-4 w-4"/>
-                  </Button>
+                  {showEmoji && (
+                    <div className="absolute bottom-12 left-0 z-50 animate-in fade-in zoom-in-95">
+                      <EmojiPicker
+                        onEmojiClick={(e) => { setMessageText(prev => prev + e.emoji); }}
+                        emojiStyle={EmojiStyle.NATIVE}
+                        width={300}
+                        height={400}
+                        previewConfig={{ showPreview: false }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileUpload} disabled={isUploading} />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary rounded-lg">{isUploading ? <Loader2 className="animate-spin h-4 w-4" /> : <Paperclip className="h-5 w-5" />}</Button>
+                </div>
+
+                <Input className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-slate-800 placeholder:text-slate-400 font-bold text-sm h-10" placeholder="Message..." value={messageText} onChange={e => setMessageText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} />
+
+                <Button onClick={handleSend} className="rounded-xl h-8 w-8 bg-primary shadow-lg shadow-primary/20 hover:scale-[1.05] transition-transform p-0" disabled={!messageText.trim()}>
+                  <Send className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>

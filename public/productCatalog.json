@@ -1,0 +1,164 @@
+[
+  {
+    "id": "vocab-vault",
+    "title": "VocabVault",
+    "developer": "TechWisdom Technologies",
+    "tagline": "Master language through gamified mastery",
+    "summary": "The flagship word mastery platform featuring a multi-dimensional 10-stage cognitive reinforcement engine and a high-performance zero-scroll dashboard architecture.",
+    "heroImage": "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&w=1400&q=80",
+    "gallery": [
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "overview": "VocabVault represents the pinnacle of TechWisdom's mastery-based learning philosophy. Unlike traditional vocabulary tools that rely on passive memorization, VocabVault implements a rigorous 10-stage cognitive journey for every single word. Learners are guided through a progression that moves from basic recognition (Briefing & Immersion) to conceptual mapping (Synonyms/Antonyms), active recall across writing and listening, and finally to creative application in paragraph construction and speaking drills. The platform enforces a 'Zen' progression model: users must achieve at least an 8/10 score on every stage to move forward, ensuring 80% baseline proficiency before word completion. This is served through a state-of-the-art 'Zero-Scroll' Pro Dashboard—a viewport-constrained, high-performance interface that eliminates layout shifting and distractions, keeping the learner in a state of high cognitive focus.",
+    "highlights": [
+      "10-Stage Cognitive Reinforcement Cycle (Recognition to Application)",
+      "Strict Sequential Unlocking (Curriculum Sequence Protocols)",
+      "8/10 Minimum Mastery Score per Learning Phase",
+      "Zero-Scroll Viewport-Constrained Pro Dashboard Architecture",
+      "Real-time Social Competition with Global & Following Leaderboards",
+      "Bank-grade Session Security with 2-Device Concurrent Limit"
+    ],
+    "capabilities": [
+      "Deep-stack integration using Next.js 15+, Prisma, and PostgreSQL",
+      "High-speed session management and rate-limiting via Upstash Redis",
+      "Multi-dimensional learning modules including Audio Analysis and Voice Practice",
+      "AI-optimized 'Word of the Day' and automated Daily Word Set generation",
+      "Granular performance analytics with Weak Point heatmaps and accuracy tracking",
+      "Automated transaction workflows with Stripe and transactional emails via Resend"
+    ],
+    "comparison": {
+      "traditional": [
+        "Fragmented, low-retention flashcard review",
+        "Unstructured, overwhelming learning paths",
+        "Cluttered, ad-heavy, and scrolling-intensive layouts",
+        "Manual tracking of mastery and retention gaps"
+      ],
+      "withTechWisdom": [
+        "Rigorous, multi-stage cognitive reinforcement",
+        "Strict, gated sequential progression that prevents 'skipping'",
+        "Immersive, motion-rich 'Zero-Scroll' Zen interface",
+        "Real-time, AI-driven performance optimization and habit-building"
+      ]
+    },
+    "builtFor": "Individual high-achievers, academic institutions, and corporate training programs requiring verified language proficiency and cognitive retention.",
+    "status": "Production ready",
+    "pricing": [
+      {
+        "plan": "Basic",
+        "price": "BDT 0/ Lifetime",
+        "features": [
+          "First 25 Words Full Access",
+          "Limited Daily Word Sets (5 words/day)",
+          "Global Leaderboard Participation",
+          "Basic Performance Analytics"
+        ],
+        "cta": "Start Journey"
+      },
+      {
+        "plan": "Pro",
+        "price": "BDT 499/ Lifetime",
+        "features": [
+          "Unlimited 5,000+ Word Curriculum Access",
+          "Full 10-Stage Learning Modules",
+          "Advanced Mastery Insights & Data Heatmaps",
+          "Exclusive Streak Rewards & Pro Badges",
+          "Priority Feedback Support",
+          "Multi-device Sync (2-device limit)"
+        ],
+        "cta": "Get Pro Lifetime",
+        "popular": true
+      }
+    ],
+    "platforms": [
+      "Web",
+      "Mobile App",
+      "Desktop"
+    ],
+    "webAppUrl": "https://www.vocabvault.site",
+    "appStoreUrl": "https://apps.apple.com/app/vocabvault",
+    "playStoreUrl": "https://play.google.com/store/apps/details?id=com.techwisdom.vocabvault"
+  },
+  {
+    "id": "myprep",
+    "title": "MyPrep",
+    "developer": "TechWisdom Technologies",
+    "tagline": "The ultimate test preparation OS",
+    "summary": "A high-stakes exam preparation platform for GRE, SAT, and IELTS, built on the core TechWisdom mastery engine.",
+    "heroImage": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1400&q=80",
+    "gallery": [
+      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "overview": "MyPrep applies the rigor of TechWisdom's mastery-based learning to high-stakes standardized testing. It analyzes student performance in real-time to surface weak points, ensuring every hour of study is spent where it matters most. It features full-length timed mock exams and instant feedback loops.",
+    "highlights": [
+      "Timed Mock Exam Engine",
+      "Weak Point Heatmaps",
+      "Predictive Score Analytics",
+      "Adaptive Learning Paths"
+    ],
+    "capabilities": [
+      "Real-world exam simulations",
+      "Detailed step-by-step solutions",
+      "Video explanation library",
+      "Multi-platform progress tracking"
+    ],
+    "comparison": {
+      "traditional": [
+        "Generic, non-adaptive study",
+        "Static practice books",
+        "Delayed feedback on errors"
+      ],
+      "withTechWisdom": [
+        "Adaptive, AI-driven curriculum",
+        "Instant performance feedback",
+        "Focus on exam-ready accuracy"
+      ]
+    },
+    "builtFor": "Students preparing for GRE, SAT, IELTS, and other competitive exams.",
+    "status": "Available in Private Beta",
+    "pricing": [
+      {
+        "plan": "Standard",
+        "price": "$29/mo",
+        "features": [
+          "Section Practice",
+          "Score Tracker",
+          "Mobile App"
+        ],
+        "cta": "Start Prep"
+      },
+      {
+        "plan": "Premium",
+        "price": "$59/mo",
+        "features": [
+          "10 Full Mock Exams",
+          "Video Solutions",
+          "AI Weak Point Analysis"
+        ],
+        "cta": "Get Premium",
+        "popular": true
+      },
+      {
+        "plan": "Intensive",
+        "price": "$129/mo",
+        "features": [
+          "Live Tutor Support",
+          "Unlimited Mocks",
+          "Score Guarantee"
+        ],
+        "cta": "Join Intensive"
+      }
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "webAppUrl": "https://myprep.techwisdom.site",
+    "appStoreUrl": "https://apps.apple.com/app/myprep",
+    "playStoreUrl": "https://play.google.com/store/apps/details?id=com.techwisdom.myprep"
+  }
+]

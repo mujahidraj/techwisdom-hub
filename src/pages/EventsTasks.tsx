@@ -37,7 +37,7 @@ export default function EventsTasks() {
 
   // Forms
   const [taskForm, setTaskForm] = useState({ title: '', priority: 'medium', due_date: '' });
-  const [eventForm, setEventForm] = useState({ title: '', start_time: '', location: '' });
+  const [eventForm, setEventForm] = useState({ title: '', description: '', event_date: '', location: '' });
 
   // --- 1. FETCH TASKS ---
   const { data: tasks = [] } = useQuery({
@@ -59,9 +59,9 @@ export default function EventsTasks() {
     queryFn: async () => {
       // FIX: Added 'as any' to bypass type check for new table
       const { data, error } = await supabase
-        .from('events' as any)
+        .from('company_events' as any)
         .select('*')
-        .order('start_time', { ascending: true });
+        .order('event_date', { ascending: true });
       if (error) throw error;
       return data;
     }
@@ -111,10 +111,10 @@ export default function EventsTasks() {
   const saveEventMutation = useMutation({
     mutationFn: async () => {
       if (editingEvent) {
-        const { error } = await supabase.from('events' as any).update(eventForm).eq('id', editingEvent.id);
+        const { error } = await supabase.from('company_events' as any).update(eventForm).eq('id', editingEvent.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('events' as any).insert(eventForm);
+        const { error } = await supabase.from('company_events' as any).insert(eventForm);
         if (error) throw error;
       }
     },
@@ -129,7 +129,7 @@ export default function EventsTasks() {
 
   const deleteEventMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('events' as any).delete().eq('id', id);
+      const { error } = await supabase.from('company_events' as any).delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -141,7 +141,7 @@ export default function EventsTasks() {
   // Helpers
   const resetForms = () => {
     setTaskForm({ title: '', priority: 'medium', due_date: '' });
-    setEventForm({ title: '', start_time: '', location: '' });
+    setEventForm({ title: '', description: '', event_date: '', location: '' });
     setEditingTask(null);
     setEditingEvent(null);
   };
@@ -154,7 +154,7 @@ export default function EventsTasks() {
 
   const openEditEvent = (event: any) => {
     setEditingEvent(event);
-    setEventForm({ title: event.title, start_time: event.start_time.slice(0,16), location: event.location });
+    setEventForm({ title: event.title, description: event.description || '', event_date: event.event_date.slice(0,16), location: event.location });
     setIsEventOpen(true);
   };
 
@@ -260,8 +260,8 @@ export default function EventsTasks() {
                   <div key={event.id} className="group relative flex gap-4 p-4 rounded-xl bg-purple-50/50 border border-purple-100 hover:bg-purple-50 transition-colors">
                     {/* Date Box */}
                     <div className="flex flex-col items-center justify-center w-14 h-14 bg-white rounded-lg border shadow-sm shrink-0">
-                      <span className="text-[10px] font-bold text-red-500 uppercase">{format(new Date(event.start_time), 'MMM')}</span>
-                      <span className="text-xl font-bold text-gray-900">{format(new Date(event.start_time), 'd')}</span>
+                      <span className="text-[10px] font-bold text-red-500 uppercase">{format(new Date(event.event_date), 'MMM')}</span>
+                      <span className="text-xl font-bold text-gray-900">{format(new Date(event.event_date), 'd')}</span>
                     </div>
                     
                     {/* Details */}
@@ -270,7 +270,7 @@ export default function EventsTasks() {
                       <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Clock className="h-3.5 w-3.5 text-purple-500" />
-                          {format(new Date(event.start_time), 'EEEE, h:mm a')}
+                          {format(new Date(event.event_date), 'EEEE, h:mm a')}
                         </span>
                         {event.location && (
                           <span className="flex items-center gap-1.5">
@@ -330,14 +330,15 @@ export default function EventsTasks() {
             <DialogHeader><DialogTitle>{editingEvent ? 'Edit Event' : 'New Event'}</DialogTitle></DialogHeader>
             <div className="space-y-4 py-2">
               <Input placeholder="Event Title" value={eventForm.title} onChange={e => setEventForm({...eventForm, title: e.target.value})} />
+              <Input placeholder="Description (Optional)" value={eventForm.description} onChange={e => setEventForm({...eventForm, description: e.target.value})} />
               <Input placeholder="Location (Optional)" value={eventForm.location} onChange={e => setEventForm({...eventForm, location: e.target.value})} />
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-muted-foreground font-medium">Start Time</label>
-                <Input type="datetime-local" value={eventForm.start_time} onChange={e => setEventForm({...eventForm, start_time: e.target.value})} />
+                <label className="text-xs text-muted-foreground font-medium">Event Date & Time</label>
+                <Input type="datetime-local" value={eventForm.event_date} onChange={e => setEventForm({...eventForm, event_date: e.target.value})} />
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => saveEventMutation.mutate()} disabled={!eventForm.title || !eventForm.start_time}>Save Event</Button>
+              <Button onClick={() => saveEventMutation.mutate()} disabled={!eventForm.title || !eventForm.event_date}>Save Event</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

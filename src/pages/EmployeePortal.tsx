@@ -12,6 +12,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import {
   Building2,
   LogOut,
@@ -29,6 +33,15 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Monitor,
+  AlertTriangle,
+  LifeBuoy,
+  Megaphone,
+  FileText,
+  Package,
+  Target,
+  MessageSquare,
+  Video
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -63,6 +76,8 @@ export default function EmployeePortal() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ full_name: '', phone: '' });
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
+  const [ticketData, setTicketData] = useState({ title: '', description: '', category: 'software', priority: 'medium' });
 
   useEffect(() => {
     if (!loading && (!user || role !== 'employee')) {
@@ -125,6 +140,81 @@ export default function EmployeePortal() {
       return data;
     },
     enabled: !!employee?.id,
+  });
+
+  const { data: tickets = [] } = useQuery({
+    queryKey: ['it-tickets', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('it_tickets').select('*').eq('user_id', user!.id).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['portal-announcements'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('company_announcements').select('*').eq('is_published', true).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: events = [] } = useQuery({
+    queryKey: ['portal-events'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from('company_events').select('*').order('event_date', { ascending: true });
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ['portal-documents', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('employee_documents').select('*').eq('user_id', user!.id).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
+  });
+
+  const { data: assignedAssets = [] } = useQuery({
+    queryKey: ['portal-assets', employee?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('assets').select('*').eq('assigned_to', employee!.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!employee?.id
+  });
+
+  const { data: myOkrs = [] } = useQuery({
+    queryKey: ['portal-okrs', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('okr_objectives').select('*, key_results:okr_key_results(*)').eq('owner_id', user!.id).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
+  });
+
+  const createTicketMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const { error } = await supabase.from('it_tickets').insert({
+        user_id: user!.id,
+        ...payload
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['it-tickets'] });
+      toast.success('Support ticket submitted!');
+      setTicketDialogOpen(false);
+      setTicketData({ title: '', description: '', category: 'software', priority: 'medium' });
+    },
+    onError: (error) => toast.error(error.message)
   });
 
   const cancelLeaveMutation = useMutation({
@@ -206,7 +296,7 @@ export default function EmployeePortal() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 gradient-primary rounded-lg">
-             <img src={logo} className="h-10 w-10" alt="TechWisdom Logo" />
+              <img src={logo} className="h-10 w-10" alt="TechWisdom Logo" />
             </div>
             <div>
               <span className="font-bold text-lg">TechWisdom</span>
@@ -214,6 +304,16 @@ export default function EmployeePortal() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-2 mr-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/teamChat')}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Team Chat
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/meeting')}>
+                <Video className="h-4 w-4 mr-2" />
+                Conference
+              </Button>
+            </div>
             <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -356,16 +456,81 @@ export default function EmployeePortal() {
 
         {/* Tabs for Leave & Salary */}
         <Tabs defaultValue="leave" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="leave" className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              Leave Applications
-            </TabsTrigger>
-            <TabsTrigger value="salary" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Salary History
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8">
+            <TabsTrigger value="announcements" className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> <span className="hidden lg:inline">Bulletin</span></TabsTrigger>
+            <TabsTrigger value="events" className="flex items-center gap-2"><Calendar className="h-4 w-4" /> <span className="hidden lg:inline">Events</span></TabsTrigger>
+            <TabsTrigger value="leave" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> <span className="hidden lg:inline">Leave</span></TabsTrigger>
+            <TabsTrigger value="salary" className="flex items-center gap-2"><DollarSign className="h-4 w-4" /> <span className="hidden lg:inline">Salary</span></TabsTrigger>
+            <TabsTrigger value="helpdesk" className="flex items-center gap-2"><LifeBuoy className="h-4 w-4" /> <span className="hidden lg:inline">Helpdesk</span></TabsTrigger>
+            <TabsTrigger value="documents" className="flex items-center gap-2"><FileText className="h-4 w-4" /> <span className="hidden lg:inline">Documents</span></TabsTrigger>
+            <TabsTrigger value="assets" className="flex items-center gap-2"><Package className="h-4 w-4" /> <span className="hidden lg:inline">Assets</span></TabsTrigger>
+            <TabsTrigger value="okrs" className="flex items-center gap-2"><Target className="h-4 w-4" /> <span className="hidden lg:inline">My OKRs</span></TabsTrigger>
           </TabsList>
+
+          {/* EVENTS */}
+          <TabsContent value="events">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Upcoming Company Events
+                </CardTitle>
+                <CardDescription>Company-wide meetings, holidays, and team events</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {events.length === 0 ? (
+                    <p className="text-muted-foreground">No upcoming events scheduled.</p>
+                  ) : (
+                    events.map((event: any) => (
+                      <div key={event.id} className="flex gap-4 p-4 border rounded-xl bg-card hover:shadow-sm transition-shadow">
+                        <div className="flex flex-col items-center justify-center bg-primary/10 rounded-lg p-2 min-w-[60px]">
+                          <span className="text-xs font-bold text-primary uppercase">{format(new Date(event.event_date), 'MMM')}</span>
+                          <span className="text-lg font-bold text-primary">{format(new Date(event.event_date), 'd')}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-foreground">{event.title}</h4>
+                          {event.description && <p className="text-sm text-muted-foreground mt-1">{event.description}</p>}
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground mt-2">
+                            <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {format(new Date(event.event_date), 'h:mm a')}</span>
+                            {event.location && <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {event.location}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ANNOUNCEMENTS */}
+          <TabsContent value="announcements">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-primary" /> Company Bulletin Board</CardTitle>
+                <CardDescription>Latest news and updates from the team</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {announcements.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">No current announcements.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {announcements.map((a: any) => (
+                      <div key={a.id} className="p-4 bg-muted/30 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-lg">{a.title}</h3>
+                          <Badge variant={a.type === 'urgent' ? 'destructive' : 'outline'} className="capitalize">{a.type}</Badge>
+                        </div>
+                        <p className="mt-2 whitespace-pre-wrap text-muted-foreground text-sm">{a.content}</p>
+                        <p className="text-xs text-muted-foreground opacity-50 mt-4">{format(new Date(a.created_at), 'PPP')}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="leave">
             <Card className="glass-card">
@@ -496,8 +661,224 @@ export default function EmployeePortal() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="helpdesk">
+            <Card className="glass-card">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Monitor className="h-5 w-5 text-primary" />
+                      IT Helpdesk
+                    </CardTitle>
+                    <CardDescription>Request software, hardware, or report issues</CardDescription>
+                  </div>
+                  <Button onClick={() => setTicketDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Ticket
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {tickets.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No support tickets found. You're all good!
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {tickets.map((ticket: any) => (
+                      <div key={ticket.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-muted/50 rounded-lg gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{ticket.title}</p>
+                            {ticket.priority === 'urgent' && <Badge variant="destructive" className="h-5 px-1.5"><AlertTriangle className="h-3 w-3 mr-1" /> Urgent</Badge>}
+                            {ticket.priority === 'high' && <Badge variant="destructive" className="h-5 px-1.5">High</Badge>}
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{ticket.description}</p>
+                          <div className="flex gap-3 text-xs text-muted-foreground mt-2">
+                            <span className="capitalize">{ticket.category}</span>
+                            <span>•</span>
+                            <span>{format(new Date(ticket.created_at), 'MMM d, yyyy')}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <Badge variant="outline" className="capitalize text-[10px]">{ticket.status.replace('_', ' ')}</Badge>
+                          {ticket.resolution_notes && (
+                            <p className="text-xs text-success max-w-[200px] truncate">Note: {ticket.resolution_notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* DOCUMENTS */}
+          <TabsContent value="documents">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Personal Document Vault</CardTitle>
+                <CardDescription>Secure access to your payslips, contracts, and policies</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {documents.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">Your document vault is empty.</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {documents.map((d: any) => (
+                      <div key={d.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                          <FileText className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                          <p className="font-semibold truncate">{d.title}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                            <Badge variant="secondary" className="capitalize text-[10px]">{d.type}</Badge>
+                            <span>{format(new Date(d.created_at), 'MMM d, yyyy')}</span>
+                          </div>
+                        </div>
+                        {d.document_url && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={d.document_url} target="_blank" rel="noreferrer">View</a>
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ASSETS */}
+          <TabsContent value="assets">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> Assigned Assets</CardTitle>
+                <CardDescription>Company equipment and licenses assigned to you</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {assignedAssets.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">You have no assets currently assigned to you.</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {assignedAssets.map((asset: any) => (
+                      <div key={asset.id} className="p-4 border rounded-lg bg-muted/30 flex flex-col gap-2">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-semibold">{asset.asset_name}</h4>
+                          <Badge variant="outline" className="capitalize text-[10px]">{asset.category}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Tag: {asset.asset_tag}</p>
+                        {asset.brand && <p className="text-sm text-muted-foreground">Brand: {asset.brand} {asset.model}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* OKRS */}
+          <TabsContent value="okrs">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-primary" /> My Objectives & Key Results</CardTitle>
+                <CardDescription>Track your active quarterly goals</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {myOkrs.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">No active OKRs assigned to you.</div>
+                ) : (
+                  <div className="space-y-6">
+                    {myOkrs.map((okr: any) => (
+                      <div key={okr.id} className="p-5 border rounded-lg bg-card shadow-sm space-y-4">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg">{okr.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{okr.description}</p>
+                          </div>
+                          <Badge className="capitalize">{okr.status}</Badge>
+                        </div>
+
+                        <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                          {okr.key_results?.map((kr: any) => {
+                            const progressPercent = Math.min(Math.round(((kr.current_value - kr.start_value) / (kr.target_value - kr.start_value)) * 100), 100);
+                            return (
+                              <div key={kr.id} className="space-y-1.5">
+                                <div className="flex justify-between text-sm">
+                                  <span className="font-medium text-muted-foreground">{kr.title}</span>
+                                  <span className="font-bold">{kr.current_value} / {kr.target_value}</span>
+                                </div>
+                                <Progress value={progressPercent} className="h-2" />
+                              </div>
+                            );
+                          })}
+                          {(!okr.key_results || okr.key_results.length === 0) && (
+                            <p className="text-xs text-muted-foreground">No Key Results attached.</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={ticketDialogOpen} onOpenChange={o => !o && setTicketDialogOpen(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Submit IT Support Ticket</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Issue / Request Title</Label>
+              <Input placeholder="e.g. Need access to Figma" value={ticketData.title} onChange={e => setTicketData({ ...ticketData, title: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Category</Label>
+                <Select value={ticketData.category} onValueChange={v => setTicketData({ ...ticketData, category: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="software">Software / App Access</SelectItem>
+                    <SelectItem value="hardware">Hardware / Laptop</SelectItem>
+                    <SelectItem value="network">Network / WiFi</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Priority</Label>
+                <Select value={ticketData.priority} onValueChange={v => setTicketData({ ...ticketData, priority: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low - Not blocking work</SelectItem>
+                    <SelectItem value="medium">Medium - Partially blocking</SelectItem>
+                    <SelectItem value="high">High - Severely blocking</SelectItem>
+                    <SelectItem value="urgent">Urgent - Completely blocked</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                placeholder="Please describe the issue in detail..."
+                className="min-h-[100px]"
+                value={ticketData.description}
+                onChange={e => setTicketData({ ...ticketData, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTicketDialogOpen(false)}>Cancel</Button>
+            <Button className="gradient-primary" onClick={() => createTicketMutation.mutate(ticketData)} disabled={createTicketMutation.isPending || !ticketData.title || !ticketData.description}>Submit Ticket</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Leave Application Dialog */}
       {employee && (

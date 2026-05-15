@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { 
   ArrowLeft, Building, Calendar, DollarSign, CheckSquare, 
   MessageSquare, Send, Edit, FileText, Paperclip, Download, 
-  Loader2, Trash2, X, Activity
+  Loader2, Trash2, X, Activity, LifeBuoy, ThumbsUp, UploadCloud
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,6 +44,12 @@ export default function ProjectDetails() {
   const [uploading, setUploading] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  const [approvalTitle, setApprovalTitle] = useState('');
+  const [approvalDesc, setApprovalDesc] = useState('');
+  const [approvalUrl, setApprovalUrl] = useState('');
+  
+  const [resolutionNotes, setResolutionNotes] = useState('');
 
   // --- 1. FETCH PROJECT ---
   const { data: project, isLoading } = useQuery({
@@ -80,7 +86,36 @@ export default function ProjectDetails() {
           .select('*')
           .eq('project_id', id)
           .order('created_at', { ascending: false });
-        
+        if (error) return [];
+        return data;
+    }
+  });
+
+  // --- NEW: FETCH DELIVERABLES ---
+  const { data: deliverables = [] } = useQuery({
+    queryKey: ['project_deliverables', id],
+    queryFn: async () => {
+        const { data, error } = await supabase.from('project_deliverables' as any).select('*').eq('project_id', id).order('created_at', { ascending: false });
+        if (error) return [];
+        return data;
+    }
+  });
+
+  // --- NEW: FETCH APPROVALS ---
+  const { data: approvals = [] } = useQuery({
+    queryKey: ['project_approvals', id],
+    queryFn: async () => {
+        const { data, error } = await supabase.from('project_approvals' as any).select('*').eq('project_id', id).order('created_at', { ascending: false });
+        if (error) return [];
+        return data;
+    }
+  });
+
+  // --- NEW: FETCH TICKETS ---
+  const { data: tickets = [] } = useQuery({
+    queryKey: ['client_tickets', id],
+    queryFn: async () => {
+        const { data, error } = await supabase.from('client_tickets' as any).select('*').eq('project_id', id).order('created_at', { ascending: false });
         if (error) return [];
         return data;
     }
@@ -178,6 +213,65 @@ export default function ProjectDetails() {
     }
   });
 
+  const uploadDeliverableMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedFile) throw new Error("No file selected");
+      setUploading(true);
+      const fileExt = selectedFile.name.split('.').pop();
+      const filePath = `deliverables/${id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage.from('project-attachments').upload(filePath, selectedFile);
+      if (uploadError) throw uploadError;
+      
+      const { data: urlData } = supabase.storage.from('project-attachments').getPublicUrl(filePath);
+      
+      const { error: dbError } = await supabase.from('project_deliverables' as any).insert({
+        project_id: id, 
+        title: selectedFile.name, 
+        file_url: urlData.publicUrl,
+      });
+      
+      if (dbError) throw dbError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project_deliverables'] });
+      setSelectedFile(null);
+      setUploading(false);
+      toast.success("Deliverable uploaded and sent to client.");
+    },
+    onError: (err) => { setUploading(false); toast.error(err.message); }
+  });
+
+  const requestApprovalMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('project_approvals' as any).insert({
+        project_id: id, title: approvalTitle, description: approvalDesc, asset_url: approvalUrl
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project_approvals'] });
+      setApprovalTitle(''); setApprovalDesc(''); setApprovalUrl('');
+      toast.success("Approval requested from client.");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const resolveTicketMutation = useMutation({
+    mutationFn: async ({ ticketId, notes }: { ticketId: string, notes: string }) => {
+      const { error } = await supabase.from('client_tickets' as any).update({
+        status: 'resolved', resolution_notes: notes
+      }).eq('id', ticketId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client_tickets'] });
+      setResolutionNotes('');
+      toast.success("Ticket resolved.");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
   const handleDownload = async (filePath: string) => {
       const { data } = await supabase.storage.from('project-attachments').createSignedUrl(filePath, 60);
       if (data?.signedUrl) window.open(data.signedUrl, '_blank');
@@ -272,10 +366,13 @@ export default function ProjectDetails() {
 
             {/* TABS */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview">Checklist</TabsTrigger>
-                <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
-                <TabsTrigger value="files">Files ({files.length})</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-6 h-auto p-1">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
+                <TabsTrigger value="files">Files</TabsTrigger>
+                <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
+                <TabsTrigger value="approvals">Approvals</TabsTrigger>
+                <TabsTrigger value="tickets">Tickets</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="mt-4">
@@ -366,6 +463,96 @@ export default function ProjectDetails() {
                             ))}
                         </div>
                     )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="deliverables" className="mt-4 space-y-4">
+                <Card>
+                  <CardHeader><CardTitle>Project Deliverables Vault</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex gap-4 items-end">
+                      <div className="flex-1">
+                        <Label>Upload Final File for Client</Label>
+                        <Input type="file" onChange={e => setSelectedFile(e.target.files?.[0] || null)} />
+                      </div>
+                      <Button onClick={() => uploadDeliverableMutation.mutate()} disabled={!selectedFile || uploading}>
+                        {uploading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                        Upload & Share
+                      </Button>
+                    </div>
+                    <div className="space-y-2 mt-4">
+                      {deliverables.map((d: any) => (
+                        <div key={d.id} className="flex justify-between items-center p-3 border rounded-lg bg-muted/20">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-green-600" />
+                            <div><p className="font-medium text-sm">{d.title}</p><p className="text-xs text-muted-foreground">{format(new Date(d.created_at), 'PPP')}</p></div>
+                          </div>
+                          <Button variant="outline" size="sm" asChild><a href={d.file_url} target="_blank" rel="noreferrer">Download</a></Button>
+                        </div>
+                      ))}
+                      {deliverables.length === 0 && <p className="text-sm text-muted-foreground">No deliverables shared with client yet.</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="approvals" className="mt-4 space-y-4">
+                <Card>
+                  <CardHeader><CardTitle>Request Client Approval</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="col-span-2"><Label>Title (e.g. Homepage Wireframes)</Label><Input value={approvalTitle} onChange={e => setApprovalTitle(e.target.value)} /></div>
+                      <div className="col-span-2"><Label>Description / Instructions</Label><Textarea value={approvalDesc} onChange={e => setApprovalDesc(e.target.value)} /></div>
+                      <div className="col-span-2"><Label>Figma / Asset Link (Optional)</Label><Input value={approvalUrl} onChange={e => setApprovalUrl(e.target.value)} /></div>
+                    </div>
+                    <Button onClick={() => requestApprovalMutation.mutate()} disabled={!approvalTitle}><ThumbsUp className="h-4 w-4 mr-2" />Send Approval Request</Button>
+                  </CardContent>
+                </Card>
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-lg mt-6">Pending & Past Approvals</h3>
+                  {approvals.map((a: any) => (
+                    <Card key={a.id}>
+                      <CardContent className="p-4 flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold">{a.title}</h4>
+                          <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+                          {a.client_feedback && <p className="text-sm bg-muted/50 p-2 rounded mt-2 border-l-2 border-primary">Client Feedback: {a.client_feedback}</p>}
+                        </div>
+                        <Badge variant={a.status === 'approved' ? 'default' : a.status === 'changes_requested' ? 'destructive' : 'secondary'} className="capitalize">
+                          {a.status.replace('_', ' ')}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="tickets" className="mt-4 space-y-4">
+                <Card>
+                  <CardHeader><CardTitle>Client Support Tickets</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    {tickets.length === 0 ? <p className="text-muted-foreground">No active tickets for this project.</p> : null}
+                    {tickets.map((t: any) => (
+                      <div key={t.id} className="border p-4 rounded-lg bg-card">
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-bold flex items-center gap-2"><LifeBuoy className="h-4 w-4" /> {t.title}</h4>
+                          <Badge variant={t.status === 'resolved' ? 'default' : 'destructive'} className="capitalize">{t.status}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{t.description}</p>
+                        
+                        {t.status !== 'resolved' && t.status !== 'closed' ? (
+                          <div className="mt-4 flex gap-2">
+                            <Input placeholder="Resolution notes..." value={resolutionNotes} onChange={e => setResolutionNotes(e.target.value)} />
+                            <Button size="sm" onClick={() => resolveTicketMutation.mutate({ ticketId: t.id, notes: resolutionNotes })}>Resolve</Button>
+                          </div>
+                        ) : (
+                          <div className="mt-4 bg-green-50 text-green-800 p-3 rounded-lg text-sm">
+                            <span className="font-bold">Resolution: </span>{t.resolution_notes}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </CardContent>
                 </Card>
               </TabsContent>

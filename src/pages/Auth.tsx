@@ -28,22 +28,11 @@ const loginSchema = z.object({
   role: z.enum(['admin', 'employee', 'client'], { required_error: 'Please select a role' }),
 });
 
-const signUpSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
 const resetSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-type SignUpFormData = z.infer<typeof signUpSchema>;
 type ResetFormData = z.infer<typeof resetSchema>;
 
 const roleInfo = {
@@ -62,11 +51,6 @@ export default function Auth() {
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '', role: 'admin' },
-  });
-
-  const signUpForm = useForm<SignUpFormData>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
   });
 
   const resetForm = useForm<ResetFormData>({
@@ -174,12 +158,6 @@ export default function Auth() {
         navigate('/dashboard', { replace: true });
       }
     }
-    setIsSubmitting(false);
-  };
-
-  const handleSignUp = async (data: SignUpFormData) => {
-    setIsSubmitting(true);
-    toast.info('Public registration is disabled. Please contact an administrator to create an account.');
     setIsSubmitting(false);
   };
 

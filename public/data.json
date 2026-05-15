@@ -1,0 +1,2630 @@
+{
+  "site": {
+    "name": "TechWisdom Technologies",
+    "tagline": "We don't just code, we create solution.",
+    "description": "We craft premium digital experiences that drive growth and build lasting trust with your customers.",
+    "email": "official@techwisdom.site",
+    "phone": "+8801799269699",
+    "whatsapp": "https://wa.me/message/XNAQSGDMKN7OD1",
+    "address": "158/Cha, Kuratoli Rd, Dhaka 1229, Bangladesh",
+    "image": "./assets/techwisdom.png"
+  },
+  "navigation": [
+    {
+      "label": "Home",
+      "path": "/"
+    },
+    {
+      "label": "About",
+      "path": "/about"
+    },
+    {
+      "label": "Services",
+      "path": "/services"
+    },
+    {
+      "label": "Work",
+      "path": "/work"
+    },
+    {
+      "label": "Pricing",
+      "path": "/pricing"
+    },
+    {
+      "label": "Careers",
+      "path": "/careers"
+    },
+    {
+      "label": "Blog",
+      "path": "/blog"
+    },
+    {
+      "label": "Contact",
+      "path": "/contact"
+    }
+  ],
+  "hero": {
+    "headline": "We don't just code, we create solution",
+    "subheadline": "We transform bold ideas into exceptional digital experiences that captivate, convert, and create lasting impact.",
+    "cta": {
+      "primary": "Start Your Project",
+      "secondary": "View Our Work"
+    }
+  },
+  "stats": [
+    {
+      "value": 15,
+      "suffix": "+",
+      "label": "Projects Delivered"
+    },
+    {
+      "value": 98,
+      "suffix": "%",
+      "label": "Client Satisfaction"
+    },
+    {
+      "value": 8,
+      "suffix": "",
+      "label": "Expert Members"
+    }
+  ],
+  "costEstimator": {
+    "title": "Project Cost Estimator",
+    "subtitle": "Get an instant estimate for your project",
+    "steps": [
+      {
+        "title": "Platform",
+        "description": "What type of platform do you need?",
+        "options": [
+          {
+            "id": "web",
+            "label": "Web Application",
+            "icon": "Globe",
+            "multiplier": 1
+          },
+          {
+            "id": "mobile",
+            "label": "Mobile App",
+            "icon": "Smartphone",
+            "multiplier": 1.5
+          },
+          {
+            "id": "custom",
+            "label": "Custom Solution",
+            "icon": "Settings",
+            "multiplier": 2
+          }
+        ]
+      },
+      {
+        "title": "Design Level",
+        "description": "What level of design do you require?",
+        "options": [
+          {
+            "id": "mvp",
+            "label": "MVP",
+            "description": "Essential features to launch",
+            "multiplier": 1
+          },
+          {
+            "id": "premium",
+            "label": "Premium",
+            "description": "Polished, branded experience",
+            "multiplier": 1.8
+          },
+          {
+            "id": "enterprise",
+            "label": "Enterprise",
+            "description": "Full-scale, scalable solution",
+            "multiplier": 3
+          }
+        ]
+      },
+      {
+        "title": "Features",
+        "description": "Select the features you need",
+        "options": [
+          {
+            "id": "auth",
+            "label": "Authentication",
+            "icon": "Lock",
+            "points": 10
+          },
+          {
+            "id": "payments",
+            "label": "Payments",
+            "icon": "CreditCard",
+            "points": 20
+          },
+          {
+            "id": "ai",
+            "label": "AI Integration",
+            "icon": "Brain",
+            "points": 30
+          },
+          {
+            "id": "analytics",
+            "label": "Analytics",
+            "icon": "BarChart",
+            "points": 15
+          },
+          {
+            "id": "cms",
+            "label": "CMS",
+            "icon": "FileText",
+            "points": 12
+          }
+        ]
+      }
+    ],
+    "result": {
+      "title": "Your Project Complexity Score",
+      "emailPlaceholder": "Enter your email for detailed quote",
+      "buttonText": "Get Full Quote"
+    }
+  },
+  "partners": [
+    {
+      "name": "New Life Style",
+      "logo": "https://i.postimg.cc/13QXt4ys/Untitled-design.png"
+    },
+    {
+      "name": "InnovateCo Tech",
+      "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHz8vsjLhLRro7EGW2GUarqopRK99tJB9qTg&s"
+    },
+    {
+      "name": "New Bangladesh Group",
+      "logo": "https://i.postimg.cc/MHzxwfyR/logo.png"
+    },
+    {
+      "name": "Juta Express",
+      "logo": "https://i.postimg.cc/yY5hrmhx/juta-express.jpg"
+    },
+    {
+      "name": "Cambry BD",
+      "logo": "https://i.postimg.cc/QCz7wD7B/cambry.jpg"
+    }
+  ],
+  "whyUs": [
+    {
+      "title": "Lightning Speed",
+      "description": "We deliver projects 40% faster than industry average without compromising quality. Our Work methodology ensures rapid iterations and quick time-to-market.",
+      "icon": "Zap"
+    },
+    {
+      "title": "Bank-Grade Security",
+      "description": "Your data is protected with enterprise-level security protocols. We implement best practices in cybersecurity to keep your digital assets safe.",
+      "icon": "Shield"
+    },
+    {
+      "title": "Full Transparency",
+      "description": "No hidden costs, no surprises. You get real-time access to project progress, clear communication, and detailed reporting throughout the development cycle.",
+      "icon": "Eye"
+    },
+    {
+      "title": "24/7 Support",
+      "description": "Our dedicated support team is available around the clock. From launch to scale, we're with you every step of the way to ensure smooth operations.",
+      "icon": "Headphones"
+    }
+  ],
+  "about": {
+    "mission": {
+      "title": "Our Mission",
+      "content": "We are dedicated to redefining the digital experience by merging technical excellence with human-centric strategy. We empower businesses to transcend traditional boundaries, utilizing state-of-the-art digital ecosystems to unlock new revenue streams. Ultimately, we strive to transform how brands interact with the world, turning passive users into loyal advocates through solutions that inspire, engage, and endure."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "content": "To become the unwavering cornerstone of success for visionary enterprises navigating the complexities of the digital age. We strive to build a legacy rooted in radical transparency and reliability, where 'partnership' implies a deep, strategic integration. Our vision is to empower forward-thinking companies with a competitive edge that is forged through a relentless pursuit of technical perfection, aesthetic brilliance, and operational excellence."
+    },
+    "goals": [
+      "Deliver 100+ successful enterprise projects.",
+      "Launch operations in two new international regions.",
+      "Expand R&D into AI and emerging markets.",
+      "Maintain a 98% client retention rate.",
+      "Hire 20 freelancer or intern to help with task.",
+      "Achieve carbon neutrality in all operations.",
+      "Build a global, top-tier engineering team.",
+      "Establish long-term strategic partnerships with industry leaders.",
+      "Continuously innovate to stay ahead of technology trends.",
+      "Foster a culture of excellence, integrity, and collaboration within the organization."
+    ]
+  },
+  "team": [
+    {
+      "name": "Moizuddin Mohammad Mujahid Rashid (Raj)",
+      "role": "Managing Director & Full Stack Developer",
+      "bio": "A forward-thinking digital strategist and technologist. I bridge the gap between complex engineering and high-level business goals, designing scalable web ecosystems that drive growth. My focus is on merging technical precision with strategic foresight to create digital solutions that deliver lasting impact.",
+      "image": "https://i.postimg.cc/d0LwTwVh/Raj-1.png",
+      "socials": {
+        "linkedin": "https://www.linkedin.com/in/moizuddin-mohammad-mujahid-rashid-raj-9aab65210/",
+        "email": "mujahid@techwisdom.site",
+        "portfolio": "https://mujahidraj.site/"
+      }
+    },
+    {
+      "name": "Fidbi Hasan",
+      "role": "CEO & Full Stack Developer",
+      "bio": "Driving operational excellence through technical innovation. I balance strategic foresight with practitioner-level skill, ensuring that every business decision is grounded in technical feasibility. My focus is on scaling company infrastructure and revenue simultaneously, leveraging cutting-edge tools to accelerate market expansion.",
+      "image": "https://i.postimg.cc/vHbytWm9/Fidbi.png",
+      "socials": {
+        "linkedin": "https://www.linkedin.com/in/fidbi-hasan-9aab65210/",
+        "email": "fidbi@techwisdom.site",
+        "portfolio": "https://fidbi-hasan-portfolio.vercel.app/"
+      }
+    },
+    {
+      "name": "Asmaul Husna Mayad",
+      "role": "COO & WordPress| UIUX Designer",
+      "bio": "Streamlining the digital delivery pipeline with expert oversight. I combine high-level operational planning with granular WordPress expertise to eliminate bottlenecks and mitigate risks. By fostering a culture of efficiency and quality, I ensure that projects are not just delivered, but are engineered for stability and performance.",
+      "image": "https://i.postimg.cc/ryj1yvvg/Gemini-Generated-Image-fr23tifr23tifr23.png",
+      "socials": {
+       "linkedin": "https://www.linkedin.com/in/asmaul-husna-mayad-9aab65210/",
+      "email": "mayad@techwisdom.site",
+      "portfolio": "https://asmaul-husna-mayad-portfolio.vercel.app/"
+      } 
+    },
+    {
+      "name": "Alin Das",
+      "role": "CTO & lead Generator specialist",
+      "bio": "Dedicated to humanizing technology through intuitive design and seamless functionality. I champion the user’s perspective throughout the entire product lifecycle, ensuring that every interaction is frictionless and meaningful. My goal is to transform static interfaces into dynamic experiences that foster engagement, loyalty, and delight.",
+      "image": "https://i.postimg.cc/Bbc0Gvm3/Alin.png",
+      "socials": {
+        "linkedin": "https://www.linkedin.com/in/alin-das-9aab65210/",
+        "email": "alin@techwisdom.site",
+        "portfolio": "https://alin-das-portfolio.vercel.app/"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "year": "April-2025",
+      "title": "The Beginning",
+      "description": "Founded with a vision to transform digital experiences for businesses worldwide."
+    },
+    {
+      "year": "September-2025",
+      "title": "First Major Client",
+      "description": "Secured our first enterprise client and expanded the team to 5 members."
+    },
+    {
+      "year": "November-2025",
+      "title": "Service Expansion",
+      "description": "Added mobile development and AI integration to our service offerings."
+    },
+    {
+      "year": "January-2026",
+      "title": "Global Reach",
+      "description": "Served clients across 15 countries with a 98% satisfaction rate."
+    }
+  ],
+  "gallery": [
+    {
+      "src": "https://i.postimg.cc/0Qp3cTyZ/2025-12-04-14-34-IMG-5377.avif",
+      "alt": "Our main office space",
+      "title": "TechWisdom Dev Night"
+    },
+    {
+      "src": "https://i.postimg.cc/8s8SjRcn/AAA-0111.jpg",
+      "alt": "Cox's Bazar tour",
+      "title": "Cox's Bazar Team Tour"
+    },
+    {
+      "src": "https://i.postimg.cc/j21jvn5T/2025-09-02-19-02-IMG-4646.avif",
+      "alt": "Product Launch Success Celebration",
+      "title": "Product Launch Success Celebration"
+    },
+    {
+      "src": "https://i.postimg.cc/Bbn8mGCs/2025_09_02_18_21_IMG_4634.avif",
+      "alt": "Fun Time after Project Completion",
+      "title": "Fun Time after Project Completion"
+    },
+    {
+      "src": "https://i.postimg.cc/cCTXgZFv/Gemini-Generated-Image-vinf1fvinf1fvinf.png",
+      "alt": "Project Planning session",
+      "title": "Project Planning Session"
+    },
+    {
+      "src": "https://i.postimg.cc/Hs632Yd7/Gemini-Generated-Image-87ntty87ntty87nt.png",
+      "alt": "Tree Plantation Program",
+      "title": "Tree Plantation Program"
+    }
+  ],
+  "services": [
+    {
+      "id": "web-development",
+      "title": "Custom Website Development",
+      "shortDescription": "React, Node.js, and modern frameworks",
+      "description": "We build blazing-fast, scalable web applications using React, Node.js, and the latest technologies. From single-page apps to complex enterprise platforms.",
+      "icon": "Code",
+      "features": [
+        "React & Next.js",
+        "Node.js Backend",
+        "API Development",
+        "Database Design",
+        "Cloud Deployment"
+      ]
+    },
+    {
+      "id": "wordpress",
+      "title": "WordPress Websites",
+      "shortDescription": "CMS solutions that scale",
+      "description": "Professional WordPress development with custom themes and plugins. Perfect for content-rich websites, blogs, and e-commerce platforms.",
+      "icon": "FileCode",
+      "features": [
+        "Custom Themes",
+        "Plugin Development",
+        "WooCommerce",
+        "Performance Optimization",
+        "Security Hardening"
+      ]
+    },
+    {
+      "id": "graphics",
+      "title": "Graphics Designing",
+      "shortDescription": "Visual identity that stands out",
+      "description": "From brand identity to marketing materials, our design team creates visuals that capture attention and communicate your message effectively.",
+      "icon": "Palette",
+      "features": [
+        "Brand Identity",
+        "Marketing Materials",
+        "Social Media Graphics",
+        "Infographics",
+        "Print Design"
+      ]
+    },
+    {
+      "id": "ui-ux",
+      "title": "UI/UX Designing",
+      "shortDescription": "User-centered design excellence",
+      "description": "We create intuitive, beautiful interfaces backed by user research and testing. Every pixel is purposeful, every interaction is delightful.",
+      "icon": "Layout",
+      "features": [
+        "User Research",
+        "Wireframing",
+        "Prototyping",
+        "Usability Testing",
+        "Design Systems"
+      ]
+    },
+    {
+      "id": "qa",
+      "title": "Quality Assurance",
+      "shortDescription": "Bug-free, reliable software",
+      "description": "Comprehensive testing services to ensure your product works flawlessly. From automated testing to manual QA, we catch bugs before your users do.",
+      "icon": "CheckCircle",
+      "features": [
+        "Automated Testing",
+        "Manual QA",
+        "Performance Testing",
+        "Security Audits",
+        "Accessibility Testing"
+      ]
+    },
+    {
+      "id": "mobile",
+      "title": "Mobile Applications",
+      "shortDescription": "iOS & Android excellence",
+      "description": "Native and cross-platform mobile apps that deliver exceptional user experiences. From concept to app store, we handle it all.",
+      "icon": "Smartphone",
+      "features": [
+        "React Native",
+        "iOS Development",
+        "Android Development",
+        "App Store Optimization",
+        "Push Notifications"
+      ]
+    },
+    {
+      "id": "ai-automation",
+      "title": "AI & Automation",
+      "shortDescription": "LLMs, Chatbots, and Workflow Automation",
+      "description": "Transform your business with intelligent AI solutions. We integrate Large Language Models and custom automation scripts to streamline repetitive tasks and enhance decision-making.",
+      "icon": "Cpu",
+      "features": [
+        "Custom GPT Integration",
+        "Process Automation",
+        "AI Chatbot Systems",
+        "Predictive Analytics",
+        "NLP Solutions"
+      ]
+    },
+    {
+      "id": "web-analytics",
+      "title": "Web Analytics & Data",
+      "shortDescription": "GA4, GTM, and Conversion Tracking",
+      "description": "Data-driven insights to fuel your growth. We implement advanced tracking systems that turn user behavior into actionable intelligence for your marketing and product teams.",
+      "icon": "BarChart3",
+      "features": [
+        "GA4 Implementation",
+        "Event Tracking",
+        "Heatmap Analysis",
+        "Custom Dashboards",
+        "ROI Monitoring"
+      ]
+    },
+    {
+      "id": "motion-graphics",
+      "title": "Motion Graphics",
+      "shortDescription": "2D/3D Animation and Visual Effects",
+      "description": "Bring your brand to life with high-impact visual storytelling. We create professional motion graphics and video content that engages audiences and simplifies complex ideas.",
+      "icon": "Play",
+      "features": [
+        "Explainer Videos",
+        "UI/UX Animation",
+        "3D Product Renders",
+        "Logo Animation",
+        "Video Editing"
+      ]
+    },
+    {
+      "id": "blockchain",
+      "title": "Blockchain Solutions",
+      "shortDescription": "Smart Contracts and Web3 Apps",
+      "description": "Secure, decentralized applications built for the future. From smart contract development to full Web3 integrations, we ensure your business is ready for the blockchain era.",
+      "icon": "ShieldCheck",
+      "features": [
+        "Smart Contracts",
+        "DApp Development",
+        "Tokenomics Design",
+        "NFT Ecosystems",
+        "Wallet Integration"
+      ]
+    },
+    {
+      "id": "saas-development",
+      "title": "SaaS Development",
+      "shortDescription": "Multi-tenant Software Architecture",
+      "description": "Turn your software idea into a profitable subscription product. We design and build scalable SaaS platforms with secure billing, user management, and cloud infrastructure.",
+      "icon": "Layers",
+      "features": [
+        "Subscription Systems",
+        "Multi-tenancy Architecture",
+        "Stripe Integration",
+        "User Dashboards",
+        "Scalable Infrastructure"
+      ]
+    },
+    {
+      "id": "erp-solutions",
+      "title": "Enterprise Resource Planning",
+      "shortDescription": "Integrated Business Management",
+      "description": "Unified systems to manage your entire operation. Our ERP solutions connect finance, HR, and supply chain data into a single, high-performance source of truth.",
+      "icon": "Briefcase",
+      "features": [
+        "Inventory Management",
+        "Financial Modules",
+        "HR Management",
+        "Supply Chain Tracking",
+        "Resource Planning"
+      ]
+    },
+    {
+      "id": "crm-systems",
+      "title": "Custom CRM Systems",
+      "shortDescription": "Lead Management and Sales Pipelines",
+      "description": "Build stronger relationships with your customers. We create custom CRM platforms that track leads, manage communication, and automate your entire sales funnel.",
+      "icon": "Users",
+      "features": [
+        "Lead Scoring",
+        "Sales Pipeline",
+        "Email Automation",
+        "Customer History",
+        "Mobile Integration"
+      ]
+    },
+    {
+      "id": "cms-development",
+      "title": "Content Management Systems",
+      "shortDescription": "Headless CMS and Custom Backends",
+      "description": "Take control of your content without the technical headache. We build intuitive, powerful CMS solutions that allow your team to update your site in real-time.",
+      "icon": "FileText",
+      "features": [
+        "Headless CMS",
+        "Sanity & Strapi",
+        "Custom Dashboards",
+        "SEO Optimization",
+        "Role-based Access"
+      ]
+    }
+  ],
+  "serviceDetails": {
+    "web-development": {
+      "tagline": "Architecting the Digital Future",
+      "heroImage": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=2070",
+      "overview": "In an era where your digital presence defines your brand value, standard websites no longer suffice. We engineer robust, scalable, and high-performance web ecosystems tailored to your specific business logic. We move beyond simple coding to provide full-cycle web development—from architectural planning and database design to frontend interactivity and cloud deployment. Whether you require a complex SaaS platform, a dynamic Single Page Application (SPA), or an enterprise-grade portal, our full-stack team delivers pixel-perfect experiences backed by bank-grade security standards.",
+      "deliverables": [
+        "Fully Responsive Web Application",
+        "Admin Dashboard & CMS",
+        "API Documentation (Swagger/Postman)",
+        "Source Code with IP Rights",
+        "30 Days Post-Launch Support",
+        "Deployment to Cloud (AWS, Vercel, Netlify, Azure)",
+        "Performance Optimization Report",
+        "User Training Session",
+        "Security Hardening Setup",
+        "Comprehensive Testing Report",
+        "SEO Best Practices Implementation",
+        "Analytics & Monitoring Setup",
+        "Custom Integrations with 3rd Party Services",
+        "Backup & Disaster Recovery Plan",
+        "Comprehensive Documentation",
+        "Future Scalability Blueprint"
+      ],
+      "process": [
+        {
+          "title": "Discovery & Blueprint",
+          "desc": "We analyze requirements, define user personas, and create a technical architectural blueprint."
+        },
+        {
+          "title": "UI/UX Design",
+          "desc": "Creating wireframes and high-fidelity prototypes to visualize the user journey before coding."
+        },
+        {
+          "title": "Agile Development",
+          "desc": "Two-week sprints with regular updates, building the frontend and backend simultaneously."
+        },
+        {
+          "title": "QA & Security",
+          "desc": "Automated testing, load balancing checks, and OWASP security auditing."
+        },
+        {
+          "title": "Deployment",
+          "desc": "CI/CD pipeline setup for zero-downtime deployment to AWS, Vercel, or Azure."
+        }
+      ],
+      "techStack": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Node.js",
+        "NestJS",
+        "PostgreSQL",
+        "MongoDB",
+        "Redis",
+        "Docker",
+        "AWS"
+      ],
+      "benefits": [
+        "Sub-second page load speeds",
+        "SEO-optimized semantic architecture",
+        "Scalable to millions of users",
+        "Bank-grade data encryption",
+        "24/7 monitoring & alerts",
+        "Custom integrations with 3rd party APIs",
+        "Mobile-first responsive design",
+        "Comprehensive documentation & training",
+        "Dedicated post-launch support",
+        "Future-proof architecture for easy feature expansion"
+      ],
+      "faqs": [
+        {
+          "q": "Do you use templates or custom code?",
+          "a": "We build 100% custom solutions tailored to your unique requirements. We do not use pre-bought templates for custom web development projects."
+        },
+        {
+          "q": "Will I own the source code?",
+          "a": "Yes. Upon final payment, 100% of the intellectual property and source code is transferred to you."
+        },
+        {
+          "q": "How do you handle website security?",
+          "a": "We implement SSL, data encryption, secure HTTP headers, and follow OWASP top 10 security guidelines to prevent SQL injection and XSS attacks."
+        },
+        {
+          "q": "Can you integrate 3rd party APIs?",
+          "a": "Absolutely. We have extensive experience integrating Stripe, PayPal, Google Maps, Twilio, HubSpot, and custom REST/GraphQL APIs."
+        },
+        {
+          "q": "Is the website SEO friendly?",
+          "a": "Yes. We build with semantic HTML5, optimize meta tags, ensure fast Core Web Vitals, and generate dynamic sitemaps."
+        },
+        {
+          "q": "What happens after the website is launched?",
+          "a": "We offer a 30-day warranty period for bug fixes. After that, we offer monthly maintenance packages for updates and monitoring."
+        },
+        {
+          "q": "Can you migrate my legacy app to modern tech?",
+          "a": "Yes, we specialize in legacy modernization, moving apps from older PHP/.NET frameworks to modern React/Node.js stacks."
+        },
+        {
+          "q": "How long does a project take?",
+          "a": "A standard business web app takes 4-8 weeks. Complex SaaS platforms may take 3-6 months depending on features."
+        },
+        {
+          "q": "Do you provide hosting?",
+          "a": "We assist in setting up your hosting (AWS, Vercel, DigitalOcean) under your own accounts so you maintain full control."
+        },
+        {
+          "q": "Is the site mobile responsive?",
+          "a": "Yes, we follow a mobile-first approach ensuring the site looks perfect on phones, tablets, laptops, and 4k screens."
+        }
+      ]
+    },
+    "ai-automation": {
+      "tagline": "Powering Intelligence, Automating Growth",
+      "heroImage": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=2070",
+      "overview": "Generic automation is a thing of the past. We build bespoke AI-driven ecosystems that transform how your business operates. By leveraging Large Language Models (LLMs), Generative AI, and custom robotic process automation (RPA), we eliminate manual bottlenecks and unlock predictive insights. Our solutions integrate deeply with your existing workflows to provide intelligent decision-making support and 24/7 automated customer engagement that feels authentically human.",
+      "deliverables": [
+        "Custom Trained AI Models/LLMs",
+        "Automated Workflow Scripts",
+        "Intelligent Chatbot Interface",
+        "API Integration Documentation",
+        "Model Accuracy & Bias Report",
+        "Data Processing Pipeline Setup",
+        "30 Days Model Monitoring",
+        "User Training on AI Tools",
+        "Security & Privacy Compliance Audit",
+        "Scalability & Latency Report",
+        "Prompt Engineering Playbook",
+        "Automated Reporting Dashboard",
+        "Legacy System AI Integration",
+        "Data Encryption & Safety Protocol",
+        "Technical Maintenance Manual",
+        "AI Strategy Roadmap"
+      ],
+      "process": [
+        {
+          "title": "Data Audit",
+          "desc": "We analyze your existing data structures and manual workflows to identify high-impact automation opportunities."
+        },
+        {
+          "title": "Model Selection",
+          "desc": "Choosing the right LLM (GPT-4, Claude, Llama) or training custom neural networks based on your specific needs."
+        },
+        {
+          "title": "Integration Build",
+          "desc": "Developing the middleware and connectors to link AI logic with your current business software and databases."
+        },
+        {
+          "title": "Testing & Tuning",
+          "desc": "Rigorous testing for 'hallucinations', response latency, and edge-case handling to ensure reliability."
+        },
+        {
+          "title": "Deployment",
+          "desc": "Launching into production with real-time monitoring and automated feedback loops for continuous learning."
+        }
+      ],
+      "techStack": [
+        "Python",
+        "OpenAI / Anthropic APIs",
+        "LangChain",
+        "TensorFlow / PyTorch",
+        "Pinecone (Vector DB)",
+        "Node.js",
+        "FastAPI",
+        "Docker",
+        "Hugging Face",
+        "AWS SageMaker"
+      ],
+      "benefits": [
+        "Up to 80% reduction in manual tasks",
+        "24/7 intelligent customer support",
+        "Data-driven predictive forecasting",
+        "Zero-latency workflow automation",
+        "Elimination of human entry errors",
+        "Seamless scaling of operations",
+        "Enhanced employee productivity",
+        "Advanced data privacy controls",
+        "Proprietary AI knowledge base",
+        "Rapid ROI through operational savings"
+      ],
+      "faqs": [
+        {
+          "q": "Will AI replace my employees?",
+          "a": "Our goal is augmentation. We automate repetitive 'grunt work' so your team can focus on high-value creative and strategic tasks."
+        },
+        {
+          "q": "How secure is my data with AI?",
+          "a": "We use private VPCs and enterprise-grade APIs where data is not used for training public models, ensuring 100% data sovereignty."
+        },
+        {
+          "q": "Can you automate legacy software?",
+          "a": "Yes, we use custom APIs and RPA (Robotic Process Automation) to bridge the gap between modern AI and older legacy systems."
+        }
+      ]
+    },
+    "blockchain": {
+      "tagline": "Decentralizing the Future of Trust",
+      "heroImage": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&q=80&w=2070",
+      "overview": "Blockchain is more than just crypto; it's the foundation for the new internet. We develop decentralized applications (dApps) and secure smart contracts that bring transparency and security to your enterprise. Whether you're launching a DeFi platform, an NFT marketplace, or a private supply chain ledger, our blockchain engineers ensure your code is immutable, audited, and optimized for gas efficiency across major networks.",
+      "deliverables": [
+        "Audited Smart Contracts",
+        "Web3 Frontend (dApp)",
+        "Wallet Integration (MetaMask, etc.)",
+        "Tokenomics Whitepaper",
+        "Security Audit Report",
+        "Deployment to Mainnet/Testnet",
+        "IPFS Data Storage Setup",
+        "SubGraph/Indexing Setup",
+        "Governance Protocol Design",
+        "Multi-sig Wallet Setup",
+        "Technical Documentation",
+        "Post-Launch Gas Monitoring"
+      ],
+      "process": [
+        {
+          "title": "Protocol Design",
+          "desc": "Defining tokenomics, consensus mechanisms, and the economic structure of the decentralized system."
+        },
+        {
+          "title": "Smart Contract Dev",
+          "desc": "Writing secure, gas-optimized code in Solidity or Rust followed by extensive unit testing."
+        },
+        {
+          "title": "Frontend Web3",
+          "desc": "Building the user interface and connecting it to the blockchain via Ethers.js or Web3.js."
+        },
+        {
+          "title": "Audit & Security",
+          "desc": "Internal and external security audits to ensure there are no vulnerabilities like re-entrancy attacks."
+        },
+        {
+          "title": "Launch",
+          "desc": "Deployment to the chosen network with verified source code on Etherscan/Polygonscan."
+        }
+      ],
+      "techStack": [
+        "Solidity",
+        "Rust",
+        "Ethereum",
+        "Polygon",
+        "Solana",
+        "Hardhat",
+        "Ethers.js",
+        "IPFS",
+        "The Graph",
+        "Alchemy"
+      ],
+      "benefits": [
+        "Immutable and transparent records",
+        "Elimination of central intermediaries",
+        "Highest level of cryptographic security",
+        "Automated trust via Smart Contracts",
+        "Global, borderless transactions",
+        "Verifiable digital ownership",
+        "Resilience against server downtime",
+        "Enhanced user privacy",
+        "Direct peer-to-peer interactions",
+        "Future-ready Web3 architecture"
+      ],
+      "faqs": [
+        {
+          "q": "Which blockchain should I use?",
+          "a": "It depends on your project. Ethereum is most secure, Polygon is cost-effective, and Solana is extremely fast. we help you choose."
+        },
+        {
+          "q": "Are Smart Contracts reversible?",
+          "a": "No. Once deployed, they are immutable. This is why our auditing phase is so rigorous—we ensure the logic is perfect before launch."
+        }
+      ]
+    },
+    "saas-development": {
+      "tagline": "Building Scalable Cloud Empires",
+      "heroImage": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2070",
+      "overview": "Building a SaaS (Software as a Service) requires more than just a website; it requires a robust multi-tenant architecture designed for scale. We specialize in building cloud-native products with complex subscription logic, secure user data isolation, and high-concurrency backends. From MVP to enterprise scale, we handle the infrastructure, the billing, and the user experience so you can focus on growing your MRR.",
+      "deliverables": [
+        "Multi-tenant SaaS Architecture",
+        "Subscription & Billing System",
+        "User Roles & Permissions (RBAC)",
+        "API First Infrastructure",
+        "Admin Analytics Dashboard",
+        "Automated Onboarding Flow",
+        "Scalable Database Schema",
+        "Customer Support Integration",
+        "Security Compliance Setup",
+        "Custom Domain Management",
+        "Automated Backup Systems",
+        "Uptime Monitoring Setup"
+      ],
+      "process": [
+        {
+          "title": "MVP Definition",
+          "desc": "Identifying core features required to go to market and attract early adopters."
+        },
+        {
+          "title": "Tenant Architecture",
+          "desc": "Designing the database to ensure complete data isolation between different customers."
+        },
+        {
+          "title": "Billing Integration",
+          "desc": "Setting up recurring payments, trials, and usage-based billing via Stripe or Chargebee."
+        },
+        {
+          "title": "Infrastructure Dev",
+          "desc": "Building auto-scaling cloud environments to handle thousands of concurrent users."
+        },
+        {
+          "title": "Launch & Iterate",
+          "desc": "Deploying the product and setting up feedback loops for feature requests."
+        }
+      ],
+      "techStack": [
+        "Next.js",
+        "Node.js",
+        "PostgreSQL",
+        "Stripe",
+        "Auth0 / Clerk",
+        "Kubernetes",
+        "Terraform",
+        "Redis",
+        "SendGrid",
+        "AWS / GCP"
+      ],
+      "benefits": [
+        "Recurring revenue ready",
+        "Elastic scaling (Pay as you grow)",
+        "Centralized updates and maintenance",
+        "Lower entry cost for your customers",
+        "High data availability and security",
+        "Easy integration with 3rd party tools",
+        "Automated customer lifecycle",
+        "Real-time analytics and insights",
+        "Cross-device compatibility",
+        "Quick time-to-market for new features"
+      ],
+      "faqs": [
+        {
+          "q": "How do you handle data isolation?",
+          "a": "We use row-level security or separate schemas to ensure one customer can never access another customer's data."
+        },
+        {
+          "q": "Can you help with Stripe integration?",
+          "a": "Yes, we handle the full billing cycle including taxes, invoices, failed payment handling, and upgrades."
+        }
+      ]
+    },
+    "crm-systems": {
+    "tagline": "Unifying Customer Relationships",
+    "heroImage": "https://images.unsplash.com/photo-1552581234-26160f608093?auto=format&fit=crop&q=80&w=2070",
+    "overview": "Generic CRMs often force you to change your workflow to fit their software. We do the opposite. We build custom CRM platforms that mirror your specific sales process, from lead capture to final closing. By centralizing communication, automating follow-ups, and providing real-time sales intelligence, our CRM solutions empower your team to close deals faster and build deeper customer loyalty through data-driven personalization.",
+    "deliverables": [
+      "Custom Lead & Contact Management",
+      "Sales Pipeline Visualization",
+      "Email & Communication Tracking",
+      "Automated Follow-up Workflows",
+      "Reporting & Sales Forecasting",
+      "User Access Control (RBAC)",
+      "Mobile-Responsive CRM Interface",
+      "Third-Party Tool Integrations",
+      "Data Migration from Legacy CRM",
+      "API for External Marketing Tools",
+      "Customer Activity Logs",
+      "Daily/Weekly Performance Briefs"
+    ],
+    "process": [
+      {
+        "title": "Funnel Mapping",
+        "desc": "We map your current sales stages, lead sources, and customer touchpoints to define the CRM logic."
+      },
+      {
+        "title": "Data Architecture",
+        "desc": "Designing a flexible database that allows for complex relationships between leads, deals, and accounts."
+      },
+      {
+        "title": "Automation Engine",
+        "desc": "Building the 'brains' of the system to handle automated triggers, tasks, and notifications."
+      },
+      {
+        "title": "Security & Testing",
+        "desc": "Ensuring strict data privacy and testing the system under heavy data loads."
+      },
+      {
+        "title": "Team Onboarding",
+        "desc": "Deployment followed by comprehensive training to ensure high adoption rates among your staff."
+      }
+    ],
+    "techStack": [
+      "React",
+      "Node.js",
+      "PostgreSQL",
+      "Redis",
+      "SendGrid API",
+      "Twilio",
+      "AWS",
+      "TypeScript",
+      "Tailwind CSS"
+    ],
+    "benefits": [
+      "360-degree view of every customer",
+      "Elimination of lost leads",
+      "Automated administrative tasks",
+      "Accurate sales forecasting",
+      "Enhanced team collaboration",
+      "Seamless mobile access",
+      "Data-driven marketing insights",
+      "Scalable as your lead volume grows",
+      "Direct integration with your website",
+      "Complete ownership of customer data"
+    ],
+    "faqs": [
+      {
+        "q": "Can you import my data from Excel or Salesforce?",
+        "a": "Yes. We specialize in data cleansing and migration to ensure you don't lose any history when moving to your custom CRM."
+      },
+      {
+        "q": "Can it integrate with my email?",
+        "a": "Absolutely. We can sync with Gmail, Outlook, and other providers to track all conversations automatically."
+      }
+    ]
+  },
+  "erp-solutions": {
+    "tagline": "The Central Nervous System of Your Enterprise",
+    "heroImage": "https://www.cio.com/wp-content/uploads/2025/03/272362-0-27498000-1741330535-enterprise_resource_planning-ERP.jpg?quality=50&strip=all&w=1024",
+    "overview": "Inconsistency between departments is the enemy of efficiency. Our custom ERP solutions act as a single source of truth for your entire organization. We integrate finance, inventory, human resources, and supply chain management into a unified dashboard. By breaking down data silos, we enable cross-departmental automation and provide executives with real-time analytics to make high-stakes decisions with confidence.",
+    "deliverables": [
+      "Unified Business Dashboard",
+      "Inventory & Asset Tracking",
+      "Financial Management Module",
+      "HR & Payroll Integration",
+      "Supply Chain Monitoring",
+      "Procurement & Vendor Management",
+      "Real-time Data Analytics",
+      "Custom Reporting Engine",
+      "Multi-currency/Language Support",
+      "Mobile Inventory Scanning App",
+      "Document Management System",
+      "Full System Audit Trail"
+    ],
+    "process": [
+      {
+        "title": "Ops Analysis",
+        "desc": "Deep-dive into every department's workflow to understand how data flows through the company."
+      },
+      {
+        "title": "Module Design",
+        "desc": "Designing modular components for Finance, HR, and Operations to ensure long-term flexibility."
+      },
+      {
+        "title": "Integration Phase",
+        "desc": "Connecting the new ERP core with existing bank feeds, shipping APIs, and legacy databases."
+      },
+      {
+        "title": "Stress Testing",
+        "desc": "Simulating high-volume transactions and multi-user access to ensure zero downtime."
+      },
+      {
+        "title": "Phased Rollout",
+        "desc": "Deploying department by department to ensure smooth transition and zero business interruption."
+      }
+    ],
+    "techStack": [
+      "Next.js",
+      "Python/Django",
+      "PostgreSQL",
+      "Docker",
+      "Kubernetes",
+      "Redis",
+      "AWS Cloud",
+      "SAP/Oracle API Bridges"
+    ],
+    "benefits": [
+      "Real-time operational visibility",
+      "Reduced operational overhead",
+      "Seamless departmental coordination",
+      "Automated financial compliance",
+      "Optimized inventory turnover",
+      "Data-backed strategic planning",
+      "Secure centralized data storage",
+      "Improved regulatory reporting",
+      "Automated procurement cycles",
+      "Universal access from any device"
+    ],
+    "faqs": [
+      {
+        "q": "How long does ERP implementation take?",
+        "a": "Due to its complexity, a custom ERP typically takes 3-6 months for a full rollout, usually done in phases."
+      },
+      {
+        "q": "Is the system secure enough for financial data?",
+        "a": "Yes. We implement bank-grade encryption, multi-factor authentication, and strict audit logs for every transaction."
+      }
+    ]
+  },
+  "cms-development": {
+    "tagline": "Empowering Content Without Constraints",
+    "heroImage": "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80&w=2070",
+    "overview": "Stop fighting with rigid templates and complicated backends. We build custom and Headless CMS solutions that give your marketing team total control while keeping your developers happy. Our CMS platforms are designed for speed, security, and extreme ease of use. Whether you need to manage a high-traffic blog, a multilingual corporate site, or a complex media library, we provide the tools to publish content in seconds across any platform.",
+    "deliverables": [
+      "Custom Content Dashboard",
+      "Headless CMS Integration",
+      "Media Asset Management",
+      "SEO Management Suite",
+      "Multilingual Content Support",
+      "Content Versioning & Rollback",
+      "Role-Based Editing Workflow",
+      "Dynamic Page Builder",
+      "API-First Content Delivery",
+      "Automated Image Optimization",
+      "Newsletter & Social Integration",
+      "Technical Documentation"
+    ],
+    "process": [
+      {
+        "title": "Schema Design",
+        "desc": "We define how your content is structured so it can be reused across websites, apps, and emails."
+      },
+      {
+        "title": "Backend Setup",
+        "desc": "Building the editing interface using custom solutions or Headless platforms like Sanity/Strapi."
+      },
+      {
+        "title": "Frontend Connection",
+        "desc": "Linking the CMS to a blazing-fast React or Next.js frontend via high-performance APIs."
+      },
+      {
+        "title": "Performance Tuning",
+        "desc": "Optimizing asset delivery and caching to ensure the site stays fast regardless of content size."
+      },
+      {
+        "title": "Editor Training",
+        "desc": "Showing your non-technical team how to manage the site without writing a single line of code."
+      }
+    ],
+    "techStack": [
+      "Sanity.io",
+      "Strapi",
+      "Next.js",
+      "GraphQL",
+      "Cloudinary",
+      "Vercel",
+      "PostgreSQL",
+      "Contentful"
+    ],
+    "benefits": [
+      "Total freedom over site layout",
+      "Lightning-fast page loads",
+      "Superior SEO performance",
+      "Extremely secure architecture",
+      "Omnichannel content delivery",
+      "No technical knowledge required",
+      "Reduced long-term maintenance",
+      "Instant content updates",
+      "Future-proof technology stack",
+      "Custom workflows for large teams"
+    ],
+    "faqs": [
+      {
+        "q": "What is a Headless CMS?",
+        "a": "It separates the content (backend) from the design (frontend). This makes your site much faster and allows you to use your content on mobile apps too."
+      },
+      {
+        "q": "Can I manage multiple sites from one CMS?",
+        "a": "Yes, our custom architectures allow for multi-site management from a single, unified dashboard."
+      }
+    ]
+  },
+  "web-analytics": {
+    "tagline": "Turning Raw Data Into Growth Intelligence",
+    "heroImage": "https://media.licdn.com/dms/image/v2/D5612AQHojt7bqzkodA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1710509149220?e=2147483647&v=beta&t=2QNzyrgwnCGUkwDqkH26VyqUuWQAvZ5Gvrnc4nimSOc",
+    "overview": "Measuring 'traffic' is no longer enough. We implement sophisticated analytics ecosystems that track every meaningful interaction on your site. By integrating Google Analytics 4 (GA4), Tag Manager, and custom event tracking, we turn anonymous clicks into detailed user journeys. We provide you with the clarity to see exactly where your customers are coming from, why they are converting, and—more importantly—why they aren't.",
+    "deliverables": [
+      "GA4 & GTM Implementation",
+      "Custom Conversion Tracking",
+      "E-commerce Revenue Tracking",
+      "User Behavior Heatmaps",
+      "Marketing Attribution Setup",
+      "Custom Looker Studio Reports",
+      "Privacy/GDPR Compliance Setup",
+      "A/B Testing Framework",
+      "Server-Side Tagging Setup",
+      "Data Layer Documentation",
+      "Funnel Leakage Analysis",
+      "Monthly Insight Reports"
+    ],
+    "process": [
+      {
+        "title": "KPI Definition",
+        "desc": "We identify the specific metrics that actually drive your revenue and business growth."
+      },
+      {
+        "title": "Tag Architecture",
+        "desc": "Designing a clean Google Tag Manager setup to track events without slowing down your site."
+      },
+      {
+        "title": "Dashboard Build",
+        "desc": "Creating visual, easy-to-read reports in Looker Studio or PowerBI for your stakeholders."
+      },
+      {
+        "title": "Data Validation",
+        "desc": "Testing all triggers and tags to ensure the data being collected is 100% accurate."
+      },
+      {
+        "title": "Optimization Strategy",
+        "desc": "Analyzing the first week of data to provide your first set of CRO (Conversion Rate Optimization) tips."
+      }
+    ],
+    "techStack": [
+      "GA4",
+      "Google Tag Manager",
+      "Looker Studio",
+      "Hotjar / Clarity",
+      "BigQuery",
+      "Python",
+      "Server-side GTM"
+    ],
+    "benefits": [
+      "Complete visibility into ROI",
+      "Identify high-value user paths",
+      "Lower customer acquisition costs",
+      "Data-backed marketing spend",
+      "Predictive user behavior",
+      "Improved website conversion",
+      "Clean, accurate reporting",
+      "Full privacy compliance",
+      "Reduced 'guesswork' in design",
+      "Automated performance alerts"
+    ],
+    "faqs": [
+      {
+        "q": "Is my data private and compliant?",
+        "a": "Yes. We implement consent mode and follow GDPR/CCPA guidelines to ensure you collect data legally and ethically."
+      },
+      {
+        "q": "Can you track my sales back to the original ad?",
+        "a": "Yes, we set up multi-touch attribution so you know exactly which marketing channel deserves the credit for a sale."
+      }
+    ]
+  },
+  "motion-graphics": {
+    "tagline": "Visual Storytelling in Motion",
+    "heroImage": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=2070",
+    "overview": "Static images can't compete with the power of motion. We create high-end motion graphics and animations that explain complex products, capture social media attention, and elevate your brand identity. From sleek UI/UX animations for your app to cinematic explainer videos and 3D product reveals, we combine technical precision with creative artistry to make your brand impossible to ignore.",
+    "deliverables": [
+      "Explainer Video (2D/3D)",
+      "UI/UX App Animations",
+      "Animated Logo & Branding",
+      "Social Media Motion Assets",
+      "3D Product Renderings",
+      "Broadcast-Ready TV Spots",
+      "Lottie Files for Web",
+      "Custom Character Animation",
+      "Visual Effects (VFX)",
+      "Sound Design & Voiceover",
+      "Storyboards & Concepts",
+      "High-Res Source Projects"
+    ],
+    "process": [
+      {
+        "title": "Concept & Script",
+        "desc": "Defining the narrative and writing a script that resonates with your target audience."
+      },
+      {
+        "title": "Storyboarding",
+        "desc": "Creating static frames to map out the visual flow and timing of the animation."
+      },
+      {
+        "title": "Design & Style",
+        "desc": "Developing the visual language, colors, and characters that match your brand."
+      },
+      {
+        "title": "Animation Phase",
+        "desc": "Bringing the designs to life using After Effects, Cinema 4D, or Blender."
+      },
+      {
+        "title": "Sound & Polish",
+        "desc": "Adding sound effects, music, and voiceovers to finalize the emotional impact."
+      }
+    ],
+    "techStack": [
+      "After Effects",
+      "Cinema 4D",
+      "Blender",
+      "Premiere Pro",
+      "Lottie / Rive",
+      "Figma",
+      "Illustrator",
+      "Redshift / Octane"
+    ],
+    "benefits": [
+      "Higher audience engagement",
+      "Simplifies complex concepts",
+      "Premium brand perception",
+      "Increased social media shares",
+      "Improved information retention",
+      "Versatile across all platforms",
+      "Fast-loading web animations",
+      "High-impact sales pitches",
+      "Unique visual identity",
+      "Professional audio-visual polish"
+    ],
+    "faqs": [
+      {
+        "q": "Can these animations be used on my website?",
+        "a": "Yes! We use Lottie and Rive to export animations as code, making them lightweight and interactive for your site or app."
+      },
+      {
+        "q": "Do you provide the voiceover and music?",
+        "a": "Yes, we handle the full production including professional voice talent and licensed soundtracks."
+      }
+    ]
+  },
+    "wordpress": {
+      "tagline": "Enterprise-Grade CMS Solutions",
+      "heroImage": "https://images.unsplash.com/photo-1616469829581-73993eb86b02?auto=format&fit=crop&q=80&w=2070",
+      "overview": "WordPress powers over 40% of the web, but a generic template won't cut it for a serious business. We strip WordPress down to its core and rebuild it as a high-performance Content Management System. We specialize in custom theme development, bespoke plugin creation, and Headless WordPress architectures using React. We turn WordPress from a simple blogging tool into a secure, scalable enterprise asset.",
+      "deliverables": [
+        "Custom WordPress Theme",
+        "Premium Plugin Configuration",
+        "Speed Optimization Report",
+        "Security Hardening Setup",
+        "Training Session for Staff",
+        "30 Days Post-Launch Support",
+        "E-commerce Setup with WooCommerce (if applicable)"
+      ],
+      "process": [
+        {
+          "title": "Strategy",
+          "desc": "Analyzing your content strategy and selecting the right stack (Traditional vs Headless)."
+        },
+        {
+          "title": "Design",
+          "desc": "Creating a unique visual identity that aligns with your brand guidelines."
+        },
+        {
+          "title": "Development",
+          "desc": "Coding the theme from scratch using PHP and React, minimizing bloatware."
+        },
+        {
+          "title": "Optimization",
+          "desc": "Implementing server-side caching, image compression, and database cleanup."
+        },
+        {
+          "title": "Training",
+          "desc": "Teaching your team how to easily manage and update content."
+        }
+      ],
+      "techStack": [
+        "PHP 8",
+        "MySQL",
+        "React (Headless)",
+        "Gutenberg",
+        "WooCommerce",
+        "Elementor",
+        "WP-CLI",
+        "ACF Pro"
+      ],
+      "benefits": [
+        "Easy content management for non-techies",
+        "Custom functionality without plugin bloat",
+        "Google Core Web Vitals Ready",
+        "Secure E-commerce integration",
+        "Scalable to high traffic volumes",
+        "Headless option for ultimate performance",
+        "Regular backups and updates"
+      ],
+      "faqs": [
+        {
+          "q": "Will my WordPress site be slow?",
+          "a": "Not with us. We optimize assets, use caching, and avoid heavy page builders to ensure sub-second load times."
+        },
+        {
+          "q": "Can you fix a hacked WordPress site?",
+          "a": "Yes, we offer malware removal, blacklist cleanup, and security hardening services."
+        },
+        {
+          "q": "Do you use Elementor or Divi?",
+          "a": "We can, but we prefer building with Gutenberg or custom code for better performance and longevity."
+        },
+        {
+          "q": "Can I manage the content myself?",
+          "a": "Yes, WordPress is designed for ease of use. We provide a simplified dashboard tailored to your needs."
+        },
+        {
+          "q": "Do you handle WooCommerce?",
+          "a": "Yes, we build custom e-commerce stores with payment gateways, shipping calculators, and inventory management."
+        },
+        {
+          "q": "What is Headless WordPress?",
+          "a": "It separates the backend (content) from the frontend (design), allowing us to use React for a faster, more secure site."
+        },
+        {
+          "q": "How do you handle backups?",
+          "a": "We set up automated daily cloud backups so your data is never lost."
+        },
+        {
+          "q": "Can you update my existing theme?",
+          "a": "Yes, we can refactor code, fix bugs, or add new features to your current theme."
+        },
+        {
+          "q": "Is WordPress secure?",
+          "a": "Out of the box, it has vulnerabilities. We harden it by disabling XML-RPC, changing login URLs, and adding firewalls."
+        },
+        {
+          "q": "Do you offer monthly maintenance?",
+          "a": "Yes, we update plugins, core files, and monitor security monthly to prevent crashes."
+        }
+      ]
+    },
+    "graphics": {
+      "tagline": "Visual Storytelling that Converts",
+      "heroImage": "https://www.dicsinnovatives.com/blog/wp-content/uploads/2024/09/python-external-blog-image-1.jpg",
+      "overview": "Design is the silent ambassador of your brand. Our graphics team combines artistic flair with marketing psychology to create visuals that don't just look good—they convert. Whether you need a complete rebrand, engaging social media assets, or polished print materials, we ensure consistency and impact across every touchpoint. We move beyond aesthetics to create functional design that communicates your core message instantly.",
+      "deliverables": [
+        "Brand Guidelines Book",
+        "Logo Suite (Vector/Raster)",
+        "Social Media Kits",
+        "Marketing Collateral",
+        "Print-Ready Files",
+        "Infographics & Data Visualization",
+        "Packaging Design (if applicable)",
+        "30 Days Post-Delivery Support",
+        "Source Files (AI, PSD, EPS)",
+        "Favicon & App Icons",
+        "Email Newsletter Templates",
+        "Presentation Deck Templates",
+        "Ad Banners (Web & Print)",
+        "Event Booth Design (if applicable)",
+        "Custom Illustrations (if applicable)",
+        "Business Stationery (Letterhead, Envelope)",
+        "Brand Photography Direction (if applicable)",
+        "Website Graphics & Icons",
+        "Merchandise Design (T-shirts, Mugs, etc.)",
+        "Annual Report Design (if applicable)",
+        "Signage & Outdoor Advertising (if applicable)",
+        "Vehicle Wrap Design (if applicable)",
+        "Trade Show Materials (if applicable)",
+        "Custom Typography (if applicable)",
+        "Digital Product Mockups (if applicable)"
+      ],
+      "process": [
+        {
+          "title": "Discovery",
+          "desc": "Understanding your target audience, competitors, and brand voice."
+        },
+        {
+          "title": "Moodboarding",
+          "desc": "Curating visual styles, color palettes, and typography directions."
+        },
+        {
+          "title": "Drafting",
+          "desc": "Creating initial concepts and iterating based on your feedback."
+        },
+        {
+          "title": "Refinement",
+          "desc": "Polishing the chosen direction to perfection."
+        },
+        {
+          "title": "Delivery",
+          "desc": "Exporting all asset formats (AI, EPS, PNG, SVG, PDF)."
+        }
+      ],
+      "techStack": [
+        "Adobe Illustrator",
+        "Adobe Photoshop",
+        "Adobe InDesign",
+        "Figma",
+        "Blender",
+        "Canva Pro"
+      ],
+      "benefits": [
+        "Consistent brand identity across all channels",
+        "High-conversion marketing assets",
+        "Unique, non-stock visual language",
+        "Print-ready precision",
+        "Scalable vector logos",
+        "Social media optimized graphics",
+        "Expert color theory application",
+        "Comprehensive brand guidelines",
+        "Versatile asset formats for all uses"
+      ],
+      "faqs": [
+        {
+          "q": "Do I get the source files?",
+          "a": "Yes, we deliver fully editable AI, PSD, and EPS files upon project completion."
+        },
+        {
+          "q": "How many revisions do I get?",
+          "a": "Our standard packages include up to 3 rounds of major revisions to ensure you love the result."
+        },
+        {
+          "q": "Can you design a logo?",
+          "a": "Absolutely. We specialize in vector logo design and full branding kits."
+        },
+        {
+          "q": "Do you do print design?",
+          "a": "Yes, we design business cards, brochures, flyers, banners, and packaging."
+        },
+        {
+          "q": "What is a Brand Guideline?",
+          "a": "It is a document defining your fonts, colors, and logo usage to ensure consistency in the future."
+        },
+        {
+          "q": "Can you design social media posts?",
+          "a": "Yes, we create templates or monthly content calendars for Instagram, LinkedIn, and Facebook."
+        },
+        {
+          "q": "Do you use AI art?",
+          "a": "We primarily use human creativity for branding. We may use AI for concepting, but final deliverables are hand-crafted."
+        },
+        {
+          "q": "What if I don't like the design?",
+          "a": "We start with a mood board to align styles. If the first draft misses, we pivot based on your feedback."
+        },
+        {
+          "q": "Can you refresh an old logo?",
+          "a": "Yes, we can modernize your existing logo while keeping its core recognition."
+        },
+        {
+          "q": "How long does branding take?",
+          "a": "A full brand identity project typically takes 2-4 weeks depending on complexity."
+        }
+      ]
+    },
+    "ui-ux": {
+      "tagline": "Designing Intuitive Digital Experiences",
+      "heroImage": "https://img.freepik.com/free-vector/gradient-ui-ux-background_23-2149052117.jpg?semt=ais_hybrid&w=740&q=80",
+      "overview": "We don't just make things look pretty; we make them work. Our user-centered design process focuses on empathy, clarity, and efficiency. We map out user journeys, reduce friction points, and create interfaces that are a joy to use. By combining behavioral science with modern aesthetics, we ensure your product retains users and drives engagement.",
+      "deliverables": [
+        "User Personas & Journey Maps",
+        "Low-Fidelity Wireframes",
+        "High-Fidelity Interactive Prototypes",
+        "Design System & Component Library",
+        "Developer Handoff File",
+        "Usability Testing Report",
+        "Accessibility Compliance Checklist",
+        "30 Days Post-Delivery Support",
+        "Source Files (Figma, Sketch)",
+        "Style Guide (Colors, Typography, Icons)",
+        "Mobile & Desktop Layouts",
+        "Micro-Interaction Designs",
+        "User Flow Diagrams",
+        "Clickable Prototypes (Figma/Protopie)",
+        "Design Rationale Document",
+        "User Testing Videos & Feedback",
+        "Responsive Design Specifications"
+      ],
+      "process": [
+        {
+          "title": "Research",
+          "desc": "User interviews, heatmaps, and competitor analysis to find pain points."
+        },
+        {
+          "title": "Wireframing",
+          "desc": "Sketching the layout and information architecture without distraction."
+        },
+        {
+          "title": "Prototyping",
+          "desc": "Building clickable mockups to test flows and interactions."
+        },
+        {
+          "title": "Visual Design",
+          "desc": "Applying colors, typography, and micro-interactions."
+        },
+        {
+          "title": "Testing",
+          "desc": "Usability testing with real users to validate decisions."
+        }
+      ],
+      "techStack": [
+        "Figma",
+        "Adobe XD",
+        "Sketch",
+        "Protopie"
+      ],
+      "benefits": [
+        "Higher user retention rates",
+        "Lower development costs via prototyping",
+        "Accessibility compliance (WCAG)",
+        "Data-driven design decisions",
+        "Consistent design system",
+        "Improved user satisfaction scores",
+        "Faster developer handoff",
+        "Mobile-first responsive layouts",
+        "Reduced user errors and friction"
+      ],
+      "faqs": [
+        {
+          "q": "What is the difference between UI and UX?",
+          "a": "UX is how it works and feels (flow). UI is how it looks (colors, buttons). We do both."
+        },
+        {
+          "q": "Do you design mobile apps?",
+          "a": "Yes, we design for iOS (Human Interface Guidelines) and Android (Material Design)."
+        },
+        {
+          "q": "What tool do you use?",
+          "a": "We primarily use Figma for real-time collaboration and easy developer handoff."
+        },
+        {
+          "q": "Do you code the designs?",
+          "a": "This service is for design only, but our development team can code them if you buy the full package."
+        },
+        {
+          "q": "Do you offer user testing?",
+          "a": "Yes, we can run usability tests to see how real people interact with the prototype."
+        },
+        {
+          "q": "What is a Design System?",
+          "a": "It's a library of reusable components (buttons, inputs) that ensures consistency across your product."
+        },
+        {
+          "q": "Can you redesign my existing app?",
+          "a": "Yes, we specialize in UI audits and modernization of outdated interfaces."
+        },
+        {
+          "q": "How do you handle developer handoff?",
+          "a": "We provide a clean Figma file with CSS code snippets, assets, and spacing guides."
+        },
+        {
+          "q": "Do you design for dark mode?",
+          "a": "Yes, we create color palettes that support both light and dark themes."
+        },
+        {
+          "q": "How long does a design project take?",
+          "a": "A typical app design takes 3-6 weeks depending on the number of screens."
+        }
+      ]
+    },
+    "qa": {
+      "tagline": "Ensuring Flawless Performance",
+      "heroImage": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=2070",
+      "overview": "Bugs cost money and reputation. Our Quality Assurance team ensures your software is bulletproof before it hits the market. We employ a mix of automated scripts for regression testing and manual exploratory testing to catch edge cases. From functionality and performance to security and accessibility, we verify that your product meets the highest standards of engineering.",
+      "deliverables": [
+        "Test Strategy & Plan",
+        "Bug Reports (Jira/Trello)",
+        "Automated Test Scripts",
+        "Performance Benchmark Report",
+        "Security Audit Summary",
+        "Accessibility Compliance Report",
+        "30 Days Post-Delivery Support",
+        "Test Cases Documentation",
+        "Cross-Browser Testing Results",
+        "API Testing Reports",
+        "Load Testing Results",
+        "Regression Testing Summary",
+        "Usability Testing Feedback"
+      ],
+      "process": [
+        {
+          "title": "Planning",
+          "desc": "Defining test cases, environment setup, and success criteria."
+        },
+        {
+          "title": "Automation",
+          "desc": "Writing scripts for repetitive tasks and regression testing."
+        },
+        {
+          "title": "Manual Testing",
+          "desc": "Human exploration to find usability issues and edge cases."
+        },
+        {
+          "title": "Load Testing",
+          "desc": "Simulating high traffic to ensure server stability."
+        },
+        {
+          "title": "Reporting",
+          "desc": "Detailed reporting of bugs and verification of fixes."
+        }
+      ],
+      "techStack": [
+        "Selenium",
+        "Jest",
+        "Cypress",
+        "Appium",
+        "Jira",
+        "Postman"
+      ],
+      "benefits": [
+        "Bug-free product launches",
+        "Enhanced user satisfaction",
+        "Security assurance",
+        "Reliable performance under load",
+        "Cross-browser/device compatibility",
+        "Comprehensive test documentation",
+        "Faster time-to-market with fewer post-launch issues",
+        "Reduced maintenance costs",
+        "Improved development team efficiency"
+      ],
+      "faqs": [
+        {
+          "q": "What is the difference between manual and automated QA?",
+          "a": "Manual is human testing for usability. Automated uses code to test repetitive tasks quickly."
+        },
+        {
+          "q": "Do you test mobile apps?",
+          "a": "Yes, we test on real devices and emulators for both iOS and Android."
+        },
+        {
+          "q": "Is security testing included?",
+          "a": "We offer basic security testing. Advanced Penetration Testing is a separate service."
+        },
+        {
+          "q": "How do you report bugs?",
+          "a": "We use tools like Jira, Trello, or ClickUp with screenshots, videos, and reproduction steps."
+        },
+        {
+          "q": "Can you test an existing live site?",
+          "a": "Yes, we can perform a QA audit on a production site to find existing issues."
+        },
+        {
+          "q": "Do you do API testing?",
+          "a": "Yes, we use Postman to verify that your backend APIs are returning correct data."
+        },
+        {
+          "q": "What is regression testing?",
+          "a": "It ensures that new code updates haven't broken existing functionality."
+        },
+        {
+          "q": "Do you provide cross-browser testing?",
+          "a": "Yes, we test on Chrome, Safari, Firefox, and Edge to ensure compatibility."
+        },
+        {
+          "q": "Do you check for accessibility?",
+          "a": "Yes, we check for WCAG compliance (screen readers, contrast, etc.)."
+        },
+        {
+          "q": "When should QA start?",
+          "a": "QA should start as early as possible in the development lifecycle to save costs."
+        }
+      ]
+    },
+    "mobile": {
+      "tagline": "Mobile Apps That Engage",
+      "heroImage": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=2070",
+      "overview": "In a mobile-first world, your app needs to be fast, intuitive, and accessible. From startup MVPs to enterprise solutions, we build native and cross-platform mobile applications that provide seamless experiences. We handle the entire lifecycle: from initial concept and UI design to development, testing, and successful submission to the Apple App Store and Google Play Store.",
+      "deliverables": [
+        "iOS & Android App (.ipa/.apk)",
+        "Source Code",
+        "Admin Panel for App Management",
+        "App Store Submission",
+        "API Integration",
+        "30 Days Post-Launch Support",
+        "Push Notification Setup",
+        "Offline Functionality (if applicable)",
+        "User Analytics Integration",
+        "Performance Optimization Report"
+      ],
+      "process": [
+        {
+          "title": "Validation",
+          "desc": "Validating the app idea, features, and monetization strategy."
+        },
+        {
+          "title": "UI/UX Design",
+          "desc": "Designing mobile-first interfaces optimized for touch."
+        },
+        {
+          "title": "Development",
+          "desc": "Coding the app using React Native, Flutter, or Native languages."
+        },
+        {
+          "title": "Testing",
+          "desc": "Testing on various device sizes and OS versions."
+        },
+        {
+          "title": "Launch",
+          "desc": "Handling the complex submission process for App Stores."
+        }
+      ],
+      "techStack": [
+        "React Native",
+        "Flutter",
+        "Swift",
+        "Kotlin",
+        "Firebase",
+        "GraphQL"
+      ],
+      "benefits": [
+        "Cross-platform cost efficiency",
+        "Native-like performance",
+        "Offline capabilities",
+        "Push notification engagement",
+        "Seamless API integration",
+        "User analytics for growth tracking",
+        "Regular updates and maintenance",
+        "App Store optimization",
+        "Scalable architecture for future features"
+      ],
+      "faqs": [
+        {
+          "q": "Should I build Native or Cross-Platform?",
+          "a": "We recommend React Native/Flutter for 90% of apps as it saves time and cost. Native is for high-performance gaming."
+        },
+        {
+          "q": "How much does an app cost?",
+          "a": "It varies widely. A simple MVP starts lower, while a 'Uber-like' app costs significantly more."
+        },
+        {
+          "q": "Do you handle App Store submission?",
+          "a": "Yes, we handle the entire strict approval process for Apple and Google."
+        },
+        {
+          "q": "Will the app work offline?",
+          "a": "We can build offline capabilities using local databases like Realm or SQLite."
+        },
+        {
+          "q": "Can you add Push Notifications?",
+          "a": "Yes, we integrate Firebase or OneSignal for targeted push campaigns."
+        },
+        {
+          "q": "Who owns the code?",
+          "a": "You own 100% of the code and intellectual property."
+        },
+        {
+          "q": "Do you provide maintenance?",
+          "a": "Yes, OS updates often break apps. We offer maintenance plans to keep it running."
+        },
+        {
+          "q": "Can you monetize the app?",
+          "a": "Yes, we can integrate In-App Purchases, Subscriptions, or AdMob advertisements."
+        },
+        {
+          "q": "How long does development take?",
+          "a": "An MVP usually takes 2-4 months. Full-scale apps take 4-6+ months."
+        },
+        {
+          "q": "Can you integrate my website with the app?",
+          "a": "Yes, we can connect the app to your existing website's database via API."
+        }
+      ]
+    }
+  },
+  "process": [
+    {
+      "step": 1,
+      "title": "Discovery",
+      "description": "We begin by immersing ourselves in your business ecosystem. Through stakeholder interviews, market research, and competitor analysis, we uncover the core challenges and opportunities to ensure our solution aligns perfectly with your long-term business goals.",
+      "icon": "Search"
+    },
+    {
+      "step": 2,
+      "title": "Requirement",
+      "description": "We translate high-level concepts into a concrete technical blueprint. This involves defining detailed user stories, functional specifications, third-party integrations, and data architecture to eliminate ambiguity and set a clear path forward.",
+      "icon": "ClipboardList"
+    },
+    {
+      "step": 3,
+      "title": "Strategy",
+      "description": "Our team develops a comprehensive roadmap that balances innovation with feasibility. We select the optimal technology stack, define scalable architecture, and plan sprint milestones to ensure the project is delivered on time and within budget.",
+      "icon": "Map"
+    },
+    {
+      "step": 4,
+      "title": "Design",
+      "description": "We create user-centric interfaces that blend aesthetics with functionality. From wireframing user flows to crafting high-fidelity prototypes and accessible design systems, we ensure the final product is intuitive, engaging, and on-brand.",
+      "icon": "PenTool"
+    },
+    {
+      "step": 5,
+      "title": "Development",
+      "description": "Our engineering team brings the designs to life using clean, semantic code and modern frameworks. We follow Agile methodologies with iterative sprints, allowing for regular feedback loops and ensuring the application is robust, secure, and scalable.",
+      "icon": "Code"
+    },
+    {
+      "step": 6,
+      "title": "QA Testing",
+      "description": "We enforce a zero-tolerance policy for errors. Our quality assurance process includes automated unit tests, cross-browser compatibility checks, performance stress testing, and security audits to guarantee a flawless user experience across all devices.",
+      "icon": "ShieldCheck"
+    },
+    {
+      "step": 7,
+      "title": "Deployment",
+      "description": "We execute a calculated launch strategy to ensure a smooth transition to production. Using CI/CD pipelines and cloud infrastructure best practices, we deploy your application with zero downtime, ensuring it is instantly available to your audience.",
+      "icon": "Rocket"
+    },
+    {
+      "step": 8,
+      "title": "Maintenance",
+      "description": "Our partnership extends beyond the launch. We provide ongoing support, real-time server monitoring, security patches, and iterative feature enhancements to ensure your digital product evolves alongside your growing business needs.",
+      "icon": "Settings"
+    }
+  ],
+  "projects": [
+    {
+  "id": "cambry-admission-centre",
+  "title": "Cambry International Admission Centre",
+  "category": "Full Stack",
+  "thumbnail": "https://i.postimg.cc/G2HpKYWS/Screenshot-2026-04-23-204028.png", 
+  "challenge": "Cambry International Admission Centre required a comprehensive digital platform to help students navigate the complex process of studying abroad. The challenge was to create an intuitive system where students could easily explore global education destinations, find suitable partner universities and courses, and book IELTS exams. Additionally, the administration needed a powerful, centralized dashboard to manage student leads, track CRM statuses, and update diverse content types without technical bottlenecks.",
+  "solution": "We developed a robust full-stack web application utilizing Next.js 16 (App Router), React 19, and Prisma with PostgreSQL. The public platform features a Study Destination Explorer, a dynamic University Finder, and an integrated Google Gemini-powered AI Chatbot that leverages full database context to assist students in real-time. For the backend, we built a secure, JWT-authenticated Admin Dashboard offering complete CRUD capabilities across 15 database models, a lead capture CRM with status tracking, and bulk CSV/JSON data import/export functionality, all wrapped in a responsive design with smooth Framer Motion animations.",
+  "techStack": [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Tailwind CSS",
+    "Prisma",
+    "PostgreSQL",
+    "Google Generative AI",
+    "Framer Motion"
+  ],
+  "results": [
+    {
+      "metric": "Database Models",
+      "value": "15"
+    },
+    {
+      "metric": "Admin Modules",
+      "value": "13"
+    },
+    {
+      "metric": "AI Support",
+      "value": "24/7 Contextual Chat"
+    }
+  ]
+},
+    {
+      "id": "Agency",
+      "title": "Cambry-Study Abroad Consultancy",
+      "category": "Full Stack",
+      "thumbnail": "https://i.postimg.cc/W4XTdtVg/cambry.png",
+      "challenge": "Cambry International Admission Centre required a compelling digital interface to establish itself as a reliable bridge for students seeking global education opportunities. The core challenge was to design a hero section that balanced aspirational imagery with clear functionality to drive user engagement. We implemented a modern glassmorphism aesthetic for the central content card, allowing the backdrop of classic academic architecture to remain visible while ensuring the text Your Trusted Partner for Studying Abroad remained the focal point. To streamline the user journey, we prioritized two distinct calls to action—Book an appointment and Explore destinations—giving visitors immediate, intuitive pathways to interact with the service. The navigation was also simplified into key categories like Study Destinations and Countries to reduce cognitive load. This strategic design approach successfully creates an atmosphere of professionalism and clarity, positioning Cambry as an accessible expert in the competitive international education consultancy market.",
+      "solution": "A Trust-Building Digital Gateway To address the client's need for immediate credibility and user engagement, we engineered a high-impact hero section centered around the concept of transparency and opportunity. We utilized a high-resolution, aspirational background featuring European academic architecture to instantly visually communicate the Study Abroad promise. To ensure text legibility without obscuring this visual storytelling, we developed a glassmorphism UI container—a translucent, frosted overlay that highlights the core value proposition (Your Trusted Partner). We further optimized the user flow with a dual-CTA strategy: a high-contrast purple button for high-intent users (Book an appointment) and a subtle secondary button for browsing (Explore destinations). This design solves the friction of information overload by presenting a clean, focused entry point that guides prospective students effortlessly toward their next step.",
+      "techStack": [
+        "React",
+        "Node.js",
+        "PostgreSQL",
+        "Tailwind CSS",
+        "TypeScript"
+      ],
+      "results": [
+        {
+          "metric": "Response Time",
+          "value": "<100ms"
+        },
+        {
+          "metric": "Uptime",
+          "value": "99.97%"
+        },
+        {
+          "metric": "User Adoption",
+          "value": "+250%"
+        }
+      ]
+    },
+    {
+      "id": "ecommerce-platform",
+      "title": "New Life Style",
+      "category": "Full Stack",
+      "thumbnail": "https://i.postimg.cc/XXS0RCK0/new-life-style.png",
+      "challenge": "New Lifestyle needed to break through the noise of Bangladesh’s saturated e-commerce market, where customers often hesitate due to a lack of trust and generic user experiences. The core challenge was to design a digital storefront that felt premium and exclusive without feeling distant or inaccessible. They required a hero section that could instantly validate their brand promise of comfort and class while simultaneously overcoming the common trust deficit inherent in online fashion retail. The design needed to aggressively signal reliability—making contact channels like WhatsApp and Email immediately visible—without cluttering the interface or detracting from the sleek, high-end aesthetic required to sell premium fashion wear to a style-conscious audience.",
+      "solution": "A Trust-Centric Digital Boutique To establish New Lifestyle as a premium destination while conquering customer hesitation, we engineered a sophisticated dark-mode interface that instantly conveys luxury and exclusivity. We strategically prioritized Accessible Trust by integrating direct communication channels—specifically a prominent WhatsApp contact and Email support—directly into the hero section, sitting alongside the value proposition. This unconventional layout immediately reassures users of human backing before they even browse. To counterbalance the serious tone of the dark background, we utilized vibrant amber accents for the Shop Now CTA to drive high-contrast attention, and incorporated modern 3D isometric imagery to symbolize a seamless, tech-forward shopping experience, ultimately blending high-end aesthetics with local market approachability.",
+      "techStack": [
+        "ReactJs",
+        "Stripe",
+        "MongoDB",
+        "Firebase",
+        "Tailwind CSS",
+        "TypeScript"
+      ],
+      "results": [
+        {
+          "metric": "Conversion Rate",
+          "value": "+31%"
+        },
+        {
+          "metric": "Page Load",
+          "value": "1.8s"
+        },
+        {
+          "metric": "Revenue Growth",
+          "value": "+180%"
+        }
+      ]
+    },
+    {
+      "id": "edu",
+      "title": "English Janala",
+      "category": "Mobile",
+      "thumbnail": "https://i.postimg.cc/V6Jv1XC3/learning.png",
+      "challenge": "Overcoming the Intimidation of Learning The primary challenge for this English learning platform was to dismantle the common psychological barrier among Bengali speakers that learning a new language is difficult, time-consuming, and intimidating. The brand needed a landing page that would instantly lower resistance and convince users—from absolute beginners to those wanting to improve—that the process could be straightforward and approachable. The design hurdle was to convert passive interest into immediate action by making the very first step feel effortless and risk-free, rather than feeling like the start of a burdensome academic commitment.",
+      "solution": "An Accessible and Instant Entry Point To overcome user hesitation, we engineered a minimalist landing page centered around the highly encouraging value proposition: English is Easy!. We supported this message visually with a clean, bright aesthetic and a smiling, friendly persona to project warmth and accessibility. Furthermore, the solution addresses the friction of starting by radically simplifying the onboarding process. Instead of a lengthy registration, the page presents an immediate login form where users only need to enter their name and a pre-provided password ('123456') to Get Started instantly. This strategic choice, combined with motivating Bengali copy urging users to start today removes barriers and encourages immediate engagement with their interactive lessons.",
+      "techStack": [
+        "React Native",
+        "Firebase",
+        "Twilio",
+        "Node.js",
+        "PostgreSQL"
+      ],
+      "results": [
+        {
+          "metric": "App Rating",
+          "value": "4.9★"
+        },
+        {
+          "metric": "Downloads",
+          "value": "100K+"
+        },
+        {
+          "metric": "Engagement",
+          "value": "+320%"
+        }
+      ]
+    },
+    {
+      "id": "analytics",
+      "title": "New Portal",
+      "category": "Web Application",
+      "thumbnail": "https://i.postimg.cc/fR5R98jN/news.png",
+      "challenge": "Modernizing Legacy Journalism The Dragon News faced the critical task of translating its authoritative, traditional brand identity into a dynamic digital environment without overwhelming the reader. The primary design hurdle was to organize a high volume of real-time information—ranging from breaking tickers to categorized articles—while maintaining a clean, readable layout. The platform needed to balance the serious, classic aesthetic of print journalism with modern functional expectations, such as instant content filtering and seamless user authentication, to compete in the fast-paced 2026 news cycle.",
+      "solution": "A Hybrid Information Architecture To solve this, we engineered a structured interface that blends classic typography with modern UI utility. We anchored the brand's credibility by using a traditional blackletter font for the header, immediately establishing a newspaper feel. To manage content density, we implemented a disciplined three-column layout: a dedicated category sidebar on the left for quick navigation, a central feed for Top News Around the World, and a utility sidebar on the right. We enhanced user engagement by integrating a high-contrast red Latest news ticker for urgency and adding seamless social login options (Google and GitHub) to lower the barrier for reader interaction.",
+      "techStack": [
+        "React",
+        "Python",
+        "TensorFlow",
+        "BigQuery",
+        "D3.js"
+      ],
+      "results": [
+        {
+          "metric": "Data Processing",
+          "value": "10M+ rows/s"
+        },
+        {
+          "metric": "Customer Retention",
+          "value": "+60%"
+        },
+        {
+          "metric": "Time Saved",
+          "value": "15hrs/week"
+        }
+      ]
+    },
+    {
+      "id": "health-care",
+      "title": "Doctor's Mind",
+      "category": "Web Application",
+      "thumbnail": "https://i.postimg.cc/wxsMGcHk/doctors.png",
+      "challenge": "Reducing Friction in Digital Healthcare Doctor's Mind faced the delicate task of digitizing the patient-doctor relationship without losing the human element of care and trust. The primary challenge was to design a platform that addressed two distinct user states: the anxiety of a patient seeking urgent help and the logistical need for routine scheduling. The interface needed to be clinically clean to project professionalism yet warm enough to reduce patient stress. Crucially, the design had to overcome the common user frustration of navigating complex directories by making the path to finding a verified specialist absolute and immediate, ensuring that technology acted as a bridge to care rather than a barrier.",
+      "solution": "A Calm, Search-Centric Interface To instill immediate confidence, we utilized a serene medical-blue color palette and high-quality imagery of medical instruments to psychologically signal hygiene, safety, and professionalism. We prioritized speed of access by engineering a search-first hero section, placing a prominent Search for doctor input field and Search Now button at the center of the user journey. This allows users to bypass navigation menus and find care instantly. To address different tiers of urgency, we separated the standard booking flow from critical needs by placing a distinct, high-visibility Emergency button in the top navigation bar. Finally, we anchored the user experience with reassuring copy—Dependable Care, Backed by Trusted Professionals—to immediately validate the platform's credibility.",
+      "techStack": [
+        "React",
+        "Python",
+        "TensorFlow",
+        "BigQuery",
+        "D3.js"
+      ],
+      "results": [
+        {
+          "metric": "Data Processing",
+          "value": "10M+ rows/s"
+        },
+        {
+          "metric": "Customer Retention",
+          "value": "+60%"
+        },
+        {
+          "metric": "Time Saved",
+          "value": "15hrs/week"
+        }
+      ]
+    },
+    {
+      "id": "fintech",
+      "title": "Auction Connect",
+      "category": "Web Application",
+      "thumbnail": "https://i.postimg.cc/s2Nfn1Nb/auction.png",
+      "challenge": "Evoking the Thrill of the Hunt Connect Auction needed to differentiate itself in a market often dominated by cluttered, text-heavy listing sites that lack emotional appeal. The core challenge was to capture the visceral excitement of an auction—the speed of bidding and the thrill of discovery—while maintaining an aura of premium exclusivity. The brand needed a digital interface that would instantly communicate global reach and luxury, ensuring that visitors felt they were entering a sophisticated gallery for rare treasures rather than a chaotic marketplace. The design had to balance high-energy visuals with clear, intuitive navigation to prevent user drop-off.",
+      "solution": "A Dynamic, Immersive Experience To visualize the energy of real-time bidding, we designed an immersive dark-mode interface punctuated by dynamic, abstract golden light trails. This visual metaphor effectively represents both the speed of the auction process and the platform's global connectivity. We kept the interface intentionally minimal to let the message shine, using a bold, high-contrast white CTA button—Explore Auctions—to cut through the dark background and provide a singular, unmistakable focus for the user. By pairing aspirational copy (Unique Items from Around the World) with a streamlined navigation structure, we created a sophisticated entry point that promises both excitement and exclusivity.",
+      "techStack": [
+        "React",
+        "Python",
+        "TensorFlow",
+        "BigQuery",
+        "D3.js"
+      ],
+      "results": [
+        {
+          "metric": "Data Processing",
+          "value": "10M+ rows/s"
+        },
+        {
+          "metric": "Customer Retention",
+          "value": "+60%"
+        },
+        {
+          "metric": "Time Saved",
+          "value": "15hrs/week"
+        }
+      ]
+    }
+  ],
+  "pricing": {
+    "toggle": {
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "discount": "Save 20%"
+    },
+    "projectTiers": [
+      {
+        "id": "starter",
+        "name": "The Starter",
+        "description": "For Personal Portfolios, Small F-Commerce, Photographers. (Approximate Range: ৳10k - ৳15k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 15000,
+        "features": [
+          "1 Page (Long Scroll) & Hero Section",
+          "Gallery/Portfolio & Contact Form",
+          "Floating WhatsApp Chat Button",
+          "Tech: WordPress (Elementor) or HTML/CSS",
+          "Timeline: 3 - 5 Days",
+          "Maintenance: ৳1000/Month (if needed)"
+        ],
+        "cta": "Start Project",
+        "highlighted": false
+      },
+      {
+        "id": "corporate",
+        "name": "The Corporate",
+        "description": "For Agencies, Law Chambers, NGOs, Interior Design. (Approximate Range: ৳15k - ৳25k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 20000,
+        "features": [
+          "5 - 8 Pages & Trust Elements",
+          "Dynamic Blog & Team Profile",
+          "Basic SEO Setup",
+          "Tech: WordPress (Premium) or React.js",
+          "Timeline: 5 - 7 Days",
+          "Maintenance: ৳1,500 - 2,500/month"
+        ],
+        "cta": "Start Project",
+        "highlighted": false
+      },
+      {
+        "id": "service_hub",
+        "name": "The Service Hub",
+        "description": "For Dental Clinics, Parlors, Car Rental, Cleaning Services. (Approximate Range: ৳25k - ৳35k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 30000,
+        "features": [
+          "8 - 10 Pages + Booking Engine",
+          "Appointment System & Rate Chart",
+          "Automated Emails & Quote Forms",
+          "Tech: WP Booking Plugins or MERN",
+          "Timeline: 7 - 14 Days",
+          "Maintenance: ৳2,500 - 3,500/month"
+        ],
+        "cta": "Start Project",
+        "highlighted": true,
+        "badge": "Popular"
+      },
+      {
+        "id": "estore",
+        "name": "The E-Store",
+        "description": "For Fashion Brands, Gadget Shops, Organic Food. (Approximate Range: ৳30k - ৳50k+)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 40000,
+        "features": [
+          "Full E-Commerce & 20 Product Upload",
+          "Cart, Checkout & Payment Gateway",
+          "Admin Dashboard & FB Pixel",
+          "Tech: WooCommerce or MERN Stack",
+          "Timeline: 10 - 14 Days",
+          "Maintenance: ৳4,000 - 5,000/month"
+        ],
+        "cta": "Start Store",
+        "highlighted": false
+      },
+      {
+        "id": "portal",
+        "name": "The Portal",
+        "description": "For News Portals, Coaching Centers, Community Blogs. (Approximate Range: ৳20k - ৳40k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 30000,
+        "features": [
+          "High-Volume Content Layout",
+          "Ad Spaces, News Ticker & Categories",
+          "User Engagement Features",
+          "Tech: WordPress (News Theme) or Next.js",
+          "Timeline: 7 - 12 Days",
+          "Maintenance: ৳6,000 - 7,000/month"
+        ],
+        "cta": "Start Project",
+        "highlighted": false
+      }
+    ],
+    "appTiers": [
+      {
+        "id": "app_mvp",
+        "name": "App MVP",
+        "description": "Validate your idea with a core feature set.Price varies based on complexity,features and timelines. Contact us for a custom quote.",
+        "price": 30000,
+        "features": [
+          "Cross-Platform (Flutter/React Native)",
+          "Up to 5-7 Screens",
+          "User Authentication (Google/FB)",
+          "Basic API Integration",
+          "Play Store Submission",
+          "Timeline: 15 - 20 Days"
+        ],
+        "cta": "Start App",
+        "highlighted": false
+      },
+      {
+        "id": "app_business",
+        "name": "Business App",
+        "description": "Dynamic app for service/product businesses. (Approximate Range: ৳60k - ৳80k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 60000,
+        "features": [
+          "Dynamic Content & Admin Panel",
+          "Push Notifications (Firebase)",
+          "Payment Gateway Integration",
+          "Google Maps & Location Services",
+          "Chat Support Integration",
+          "Timeline: 30 - 45 Days"
+        ],
+        "cta": "Start App",
+        "highlighted": true,
+        "badge": "Best Value"
+      },
+      {
+        "id": "app_ecommerce",
+        "name": "E-Com Super App",
+        "description": "Full-fledged shopping experience. (Approximate Range: ৳80k - ৳120k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 90000,
+        "features": [
+          "Advanced Product Filtering",
+          "Cart, Wishlist & Order Tracking",
+          "Wallet & Coupon System",
+          "Multi-Vendor Capability (Optional)",
+          "High Performance Backend",
+          "Timeline: 45 - 60 Days"
+        ],
+        "cta": "Start App",
+        "highlighted": false
+      }
+    ],
+    "graphicsTiers": [
+      {
+        "id": "gfx_starter",
+        "name": "Identity Lite",
+        "description": "Essentials for new startups. (Approximate Range: ৳4k - ৳6k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 4000,
+        "features": [
+          "2 Logo Concepts",
+          "Business Card Design",
+          "Letterhead Design",
+          "Social Media Profile Pic",
+          "Source Files (AI, EPS, PNG)",
+          "Timeline: 2 - 3 Days"
+        ],
+        "cta": "Order Now",
+        "highlighted": false
+      },
+      {
+        "id": "gfx_social",
+        "name": "Social Suite",
+        "description": "Make your Facebook/Insta look pro. (Approximate Range: ৳10k - ৳15k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 10000,
+        "features": [
+          "5 Post Templates (Canva/PS)",
+          "Cover Photos (FB, LinkedIn, YT)",
+          "Story Highlight Icons",
+          "Ad Banner Designs (3 variations)",
+          "Brand Color Palette",
+          "Timeline: 4 - 5 Days"
+        ],
+        "cta": "Order Now",
+        "highlighted": true,
+        "badge": "Hot"
+      },
+      {
+        "id": "gfx_brand",
+        "name": "Full Branding",
+        "description": "Complete visual overhaul. (Approximate Range: ৳20k - ৳30k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 20000,
+        "features": [
+          "Logo & Brand Guidelines Book",
+          "Complete Stationery Kit",
+          "Social Media Kit (Full)",
+          "Packaging/Label Design",
+          "Email Signature & Invoice Design",
+          "Timeline: 7 - 10 Days"
+        ],
+        "cta": "Order Now",
+        "highlighted": false
+      }
+    ],
+    "marketingTiers": [
+      {
+        "id": "mkt_social",
+        "name": "Social Starter",
+        "description": "Keep your pages active and alive. (Approximate Range: ৳15k - ৳20k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 15000,
+        "features": [
+          "Manage FB & Instagram",
+          "12 Static Posts / Month",
+          "Basic Community Management",
+          "Monthly Performance Report",
+          "1 Ad Campaign Setup (Ad spend extra)",
+          "Contract: Monthly"
+        ],
+        "cta": "Subscribe",
+        "highlighted": false
+      },
+      {
+        "id": "mkt_growth",
+        "name": "Growth Engine",
+        "description": "Focus on leads and sales. (Approximate Range: ৳30k - ৳40k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 30000,
+        "features": [
+          "Manage FB, Insta & LinkedIn",
+          "8 Static Posts + 4 Reels / Month",
+          "Advanced Ad Targeting & Retargeting",
+          "Competitor Analysis",
+          "Copywriting for Ads",
+          "Contract: Monthly"
+        ],
+        "cta": "Subscribe",
+        "highlighted": true,
+        "badge": "ROI Focused"
+      },
+      {
+        "id": "mkt_seo",
+        "name": "SEO & Dominance",
+        "description": "Long-term organic traffic. (Approximate Range: ৳40k - ৳50k)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "price": 40000,
+        "features": [
+          "Full Website SEO Audit",
+          "On-Page & Technical SEO",
+          "4 Blog Posts / Month (SEO Optimized)",
+          "Backlink Building Strategy",
+          "Keyword Ranking Report",
+          "Contract: Monthly"
+        ],
+        "cta": "Subscribe",
+        "highlighted": false
+      }
+    ],
+    "maintenanceTiers": [
+      {
+        "id": "basic_m",
+        "name": "Starter Care",
+        "description": "Hosting and basic security. (Approximate Range: ৳1500 - ৳2000/month)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "monthlyPrice": 1500,
+        "yearlyPrice": 14400,
+        "features": [
+          "Secure Hosting",
+          "SSL Certificate",
+          "Monthly Backups"
+        ],
+        "cta": "Subscribe",
+        "highlighted": false
+      },
+      {
+        "id": "standard_m",
+        "name": "Business Care",
+        "description": "Updates and content edits. (Approximate Range: ৳4500 - ৳5000/month)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "monthlyPrice": 4500,
+        "yearlyPrice": 43200,
+        "features": [
+          "Everything in Starter",
+          "Weekly Backups",
+          "Plugin/Core Updates",
+          "1 Hour Content Edits/mo"
+        ],
+        "cta": "Subscribe",
+        "highlighted": true,
+        "badge": "Recommended"
+      },
+      {
+        "id": "premium_m",
+        "name": "Priority Care",
+        "description": "Full peace of mind. (Approximate Range: ৳9500 - ৳10000/month)/Depending on complexity, features, and timeline. Contact us for a custom quote.",
+        "monthlyPrice": 9500,
+        "yearlyPrice": 91200,
+        "features": [
+          "Everything in Business",
+          "Daily Backups",
+          "24/7 Uptime Monitoring",
+          "Priority Phone Support",
+          "Performance Optimization"
+        ],
+        "cta": "Subscribe",
+        "highlighted": false
+      }
+    ]
+  },
+  "careers": {
+    "headline": "Build the Future with Us",
+    "subheadline": "Join our team of innovators, creators, and problem-solvers. We're always looking for talented individuals who share our passion for excellence.",
+    "perks": [
+      {
+        "title": "Remote Work",
+        "description": "Work from anywhere in the world. We believe in flexibility and trust.",
+        "icon": "Home"
+      },
+      {
+        "title": "Health Insurance",
+        "description": "Comprehensive health coverage for you and your family.",
+        "icon": "Heart"
+      },
+      {
+        "title": "Learning Budget",
+        "description": "BDT 3,500 annual budget for courses, conferences, and books.",
+        "icon": "BookOpen"
+      },
+      {
+        "title": "Flexible Hours",
+        "description": "Work when you're most productive. Results matter, not hours.",
+        "icon": "Clock"
+      },
+      {
+        "title": "Team Retreats",
+        "description": "Annual team gatherings in exciting locations worldwide.",
+        "icon": "Plane"
+      },
+      {
+        "title": "Latest Tech",
+        "description": "Top-of-the-line equipment and software to do your best work.",
+        "icon": "Laptop"
+      }
+    ],
+    "openings": [
+      {
+        "id": "senior-react-dev",
+        "title": "React Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "We're looking for an React developer to lead frontend development on our most challenging projects."
+      },
+      {
+        "id": "ft-backend-dev",
+        "title": "Backend Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Architect and build scalable server-side logic, optimize APIs, and manage databases for high-performance applications."
+      },
+      {
+        "id": "ft-fullstack-dev",
+        "title": "Full Stack Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Handle end-to-end development, bridging the gap between user-facing interfaces and complex backend infrastructure."
+      },
+      {
+        "id": "mobile-app-dev",
+        "title": "Mobile App Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Build cross-platform mobile applications (Flutter/React Native) that provide seamless user experiences on iOS and Android."
+      },
+      {
+        "id": "pt-frontend-dev",
+        "title": "Frontend Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Part-time",
+        "description": "Collaborate with our team 20hrs/week to implement pixel-perfect UI designs and interactive web components."
+      },
+      {
+        "id": "pt-backend-dev",
+        "title": "Backend Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Part-time",
+        "description": "Support our core engineering team by maintaining API endpoints and assisting with database management on a flexible schedule."
+      },
+      {
+        "id": "pt-fullstack-dev",
+        "title": "Full Stack Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Part-time",
+        "description": "A flexible role for a versatile developer to tackle various feature requests and bug fixes across the entire stack."
+      },
+      {
+        "id": "web-intern",
+        "title": "Web Development Intern",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Internship",
+        "description": "A 3-6 month learning opportunity for aspiring developers to gain hands-on experience in modern web technologies and agile workflows."
+      },
+      {
+        "id": "growth-marketer",
+        "title": "Growth Marketer",
+        "department": "Marketing",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Join our marketing team to drive growth through data-driven strategies, SEO optimization, and creative campaigns."
+      },
+      {
+        "id": "sales-exec",
+        "title": "Sales Executive",
+        "department": "Sales",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Drive revenue by identifying new business opportunities, managing client relationships, and closing deals for our tech services."
+      },
+      {
+        "id": "biz-dev-mgr",
+        "title": "Business Development Manager",
+        "department": "Sales",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Strategize and lead our market expansion efforts, forming strategic partnerships and overseeing the sales pipeline."
+      }
+    ]
+  },
+  "blog": {
+    "posts": [
+      {
+        "id": "future-of-web-development",
+        "title": "The Future of Web Development: Trends to Watch in 2024",
+        "excerpt": "From AI-driven coding assistants to the rise of WebAssembly, we explore the technologies shaping the next generation of the web.",
+        "category": "Engineering",
+        "author": "Mujahid Raj",
+        "date": "2026-01-15",
+        "readTime": "8 min",
+        "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
+        "content": [
+          {
+            "heading": "The AI Revolution in Coding",
+            "text": "Artificial Intelligence is no longer just a buzzword; it is fundamentally rewriting how we write code. Tools like GitHub Copilot and ChatGPT are shifting developers from 'writers' to 'editors'. In 2024, we expect this to go further with autonomous agents that can scaffold entire projects, run tests, and even deploy applications with minimal human oversight. However, this raises critical questions about code quality and security that every engineering team must address."
+          },
+          {
+            "heading": "The Rise of Server Components",
+            "text": "React Server Components (RSC) have blurred the line between backend and frontend. By rendering components on the server, we can significantly reduce the JavaScript bundle size sent to the client. This leads to faster First Contentful Paint (FCP) and Time to Interactive (TTI) metrics. Frameworks like Next.js are leading this charge, making full-stack development more seamless than ever."
+          },
+          {
+            "heading": "WebAssembly (Wasm) hitting maturity",
+            "text": "For years, JavaScript has been the undisputed king of the browser. WebAssembly isn't replacing it, but it's becoming the go-to for performance-critical tasks. Video editing, complex image manipulation, and even gaming in the browser are becoming indistinguishable from native apps, thanks to Wasm allowing languages like Rust and C++ to run on the web."
+          }
+        ]
+      },
+      {
+        "id": "design-systems-guide",
+        "title": "Building Scalable Design Systems for Enterprise",
+        "excerpt": "A comprehensive guide to creating a design language that ensures consistency, efficiency, and beauty across fragmented product ecosystems.",
+        "category": "Design",
+        "author": "Alin Das",
+        "date": "2026-01-10",
+        "readTime": "12 min",
+        "image": "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1200&q=80",
+        "content": [
+          {
+            "heading": "Why Design Systems Fail",
+            "text": "Most design systems fail not because of visual aesthetics, but because of adoption friction. If a system is too rigid, developers will bypass it. If it's too loose, consistency is lost. The sweet spot lies in creating 'Design Tokens'—variables for colors, spacing, and typography that can be platform-agnostic, supporting Web, iOS, and Android simultaneously."
+          },
+          {
+            "heading": "Atomic Design Methodology",
+            "text": "We advocate for Brad Frost's Atomic Design. Start with Atoms (buttons, inputs), combine them into Molecules (search forms), build Organisms (headers), and finally Templates and Pages. This modular approach ensures that when you update a core 'Atom', the change propagates instantly across your entire enterprise application suite."
+          },
+          {
+            "heading": "Documentation is a Product",
+            "text": "A design system without documentation is just a UI kit. Treat your documentation site as a product in itself. It needs to include live code playgrounds, do's and don'ts, and clear accessibility guidelines. Tools like Storybook or Zeroheight are essential for bridging the gap between designers and developers."
+          }
+        ]
+      },
+      {
+        "id": "react-performance-tips",
+        "title": "10 React Performance Optimizations You Might Be Missing",
+        "excerpt": "Stop unnecessary re-renders. We dive deep into useMemo, virtualization, and concurrent mode to make your apps fly.",
+        "category": "Engineering",
+        "author": "Fidbi Hasan",
+        "date": "2026-01-05",
+        "readTime": "10 min",
+        "image": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80",
+        "content": [
+          {
+            "heading": "The Cost of Re-renders",
+            "text": "React is fast, but it can be wasteful. Every time a parent component renders, its children render too, unless you tell them not to. Using React.memo() prevents this, but overusing it adds comparison overhead. The trick is to identify heavy computational components and isolate state as low in the tree as possible."
+          },
+          {
+            "heading": "Virtualization for Long Lists",
+            "text": "If you are rendering a list of 1,000 items, the DOM will choke. Libraries like react-window or tanstack-virtual only render the items currently visible in the viewport. This technique, called 'Windowing', keeps your memory footprint low and scroll performance buttery smooth, regardless of list size."
+          },
+          {
+            "heading": "Code Splitting with Lazy Load",
+            "text": "Don't ship the whole app at once. Use React.lazy() and Suspense to split your code into chunks. Load the heavy charting library or the admin dashboard ONLY when the user navigates to that route. This dramatically improves your Lighthouse performance score."
+          }
+        ]
+      },
+      {
+        "id": "ux-psychology",
+        "title": "The Psychology Behind Great UX: Cognitive Load",
+        "excerpt": "Understanding how the human brain processes information is the key to designing intuitive user interfaces that convert.",
+        "category": "Design",
+        "author": "Alin Das",
+        "date": "2025-12-28",
+        "readTime": "7 min",
+        "image": "https://images.unsplash.com/photo-1586717791821-3f44a5638d48?auto=format&fit=crop&w=1200&q=80",
+        "content": [
+          {
+            "heading": "Hick's Law and Decision Fatigue",
+            "text": "Hick's Law states that the time it takes to make a decision increases with the number and complexity of choices. In UX, less is more. By removing navigation options or breaking complex forms into multi-step wizards, we reduce cognitive load and actually increase conversion rates."
+          },
+          {
+            "heading": "The F-Pattern Scanning",
+            "text": "Eye-tracking studies show users scan screens in an 'F' pattern. They look at the top headline, scan down the left side, and occasionally read across. Place your most critical CTA (Call to Action) and value propositions along these high-visibility lines to ensure they aren't missed."
+          },
+          {
+            "heading": "The Peak-End Rule",
+            "text": "Users judge an experience largely based on how they felt at its peak (most intense point) and at its end, rather than the total sum or average of every moment. Ensure your checkout success screen or 'task completed' animation is delightful. A positive ending can redeem a mediocre process."
+          }
+        ]
+      },
+      {
+        "id": "ai-driven-development",
+        "title": "Leveraging AI without Losing the Human Touch",
+        "excerpt": "How to integrate LLMs into your workflow to boost productivity while maintaining code quality and architectural integrity.",
+        "category": "Innovation",
+        "author": "Mujahid Raj",
+        "date": "2025-12-20",
+        "readTime": "9 min",
+        "image": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
+        "content": [
+          {
+            "heading": "AI as a Pair Programmer",
+            "text": "Treat AI tools not as a replacement for developers, but as a junior pair programmer who types really fast. They are excellent at boilerplate, regex, and unit tests, but they lack context of the broader system architecture. The senior engineer's role shifts to code review and architectural guidance."
+          },
+          {
+            "heading": "The Ethics of Generated Code",
+            "text": "Who owns the code generated by an AI? As we integrate these tools, legal and ethical considerations regarding copyright and open-source licenses become paramount. Enterprise teams need clear policies on what data is shared with public models to prevent IP leakage."
+          },
+          {
+            "heading": "Prompt Engineering Skills",
+            "text": "The quality of the output depends on the quality of the input. Learning to write precise, context-rich prompts is becoming a hard skill for developers. Context windows are getting larger, allowing us to feed entire file structures to the AI for more accurate refactoring suggestions."
+          }
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "headline": "Let's Build Something Amazing",
+    "subheadline": "Ready to transform your digital presence? We'd love to hear about your project.",
+    "form": {
+      "namePlaceholder": "Your Name",
+      "emailPlaceholder": "your@email.com",
+      "budgetLabel": "Budget Range",
+      "budgetOptions": [
+        "Under BDT5,000",
+        "BDT5,000 - BDT15,000",
+        "BDT15,000 - BDT25,000",
+        "BDT25,000 - BDT40,000",
+        "BDT40,000 - BDT50,000",
+        "BDT50,000+"
+      ],
+      "serviceLabel": "Service Type",
+      "serviceOptions": [
+        "Web Development",
+        "Mobile Development",
+        "UI/UX Design",
+        "WordPress",
+        "E-Commerce",
+        "Maintenance",
+        "SEO",
+        "Digital Marketing",
+        "Consulting",
+        "Graphics Design",
+        "Other"
+      ],
+      "messagePlaceholder": "Tell us about your project...",
+      "submitButton": "Send Message"
+    }
+  },
+  "footer": {
+    "description": "We craft premium digital experiences that drive growth and build lasting trust.",
+    "socialLinks": [
+      {
+        "platform": "LinkedIn",
+        "url": "https://www.linkedin.com/company/techwisdom-technologies/"
+      },
+      {
+        "platform": "GitHub",
+        "url": "https://github.com/twtech-Hub"
+      },
+      {
+        "platform": "Facebook",
+        "url": "https://www.facebook.com/techWisdomTech"
+      }
+    ],
+    "legalLinks": [
+      {
+        "label": "Privacy Policy",
+        "path": "/privacy-policy"
+      },
+      {
+        "label": "Terms & Conditions",
+        "path": "/terms-conditions"
+      },
+      {
+        "label": "Cookie Policy",
+        "path": "/cookies-policy"
+      }
+    ]
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "Oops! The page you're looking for seems to have wandered off into the digital void.",
+    "cta": "Back to Home"
+  }
+}

@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   MessageSquare,
   Handshake,
   UserCog,
@@ -21,6 +22,17 @@ import {
   ShieldCheck,
   Calendar,
   Video,
+  Package,
+  Zap,
+  Image as ImageIcon,
+  UserPlus,
+  GitPullRequest,
+  CalendarClock,
+  Sparkles,
+  Target,
+  LifeBuoy,
+  Megaphone,
+  Receipt
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,6 +49,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import logo from "../../assets/techwisdom.png";
@@ -46,27 +59,131 @@ import { toast } from 'sonner';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'CRM & Leads', url: '/crm', icon: Users },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
-  { title: 'Team Chat', url: '/teamChat', icon: MessageSquare, badge: true },
-  { title: 'Client Interaction', url: '/messages', icon: Handshake },
   { title: 'Notes', url: '/notes', icon: StickyNote },
   { title: "Schedule", url: "/events", icon: Calendar },
+];
+
+const communicationItems = [
+  { title: 'Team Chat', url: '/teamChat', icon: MessageSquare, badge: true },
   { title: "Conference", url: "/meeting", icon: Video },
+  { title: 'Client Messages', url: '/messages', icon: Handshake },
+];
+
+const crmItems = [
+  { title: 'Leads Pipeline', url: '/crm', icon: Users },
+  { title: 'Proposals & Quotes', url: '/proposals', icon: FileText },
 ];
 
 const managementItems = [
-  { title: 'Team', url: '/team', icon: UserCircle },
+  { title: 'IT Helpdesk', url: '/helpdesk', icon: LifeBuoy },
+  { title: 'OKRs & Goals', url: '/okr', icon: Target },
+  { title: 'Assets', url: '/assets', icon: Package },
   { title: 'Maintenance', url: '/maintenance', icon: ShieldCheck },
+];
+
+const financeItems = [
   { title: 'Finances', url: '/finances', icon: DollarSign },
+  { title: 'Expenses', url: '/expenses', icon: Receipt },
   { title: 'Invoices', url: '/invoices', icon: FileText },
   { title: 'Reports', url: '/reports', icon: BarChart3 },
 ];
 
+const hrItems = [
+  { title: 'Team Directory', url: '/team', icon: UserCircle },
+  { title: 'Candidates', url: '/hr/candidates', icon: UserPlus },
+  { title: 'ATS Pipeline', url: '/hr/pipeline', icon: GitPullRequest },
+  { title: 'Interviews', url: '/hr/interviews', icon: CalendarClock },
+  { title: 'Portal Admin', url: '/hr/portal-admin', icon: Megaphone },
+];
+
 const adminItems = [
   { title: 'Users', url: '/users', icon: UserCog },
-  { title: 'CMS', url: '/cms', icon: Briefcase },
+  { title: 'Workflows', url: '/workflows', icon: Zap },
 ];
+
+const aiItems = [
+  { title: 'AI Assistant Hub', url: '/ai-hub', icon: Sparkles },
+];
+
+const cmsItems = [
+  { title: 'CMS Hub', url: '/cms', icon: Briefcase },
+  { title: 'Recruitment', url: '/cms/recruitment', icon: Briefcase },
+  { title: 'Demo Projects', url: '/cms/demo-projects', icon: FolderKanban },
+  { title: 'Product Catalog', url: '/cms/products', icon: Package },
+  { title: 'Team', url: '/cms/team', icon: Users },
+  { title: 'Blog', url: '/cms/blog', icon: FileText },
+  { title: 'Services', url: '/cms/services', icon: Settings },
+  { title: 'Portfolio', url: '/cms/portfolio', icon: FolderKanban },
+  { title: 'Partners', url: '/cms/partners', icon: Handshake },
+  { title: 'Gallery', url: '/cms/gallery', icon: ImageIcon },
+  { title: 'Timeline', url: '/cms/timeline', icon: Calendar },
+  { title: 'Pricing', url: '/cms/pricing', icon: DollarSign },
+];
+
+const CollapsibleSidebarGroup = ({
+  title,
+  items,
+  collapsed,
+  isActive,
+  unreadCount = 0
+}: {
+  title: string;
+  items: any[];
+  collapsed: boolean;
+  isActive: (url: string) => boolean;
+  unreadCount?: number;
+}) => {
+  if (items.length === 0) return null;
+
+  return (
+    <Collapsible defaultOpen className="group/collapsible mt-4 first:mt-0">
+      <SidebarGroup>
+        {!collapsed && (
+          <CollapsibleTrigger asChild>
+            <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3 hover:bg-sidebar-accent cursor-pointer transition-colors flex items-center justify-between w-full">
+              {title}
+              <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+            </SidebarGroupLabel>
+          </CollapsibleTrigger>
+        )}
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      end={item.url === '/cms'}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative',
+                        'hover:bg-sidebar-accent/50',
+                        isActive(item.url) && 'bg-primary/10 text-primary font-medium'
+                      )}
+                    >
+                      <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
+                      {!collapsed && <span>{item.title}</span>}
+
+                      {item.badge && unreadCount > 0 && (
+                        <div className={cn(
+                          "absolute flex items-center justify-center rounded-full bg-red-600 text-white font-bold animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]",
+                          collapsed ? "top-1 right-1 h-2 w-2" : "right-3 h-5 min-w-[20px] px-1.5 text-[10px]"
+                        )}>
+                          {!collapsed && unreadCount}
+                        </div>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
+  );
+};
 
 export function AppSidebar() {
   const location = useLocation();
@@ -223,6 +340,13 @@ useEffect(() => {
   };
 
   const getVisibleAdminItems = () => (role === 'admin' ? adminItems : []);
+  
+  const getVisibleFinanceItems = () => (role === 'admin' ? financeItems : []);
+
+  const getVisibleCommunicationItems = () => {
+    if (role === 'client') return communicationItems.filter(i => i.url === '/messages' || i.url === '/meeting');
+    return communicationItems;
+  };
 
   return (
     <Sidebar className={cn('glass-sidebar transition-all duration-300', collapsed ? 'w-16' : 'w-64')} collapsible="icon">
@@ -240,79 +364,21 @@ useEffect(() => {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
-        <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3">Main</SidebarGroupLabel>}
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {getVisibleItems(mainNavItems).map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative',
-                        'hover:bg-sidebar-accent/50',
-                        isActive(item.url) && 'bg-primary/10 text-primary font-medium'
-                      )}
-                    >
-                      <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
-                      {!collapsed && <span>{item.title}</span>}
-
-                      {item.badge && unreadCount > 0 && (
-                        <div className={cn(
-                          "absolute flex items-center justify-center rounded-full bg-red-600 text-white font-bold animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]",
-                          collapsed ? "top-1 right-1 h-2 w-2" : "right-3 h-5 min-w-[20px] px-1.5 text-[10px]"
-                        )}>
-                          {!collapsed && unreadCount}
-                        </div>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {getVisibleManagementItems().length > 0 && (
-          <SidebarGroup className="mt-4">
-            {!collapsed && <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3">Management</SidebarGroupLabel>}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {getVisibleManagementItems().map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={cn('flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors', isActive(item.url) && 'bg-primary/10 text-primary font-medium')}>
-                        <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+      <SidebarContent className="px-2 pb-6">
+        <CollapsibleSidebarGroup title="Main" items={getVisibleItems(mainNavItems)} collapsed={collapsed} isActive={isActive} />
+        <CollapsibleSidebarGroup title="Communication" items={getVisibleCommunicationItems()} collapsed={collapsed} isActive={isActive} unreadCount={unreadCount} />
+        <CollapsibleSidebarGroup title="CRM & Sales" items={crmItems} collapsed={collapsed} isActive={isActive} />
+        <CollapsibleSidebarGroup title="Management" items={getVisibleManagementItems()} collapsed={collapsed} isActive={isActive} />
+        <CollapsibleSidebarGroup title="Finance & Accounting" items={getVisibleFinanceItems()} collapsed={collapsed} isActive={isActive} />
+        {(role === 'admin' || role === 'employee') && (
+          <CollapsibleSidebarGroup title="Human Resources" items={hrItems} collapsed={collapsed} isActive={isActive} />
         )}
-
-        {getVisibleAdminItems().length > 0 && (
-          <SidebarGroup className="mt-4">
-            {!collapsed && <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3">Admin</SidebarGroupLabel>}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {getVisibleAdminItems().map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={cn('flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors', isActive(item.url) && 'bg-primary/10 text-primary font-medium')}>
-                        <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive(item.url) && 'text-primary')} />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        <CollapsibleSidebarGroup title="Admin" items={getVisibleAdminItems()} collapsed={collapsed} isActive={isActive} />
+        {role === 'admin' && (
+          <CollapsibleSidebarGroup title="Artificial Intelligence" items={aiItems} collapsed={collapsed} isActive={isActive} />
+        )}
+        {role === 'admin' && (
+          <CollapsibleSidebarGroup title="CMS (Content)" items={cmsItems} collapsed={collapsed} isActive={isActive} />
         )}
       </SidebarContent>
 

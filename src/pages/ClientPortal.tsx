@@ -8,6 +8,7 @@ import logo from '@/assets/techwisdom.png';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,7 +24,12 @@ import {
   FileText,
   Send,
   Loader2,
+  LifeBuoy,
+  ThumbsUp,
+  Download,
+  FileSignature
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Tables, Database } from '@/integrations/supabase/types';
@@ -62,6 +68,9 @@ export default function ClientPortal() {
   const { user, role, signOut, loading } = useAuth();
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const [ticketTitle, setTicketTitle] = useState('');
+  const [ticketDesc, setTicketDesc] = useState('');
+  const [approvalFeedback, setApprovalFeedback] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,6 +124,49 @@ export default function ClientPortal() {
     enabled: projects.length > 0,
   });
 
+  const { data: proposals = [] } = useQuery({
+    queryKey: ['client-proposals', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('proposals' as any).select('*').eq('client_id', user?.id).eq('status', 'sent').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: deliverables = [] } = useQuery({
+    queryKey: ['client-deliverables', projects.map(p => p.id)],
+    queryFn: async () => {
+      if (projects.length === 0) return [];
+      const { data, error } = await supabase.from('project_deliverables' as any).select('*').in('project_id', projects.map(p => p.id)).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: projects.length > 0,
+  });
+
+  const { data: approvals = [] } = useQuery({
+    queryKey: ['client-approvals', projects.map(p => p.id)],
+    queryFn: async () => {
+      if (projects.length === 0) return [];
+      const { data, error } = await supabase.from('project_approvals' as any).select('*').in('project_id', projects.map(p => p.id)).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: projects.length > 0,
+  });
+
+  const { data: tickets = [] } = useQuery({
+    queryKey: ['client-tickets', projects.map(p => p.id)],
+    queryFn: async () => {
+      if (projects.length === 0) return [];
+      const { data, error } = await supabase.from('client_tickets' as any).select('*').in('project_id', projects.map(p => p.id)).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: projects.length > 0,
+  });
+
   // Fetch messages for selected project
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ['client-messages', selectedProject],
@@ -163,6 +215,47 @@ export default function ClientPortal() {
         .neq('sender_id', user?.id);
       if (error) throw error;
     },
+  });
+
+  const acceptProposalMutation = useMutation({
+    mutationFn: async (proposalId: string) => {
+      const { error } = await supabase.from('proposals' as any).update({ status: 'accepted' }).eq('id', proposalId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-proposals'] });
+      toast.success("Proposal accepted! Our team will be in touch shortly to kick off the project.");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const respondApprovalMutation = useMutation({
+    mutationFn: async ({ approvalId, status, feedback }: { approvalId: string, status: string, feedback: string }) => {
+      const { error } = await supabase.from('project_approvals' as any).update({
+        status, client_feedback: feedback || null, resolved_at: new Date().toISOString()
+      }).eq('id', approvalId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-approvals'] });
+      toast.success("Feedback submitted successfully.");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const createTicketMutation = useMutation({
+    mutationFn: async ({ projectId }: { projectId: string }) => {
+      const { error } = await supabase.from('client_tickets' as any).insert({
+        project_id: projectId, client_id: user?.id, title: ticketTitle, description: ticketDesc
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-tickets'] });
+      setTicketTitle(''); setTicketDesc('');
+      toast.success("Ticket submitted successfully. Our team will review it shortly.");
+    },
+    onError: (err) => toast.error(err.message)
   });
 
   // Scroll to bottom when messages change
@@ -300,16 +393,48 @@ export default function ClientPortal() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Projects List */}
-          <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-xl font-semibold">Your Projects</h2>
-            {projects.length === 0 ? (
-              <Card className="glass-card">
-                <CardContent className="py-12 text-center">
-                  <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No projects assigned yet.</p>
-                </CardContent>
-              </Card>
-            ) : (
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* PROPOSALS SECTION */}
+            {proposals.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2"><FileSignature className="h-5 w-5 text-primary" /> Pending Proposals</h2>
+                {proposals.map((prop: any) => (
+                  <Card key={prop.id} className="border-primary/50 shadow-sm">
+                    <CardHeader className="bg-primary/5 border-b">
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg">{prop.title}</CardTitle>
+                        <Badge variant="default" className="bg-primary text-primary-foreground">Requires Signature</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <p className="font-bold text-lg">Amount: ${Number(prop.amount).toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{prop.content.substring(0, 100)}...</p>
+                      </div>
+                      <div className="flex gap-2">
+                        {prop.pdf_url && <Button variant="outline" asChild><a href={prop.pdf_url} target="_blank" rel="noreferrer">View PDF</a></Button>}
+                        <Button onClick={() => acceptProposalMutation.mutate(prop.id)} disabled={acceptProposalMutation.isPending}>
+                          {acceptProposalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSignature className="h-4 w-4 mr-2" />}
+                          Accept & Sign
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Your Projects</h2>
+              {projects.length === 0 ? (
+                <Card className="glass-card">
+                  <CardContent className="py-12 text-center">
+                    <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No projects assigned yet.</p>
+                  </CardContent>
+                </Card>
+              ) : (
               projects.map((project) => (
                 <Card key={project.id} className="glass-card">
                   <CardHeader>
@@ -323,143 +448,250 @@ export default function ClientPortal() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Stage Progress */}
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-medium">{stageLabels[project.stage]}</span>
-                        <span className="text-muted-foreground">
-                          Stage {stages.indexOf(project.stage) + 1} of {stages.length}
-                        </span>
+                  <CardContent className="p-0">
+                    <Tabs defaultValue="overview" className="w-full">
+                      <div className="px-6 pt-4">
+                        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+                          <TabsTrigger value="overview">Overview</TabsTrigger>
+                          <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
+                          <TabsTrigger value="approvals">Approvals</TabsTrigger>
+                          <TabsTrigger value="tickets">Support</TabsTrigger>
+                        </TabsList>
                       </div>
-                      <Progress value={getProgress(project.stage)} className="h-2" />
-                    </div>
-
-                    {/* Stage Steps */}
-                    <div className="flex justify-between text-xs">
-                      {stages.map((stage, idx) => (
-                        <div
-                          key={stage}
-                          className={`flex flex-col items-center ${
-                            idx <= stages.indexOf(project.stage)
-                              ? 'text-primary'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          <div
-                            className={`w-3 h-3 rounded-full ${
-                              idx <= stages.indexOf(project.stage)
-                                ? 'bg-primary'
-                                : 'bg-muted'
-                            }`}
-                          />
-                          <span className="mt-1 hidden md:block">{stageLabels[stage]}</span>
+                      
+                      <TabsContent value="overview" className="p-6 space-y-6 mt-0">
+                        {/* Stage Progress */}
+                        <div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-medium">{stageLabels[project.stage]}</span>
+                            <span className="text-muted-foreground">
+                              Stage {stages.indexOf(project.stage) + 1} of {stages.length}
+                            </span>
+                          </div>
+                          <Progress value={getProgress(project.stage)} className="h-2" />
                         </div>
-                      ))}
-                    </div>
 
-                    <Separator />
-
-                    {/* Budget Info */}
-                    <div className="flex justify-between text-sm">
-                      <span>Budget: ${Number(project.total_budget).toLocaleString()}</span>
-                      <span className="text-success">Paid: ${Number(project.paid_amount).toLocaleString()}</span>
-                    </div>
-
-                    {project.deadline && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>Deadline: {format(new Date(project.deadline), 'MMM d, yyyy')}</span>
-                      </div>
-                    )}
-
-                    {/* Message Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setSelectedProject(
-                        selectedProject === project.id ? null : project.id
-                      )}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      {selectedProject === project.id ? 'Close Chat' : 'Message Team'}
-                    </Button>
-
-                    {/* Inline Chat */}
-                    {selectedProject === project.id && (
-                      <div className="border rounded-lg mt-3 bg-muted/30">
-                        <ScrollArea className="h-64 p-3">
-                          {messagesLoading ? (
-                            <div className="flex items-center justify-center h-full">
-                              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        {/* Stage Steps */}
+                        <div className="flex justify-between text-xs">
+                          {stages.map((stage, idx) => (
+                            <div
+                              key={stage}
+                              className={`flex flex-col items-center ${
+                                idx <= stages.indexOf(project.stage)
+                                  ? 'text-primary'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
+                              <div
+                                className={`w-3 h-3 rounded-full ${
+                                  idx <= stages.indexOf(project.stage)
+                                    ? 'bg-primary'
+                                    : 'bg-muted'
+                                }`}
+                              />
+                              <span className="mt-1 hidden md:block">{stageLabels[stage]}</span>
                             </div>
-                          ) : messages.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground text-sm">
-                              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                              No messages yet. Start the conversation!
+                          ))}
+                        </div>
+
+                        <Separator />
+
+                        {/* Budget Info */}
+                        <div className="flex justify-between text-sm">
+                          <span>Budget: ${Number(project.total_budget).toLocaleString()}</span>
+                          <span className="text-success">Paid: ${Number(project.paid_amount).toLocaleString()}</span>
+                        </div>
+
+                        {project.deadline && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            <span>Deadline: {format(new Date(project.deadline), 'MMM d, yyyy')}</span>
+                          </div>
+                        )}
+
+                        {/* Message Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => setSelectedProject(
+                            selectedProject === project.id ? null : project.id
+                          )}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          {selectedProject === project.id ? 'Close Chat' : 'Message Team'}
+                        </Button>
+
+                        {/* Inline Chat */}
+                        {selectedProject === project.id && (
+                          <div className="border rounded-lg mt-3 bg-muted/30">
+                            <ScrollArea className="h-64 p-3">
+                              {messagesLoading ? (
+                                <div className="flex items-center justify-center h-full">
+                                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                </div>
+                              ) : messages.length === 0 ? (
+                                <div className="text-center py-8 text-muted-foreground text-sm">
+                                  <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                                  No messages yet. Start the conversation!
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {messages.map((msg) => {
+                                    const isMine = msg.sender_id === user?.id;
+                                    return (
+                                      <div
+                                        key={msg.id}
+                                        className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                                      >
+                                        <div
+                                          className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                                            isMine
+                                              ? 'bg-primary text-primary-foreground'
+                                              : 'bg-background border'
+                                          }`}
+                                        >
+                                          <p className="text-sm">{msg.message}</p>
+                                          <p className="text-xs opacity-70 mt-1">
+                                            {format(new Date(msg.created_at), 'MMM d, h:mm a')}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                  <div ref={messagesEndRef} />
+                                </div>
+                              )}
+                            </ScrollArea>
+                            <div className="p-3 border-t">
+                              <form
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  handleSendMessage();
+                                }}
+                                className="flex gap-2"
+                              >
+                                <Input
+                                  placeholder="Type a message..."
+                                  value={newMessage}
+                                  onChange={(e) => setNewMessage(e.target.value)}
+                                  disabled={sendMutation.isPending}
+                                />
+                                <Button
+                                  type="submit"
+                                  size="icon"
+                                  disabled={!newMessage.trim() || sendMutation.isPending}
+                                >
+                                  {sendMutation.isPending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Send className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </form>
                             </div>
+                          </div>
+                        )}
+                      </TabsContent>
+
+                      <TabsContent value="deliverables" className="p-6 mt-0">
+                        <div className="space-y-3">
+                          {deliverables.filter((d: any) => d.project_id === project.id).length === 0 ? (
+                            <p className="text-muted-foreground text-sm">No deliverables shared yet.</p>
                           ) : (
-                            <div className="space-y-3">
-                              {messages.map((msg) => {
-                                const isMine = msg.sender_id === user?.id;
-                                return (
-                                  <div
-                                    key={msg.id}
-                                    className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
-                                  >
-                                    <div
-                                      className={`max-w-[80%] rounded-lg px-3 py-2 ${
-                                        isMine
-                                          ? 'bg-primary text-primary-foreground'
-                                          : 'bg-background border'
-                                      }`}
-                                    >
-                                      <p className="text-sm">{msg.message}</p>
-                                      <p className="text-xs opacity-70 mt-1">
-                                        {format(new Date(msg.created_at), 'MMM d, h:mm a')}
-                                      </p>
+                            deliverables.filter((d: any) => d.project_id === project.id).map((d: any) => (
+                              <div key={d.id} className="flex justify-between items-center p-3 border rounded-lg bg-muted/20">
+                                <div className="flex items-center gap-3">
+                                  <FileText className="h-5 w-5 text-primary" />
+                                  <div>
+                                    <p className="font-medium text-sm">{d.title}</p>
+                                    <p className="text-xs text-muted-foreground">{format(new Date(d.created_at), 'PPP')}</p>
+                                  </div>
+                                </div>
+                                <Button size="sm" variant="outline" asChild><a href={d.file_url} target="_blank" rel="noreferrer"><Download className="h-4 w-4" /></a></Button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="approvals" className="p-6 mt-0 space-y-4">
+                        {approvals.filter((a: any) => a.project_id === project.id).length === 0 ? (
+                          <p className="text-muted-foreground text-sm">No pending approvals.</p>
+                        ) : (
+                          approvals.filter((a: any) => a.project_id === project.id).map((a: any) => (
+                            <Card key={a.id} className="border-muted">
+                              <CardContent className="p-4 space-y-3">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="font-bold">{a.title}</h4>
+                                    <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+                                    {a.asset_url && <a href={a.asset_url} target="_blank" className="text-sm text-primary hover:underline mt-1 block">View Asset &rarr;</a>}
+                                  </div>
+                                  <Badge variant={a.status === 'approved' ? 'default' : a.status === 'changes_requested' ? 'destructive' : 'secondary'} className="capitalize">
+                                    {a.status.replace('_', ' ')}
+                                  </Badge>
+                                </div>
+                                {a.status === 'pending' && (
+                                  <div className="pt-3 border-t mt-3">
+                                    <Label>Your Feedback</Label>
+                                    <Input 
+                                      className="mt-1 mb-2" 
+                                      placeholder="Any changes needed?" 
+                                      value={approvalFeedback[a.id] || ''} 
+                                      onChange={(e) => setApprovalFeedback({...approvalFeedback, [a.id]: e.target.value})}
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button size="sm" onClick={() => respondApprovalMutation.mutate({ approvalId: a.id, status: 'approved', feedback: approvalFeedback[a.id] })}>
+                                        <ThumbsUp className="h-4 w-4 mr-2" /> Approve
+                                      </Button>
+                                      <Button size="sm" variant="destructive" onClick={() => respondApprovalMutation.mutate({ approvalId: a.id, status: 'changes_requested', feedback: approvalFeedback[a.id] })}>
+                                        Request Changes
+                                      </Button>
                                     </div>
                                   </div>
-                                );
-                              })}
-                              <div ref={messagesEndRef} />
-                            </div>
-                          )}
-                        </ScrollArea>
-                        <div className="p-3 border-t">
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              handleSendMessage();
-                            }}
-                            className="flex gap-2"
-                          >
-                            <Input
-                              placeholder="Type a message..."
-                              value={newMessage}
-                              onChange={(e) => setNewMessage(e.target.value)}
-                              disabled={sendMutation.isPending}
-                            />
-                            <Button
-                              type="submit"
-                              size="icon"
-                              disabled={!newMessage.trim() || sendMutation.isPending}
-                            >
-                              {sendMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Send className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </form>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))
+                        )}
+                      </TabsContent>
+
+                      <TabsContent value="tickets" className="p-6 mt-0">
+                        <div className="mb-6 space-y-3 bg-muted/20 p-4 rounded-lg">
+                          <h4 className="font-semibold text-sm">Submit a Support Ticket</h4>
+                          <Input placeholder="Ticket Title" value={ticketTitle} onChange={e => setTicketTitle(e.target.value)} />
+                          <Input placeholder="Describe the issue..." value={ticketDesc} onChange={e => setTicketDesc(e.target.value)} />
+                          <Button size="sm" disabled={!ticketTitle || createTicketMutation.isPending} onClick={() => createTicketMutation.mutate({ projectId: project.id })}>
+                            <LifeBuoy className="h-4 w-4 mr-2" /> Submit Ticket
+                          </Button>
                         </div>
-                      </div>
-                    )}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-sm">Past Tickets</h4>
+                          {tickets.filter((t: any) => t.project_id === project.id).length === 0 && <p className="text-muted-foreground text-xs">No tickets submitted.</p>}
+                          {tickets.filter((t: any) => t.project_id === project.id).map((t: any) => (
+                            <div key={t.id} className="p-3 border rounded-lg text-sm space-y-2">
+                              <div className="flex justify-between font-medium">
+                                <span>{t.title}</span>
+                                <Badge variant={t.status === 'resolved' ? 'default' : 'secondary'} className="capitalize text-[10px]">{t.status}</Badge>
+                              </div>
+                              <p className="text-muted-foreground">{t.description}</p>
+                              {t.resolution_notes && (
+                                <div className="bg-green-50 text-green-800 p-2 rounded text-xs mt-2 border border-green-200">
+                                  <strong>Resolution:</strong> {t.resolution_notes}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </TabsContent>
+
+                    </Tabs>
                   </CardContent>
                 </Card>
               ))
             )}
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -506,7 +738,7 @@ export default function ClientPortal() {
                       <div>
                         <p className="font-medium text-sm">{invoice.invoice_number}</p>
                         <p className="text-xs text-muted-foreground">
-                          ${Number(invoice.amount).toLocaleString()}
+                          ${Number(invoice.total_amount).toLocaleString()}
                         </p>
                       </div>
                       <Badge

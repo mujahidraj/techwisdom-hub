@@ -28,27 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const projectTypes = [
-  'website',
-  'mobile_app',
-  'web_app',
-  'seo',
-  'social_media',
-  'branding',
-  'consulting',
-  'other',
-];
-
-const stages = [
-  'discovery',
-  'requirement',
-  'strategy',
-  'design',
-  'development',
-  'qa',
-  'deployment',
-  'maintenance',
-];
+import { projectTypes, getStagesForType, formatLabel, getProjectTypeGroups } from '@/config/projectConfig';
 
 const schema = z.object({
   project_name: z.string().min(1, 'Project name is required'),
@@ -223,10 +203,13 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {projectTypes.map((type) => (
-                          <SelectItem key={type} value={type} className="capitalize">
-                            {type.replace('_', ' ')}
-                          </SelectItem>
+                        {Object.entries(getProjectTypeGroups()).map(([group, types]) => (
+                          <div key={group}>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{group}</div>
+                            {types.map((t) => (
+                              <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                            ))}
+                          </div>
                         ))}
                       </SelectContent>
                     </Select>
@@ -247,9 +230,9 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {stages.map((stage) => (
-                          <SelectItem key={stage} value={stage} className="capitalize">
-                            {stage.replace('_', ' ')}
+                        {getStagesForType(form.watch('project_type')).map((stage) => (
+                          <SelectItem key={stage} value={stage}>
+                            {formatLabel(stage)}
                           </SelectItem>
                         ))}
                       </SelectContent>

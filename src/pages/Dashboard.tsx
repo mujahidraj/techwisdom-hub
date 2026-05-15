@@ -10,16 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { 
-  Users, FolderKanban, TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight, 
-  Clock, Plus, FileText, Zap, Calendar, CheckSquare, 
-  PieChart, Lightbulb, X, MoreHorizontal, AlertCircle 
+import {
+  Users, FolderKanban, TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight,
+  Clock, Plus, FileText, Zap, Calendar, CheckSquare,
+  PieChart, Lightbulb, X, MoreHorizontal, AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/currency';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart as RePieChart, Pie, Cell
 } from 'recharts';
 import { toast } from 'sonner';
@@ -44,7 +44,7 @@ export default function Dashboard() {
   const { user, loading } = useAuth(); // Added loading here
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   // State Hooks
   const [todoInput, setTodoInput] = useState('');
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
@@ -65,7 +65,7 @@ export default function Dashboard() {
     setOnline();
 
     const handleBeforeUnload = () => {
-        setOffline();
+      setOffline();
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -81,8 +81,8 @@ export default function Dashboard() {
       await supabase.from('profiles' as any).update({ status }).eq('id', user?.id);
     },
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['team_status'] });
-        toast.success("Status updated");
+      queryClient.invalidateQueries({ queryKey: ['team_status'] });
+      toast.success("Status updated");
     }
   });
 
@@ -93,21 +93,21 @@ export default function Dashboard() {
       const { data } = await supabase.from('profiles' as any).select('id, full_name, avatar_url, status');
       return data || [];
     },
-    refetchInterval: 5000 
+    refetchInterval: 5000
   });
 
   const { data: todaysFocus = [] } = useQuery({
     queryKey: ['todays_focus'],
     queryFn: async () => {
       const today = new Date();
-      today.setHours(0,0,0,0);
-      
+      today.setHours(0, 0, 0, 0);
+
       const { data, error } = await supabase
         .from('daily_focus' as any)
         .select('*')
         .gte('created_at', today.toISOString())
         .order('created_at', { ascending: true });
-      
+
       if (error) throw error;
       return data || [];
     }
@@ -122,7 +122,7 @@ export default function Dashboard() {
         .gte('start_time', new Date().toISOString())
         .order('start_time', { ascending: true })
         .limit(5);
-      
+
       if (error) throw error;
       return data || [];
     }
@@ -163,28 +163,28 @@ export default function Dashboard() {
 
   const addEventMutation = useMutation({
     mutationFn: async () => {
-        const { error } = await supabase.from('events' as any).insert({
-            title: newEvent.title,
-            start_time: newEvent.start_time
-        });
-        if (error) throw error;
+      const { error } = await supabase.from('events' as any).insert({
+        title: newEvent.title,
+        start_time: newEvent.start_time
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['upcoming_events'] });
-        setIsAddEventOpen(false);
-        setNewEvent({ title: '', start_time: '' });
-        toast.success("Event scheduled");
+      queryClient.invalidateQueries({ queryKey: ['upcoming_events'] });
+      setIsAddEventOpen(false);
+      setNewEvent({ title: '', start_time: '' });
+      toast.success("Event scheduled");
     },
     onError: (err) => toast.error(err.message)
   });
 
   const deleteEventMutation = useMutation({
     mutationFn: async (id: string) => {
-        await supabase.from('events' as any).delete().eq('id', id);
+      await supabase.from('events' as any).delete().eq('id', id);
     },
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['upcoming_events'] });
-        toast.success("Event removed");
+      queryClient.invalidateQueries({ queryKey: ['upcoming_events'] });
+      toast.success("Event removed");
     }
   });
 
@@ -195,7 +195,7 @@ export default function Dashboard() {
   const conversionRate = totalLeads > 0 ? Math.round((wonDeals / totalLeads) * 100) : 0;
   const totalRevenue = projectsData?.reduce((sum: number, p: any) => sum + Number(p.total_budget || 0), 0) || 0;
   const totalPaid = projectsData?.reduce((sum: number, p: any) => sum + Number(p.paid_amount || 0), 0) || 0;
-  
+
   const upcomingDeadlines = projectsData
     ?.filter((p: any) => p.deadline && p.status === 'active')
     ?.sort((a: any, b: any) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
@@ -248,7 +248,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-fade-in pb-10">
-        
+
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-6">
           <div>
@@ -262,7 +262,7 @@ export default function Dashboard() {
               You have <span className="font-semibold text-foreground">{unreadMessages || 0} unread messages</span>.
             </p>
           </div>
-          
+
           <div className="flex gap-2">
             <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20" onClick={() => navigate('/crm')}>
               <Users className="h-4 w-4 mr-2" /> Add Lead
@@ -279,11 +279,11 @@ export default function Dashboard() {
         {/* CLICKABLE STATS */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
-            <Card 
-                key={index} 
-                className="glass-card hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-t-4 cursor-pointer" 
-                style={{ borderTopColor: stat.color.replace('text-', '').replace('-500', '') }}
-                onClick={() => navigate(stat.route)}
+            <Card
+              key={index}
+              className="glass-card hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-t-4 cursor-pointer"
+              style={{ borderTopColor: stat.color.replace('text-', '').replace('-500', '') }}
+              onClick={() => navigate(stat.route)}
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -306,10 +306,10 @@ export default function Dashboard() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          
+
           {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* 1. REVENUE CHART */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/finances')}>
               <CardHeader>
@@ -321,15 +321,15 @@ export default function Dashboard() {
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorBudget" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/><stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} /><stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="colorPaid" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/><stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} /><stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
                     <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val/1000}k`} />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val / 1000}k`} />
                     <Tooltip />
                     <Area type="monotone" dataKey="Budget" stroke="#8884d8" fillOpacity={1} fill="url(#colorBudget)" />
                     <Area type="monotone" dataKey="Paid" stroke="#82ca9d" fillOpacity={1} fill="url(#colorPaid)" />
@@ -403,9 +403,9 @@ export default function Dashboard() {
           <div className="space-y-6">
 
             {/* 4. REVENUE GOAL */}
-            <Card 
-                className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0 shadow-xl cursor-pointer hover:scale-[1.02] transition-transform" 
-                onClick={() => navigate('/finances')}
+            <Card
+              className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0 shadow-xl cursor-pointer hover:scale-[1.02] transition-transform"
+              onClick={() => navigate('/finances')}
             >
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-slate-300">Revenue Goal</CardTitle>
@@ -480,11 +480,11 @@ export default function Dashboard() {
                 <div className="space-y-2 mb-4 max-h-[150px] overflow-y-auto">
                   {todaysFocus.map((item: any) => (
                     <div key={item.id} className="flex items-center gap-2 group">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={item.is_completed}
                         onChange={() => toggleFocusMutation.mutate({ id: item.id, current: item.is_completed })}
-                        className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
+                        className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                       />
                       <span className={`text-sm flex-1 ${item.is_completed ? 'line-through text-muted-foreground' : ''}`}>{item.task}</span>
                       <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive" onClick={() => deleteFocusMutation.mutate(item.id)}>
@@ -495,8 +495,8 @@ export default function Dashboard() {
                   {todaysFocus.length === 0 && <p className="text-xs text-muted-foreground italic">No tasks yet.</p>}
                 </div>
                 <div className="flex gap-2">
-                  <Input 
-                    className="flex-1 bg-muted/50 text-xs px-2 h-8" 
+                  <Input
+                    className="flex-1 bg-muted/50 text-xs px-2 h-8"
                     placeholder="Add task..."
                     value={todoInput}
                     onChange={(e) => setTodoInput(e.target.value)}
@@ -551,16 +551,16 @@ export default function Dashboard() {
 
         {/* --- ADD EVENT DIALOG --- */}
         <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-            <DialogContent>
-                <DialogHeader><DialogTitle>Add New Event</DialogTitle></DialogHeader>
-                <div className="space-y-4">
-                    <Input placeholder="Event Title" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} />
-                    <Input type="datetime-local" value={newEvent.start_time} onChange={e => setNewEvent({...newEvent, start_time: e.target.value})} />
-                </div>
-                <DialogFooter>
-                    <Button onClick={() => addEventMutation.mutate()} disabled={!newEvent.title || !newEvent.start_time}>Save Event</Button>
-                </DialogFooter>
-            </DialogContent>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Add New Event</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <Input placeholder="Event Title" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} />
+              <Input type="datetime-local" value={newEvent.start_time} onChange={e => setNewEvent({ ...newEvent, start_time: e.target.value })} />
+            </div>
+            <DialogFooter>
+              <Button onClick={() => addEventMutation.mutate()} disabled={!newEvent.title || !newEvent.start_time}>Save Event</Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
 
       </div>
