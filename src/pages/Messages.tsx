@@ -337,7 +337,11 @@ export default function Messages() {
                     {/* w-full ensures it doesn't collapse. max-w-[80%] prevents edge touching on mobile. */}
                     <div className={`max-w-[80%] md:max-w-[75%] min-w-0 flex flex-col ${isMe ? 'items-end' : 'items-start'} relative`}>
 
-                      {!isMe && !activeChat && <span className="text-[9px] font-bold text-slate-400 mb-0.5 ml-2">{msg.sender?.full_name}</span>}
+                      {!isMe && (activeChat?.id === 'general' || !activeChat) && (
+                        <span className="text-[10px] font-black text-slate-500 mb-1 ml-2 tracking-tight">
+                          {msg.sender?.full_name}
+                        </span>
+                      )}
 
                       {/* Reply Bubble */}
                       {repliedMsg && (
