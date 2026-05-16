@@ -294,7 +294,7 @@ export default function Finances() {
                   <BarChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis dataKey="month" className="text-xs" />
-                    <YAxis className="text-xs" />
+                    <YAxis className="text-xs" tickFormatter={(val) => `৳${(val / 1000).toFixed(0)}k`} />
                     <Tooltip 
                       formatter={(value: number) => formatCurrency(value)}
                       contentStyle={{ 

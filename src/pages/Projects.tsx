@@ -528,10 +528,10 @@ export default function Projects() {
                   {/* Budget Info */}
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Budget: ${Number(project.total_budget).toLocaleString()}
+                      Budget: ৳{Number(project.total_budget).toLocaleString()}
                     </span>
                     <span className="text-success">
-                      Paid: ${Number(project.paid_amount).toLocaleString()}
+                      Paid: ৳{Number(project.paid_amount).toLocaleString()}
                     </span>
                   </div>
 
@@ -596,7 +596,7 @@ export default function Projects() {
                   </div>
 
                   <div className="hidden lg:block text-right min-w-[100px]">
-                    <div className="font-medium text-sm">${Number(project.total_budget).toLocaleString()}</div>
+                    <div className="font-medium text-sm">৳{Number(project.total_budget).toLocaleString()}</div>
                     <div className="text-xs text-muted-foreground">Budget</div>
                   </div>
 

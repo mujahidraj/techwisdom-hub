@@ -32,6 +32,7 @@ import {
   FileSignature
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Tables, Database } from '@/integrations/supabase/types';
@@ -73,6 +74,7 @@ export default function ClientPortal() {
   const [newMessage, setNewMessage] = useState('');
   const [ticketTitle, setTicketTitle] = useState('');
   const [ticketDesc, setTicketDesc] = useState('');
+  const [ticketPriority, setTicketPriority] = useState<string>('medium');
   const [approvalFeedback, setApprovalFeedback] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -267,7 +269,7 @@ export default function ClientPortal() {
   const createTicketMutation = useMutation({
     mutationFn: async ({ projectId }: { projectId: string }) => {
       const { error } = await supabase.from('client_tickets' as any).insert({
-        project_id: projectId, client_id: user?.id, title: ticketTitle, description: ticketDesc
+        project_id: projectId, client_id: user?.id, title: ticketTitle, description: ticketDesc, priority: ticketPriority
       });
       if (error) throw error;
     },
@@ -685,7 +687,18 @@ export default function ClientPortal() {
                         <TabsContent value="tickets" className="p-6 mt-0">
                           <div className="mb-6 space-y-3 bg-muted/20 p-4 rounded-lg">
                             <h4 className="font-semibold text-sm">Submit a Support Ticket</h4>
-                            <Input placeholder="Ticket Title" value={ticketTitle} onChange={e => setTicketTitle(e.target.value)} />
+                            <div className="grid grid-cols-2 gap-3">
+                              <Input placeholder="Ticket Title" value={ticketTitle} onChange={e => setTicketTitle(e.target.value)} />
+                              <Select value={ticketPriority} onValueChange={setTicketPriority}>
+                                <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="low">Low</SelectItem>
+                                  <SelectItem value="medium">Medium</SelectItem>
+                                  <SelectItem value="high">High</SelectItem>
+                                  <SelectItem value="urgent">Urgent</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                             <Input placeholder="Describe the issue..." value={ticketDesc} onChange={e => setTicketDesc(e.target.value)} />
                             <Button size="sm" disabled={!ticketTitle || createTicketMutation.isPending} onClick={() => createTicketMutation.mutate({ projectId: project.id })}>
                               <LifeBuoy className="h-4 w-4 mr-2" /> Submit Ticket

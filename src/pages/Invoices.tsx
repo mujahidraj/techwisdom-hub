@@ -94,7 +94,7 @@ export default function Invoices() {
       filename: selectedInvoice ? `Invoice-${selectedInvoice.invoice_number}.pdf` : 'invoice.pdf',
       image: { type: 'jpeg' as const, quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4' as const, orientation: 'portrait' as const }
     };
     html2pdf().set(opt).from(element).save();
     toast.success("Downloading Invoice...");
@@ -515,7 +515,7 @@ export default function Invoices() {
                         </div>
                         <div className="flex justify-between text-slate-600">
                           <span className="font-medium">Tax (0%)</span>
-                          <span>$0.00</span>
+                          <span>৳0.00</span>
                         </div>
                         <div className="flex justify-between py-3 border-t border-b border-slate-200">
                           <span className="font-bold text-xl text-slate-900">Total</span>

@@ -24,7 +24,11 @@ export default function HelpdeskAdmin() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [resolutionNote, setResolutionNote] = useState('');
   const [newStatus, setNewStatus] = useState('open');
+  const [newPriority, setNewPriority] = useState('medium');
+  const [newCategory, setNewCategory] = useState('other');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('internal');
 
   // Fetch all tickets with user profiles
@@ -79,15 +83,24 @@ export default function HelpdeskAdmin() {
   });
 
   const updateTicketMutation = useMutation({
-    mutationFn: async (payload: { id: string, status: "open" | "in_progress" | "resolved" | "closed", notes: string, source: 'internal' | 'client' }) => {
+    mutationFn: async (payload: { 
+      id: string, 
+      status: "open" | "in_progress" | "resolved" | "closed", 
+      priority: string,
+      category?: string,
+      notes: string, 
+      source: 'internal' | 'client' 
+    }) => {
       const table = payload.source === 'internal' ? 'it_tickets' : 'client_tickets';
       
       let updateData: any = {
         status: payload.status,
+        priority: payload.priority,
         resolution_notes: payload.notes,
       };
 
-      if (payload.source === 'internal') {
+      if (payload.source === 'internal' && payload.category) {
+        updateData.category = payload.category;
         updateData.resolved_by = (payload.status === 'resolved' || payload.status === 'closed') ? user?.id : null;
       }
       
@@ -131,6 +144,8 @@ export default function HelpdeskAdmin() {
   const handleOpenManage = (ticket: any) => {
     setSelectedTicket(ticket);
     setNewStatus(ticket.status);
+    setNewPriority(ticket.priority || 'medium');
+    setNewCategory(ticket.category || 'other');
     setResolutionNote(ticket.resolution_notes || '');
   };
 
@@ -202,21 +217,37 @@ export default function HelpdeskAdmin() {
                 </div>
               </div>
 
-              <div>
-                <Label className="mb-1 block">Update Status</Label>
-                <Select value={newStatus} onValueChange={setNewStatus}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open (Unassigned)</SelectItem>
-                    <SelectItem value="in_progress">In Progress (Working on it)</SelectItem>
-                    <SelectItem value="resolved">Resolved (Fix applied)</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
+               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="mb-1 block">Priority</Label>
+                  <Select value={newPriority} onValueChange={setNewPriority}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedTicket.source === 'internal' && (
+                  <div>
+                    <Label className="mb-1 block">Category</Label>
+                    <Select value={newCategory} onValueChange={setNewCategory}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="software">Software</SelectItem>
+                        <SelectItem value="hardware">Hardware</SelectItem>
+                        <SelectItem value="network">Network</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               <div>
-                <Label className="mb-1 block">Resolution Notes (Visible to Employee)</Label>
+                <Label className="mb-1 block">Resolution Notes (Visible to Reporter)</Label>
                 <Textarea 
                   placeholder="e.g. Granted access to Figma via admin console."
                   value={resolutionNote}
@@ -230,9 +261,11 @@ export default function HelpdeskAdmin() {
             <Button variant="outline" onClick={() => setSelectedTicket(null)}>Cancel</Button>
             <Button 
               className="gradient-primary" 
-              onClick={() => updateTicketMutation.mutate({ 
+               onClick={() => updateTicketMutation.mutate({ 
                 id: selectedTicket.id, 
                 status: newStatus as any, 
+                priority: newPriority,
+                category: newCategory,
                 notes: resolutionNote,
                 source: selectedTicket.source 
               })} 
@@ -246,8 +279,14 @@ export default function HelpdeskAdmin() {
     </DashboardLayout>
   );
 
-  function renderTicketQueue(source: 'internal' | 'client') {
-    const queueTickets = tickets.filter(t => t.source === source && (statusFilter === 'all' ? true : t.status === statusFilter));
+   function renderTicketQueue(source: 'internal' | 'client') {
+    const queueTickets = tickets.filter(t => {
+      const matchSource = t.source === source;
+      const matchStatus = statusFilter === 'all' || t.status === statusFilter;
+      const matchPriority = priorityFilter === 'all' || t.priority === priorityFilter;
+      const matchCategory = categoryFilter === 'all' || t.category === categoryFilter;
+      return matchSource && matchStatus && matchPriority && matchCategory;
+    });
 
     return (
       <Card className="glass-card">
@@ -258,18 +297,42 @@ export default function HelpdeskAdmin() {
               {source === 'internal' ? 'Manage requests from your team' : 'Support requests from your clients'}
             </CardDescription>
           </div>
-          <div className="flex gap-2 items-center w-48">
+           <div className="flex gap-2 items-center">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tickets</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
+                  <SelectItem value="closed">Closed</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue placeholder="Priority" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priority</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="software">Software</SelectItem>
+                  <SelectItem value="hardware">Hardware</SelectItem>
+                  <SelectItem value="network">Network</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

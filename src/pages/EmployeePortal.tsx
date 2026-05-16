@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -49,6 +49,11 @@ import { format, differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
 import { LeaveApplicationDialog } from '@/components/team/LeaveApplicationDialog';
 import type { Tables } from '@/integrations/supabase/types';
+import { Loader2, Camera } from 'lucide-react';
+
+const CLOUDINARY_CLOUD_NAME = "dljiukpd4";
+const CLOUDINARY_PRESET = "chat_upload";
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
 type Employee = Tables<'employees'>;
 type PayrollLog = Tables<'payroll_log'>;
@@ -77,7 +82,8 @@ export default function EmployeePortal() {
   const { user, role, signOut, loading } = useAuth();
   const { sendNotification } = useNotifications();
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ full_name: '', phone: '' });
+  const [editData, setEditData] = useState({ full_name: '', phone: '', avatar_url: '' });
+  const [isUploading, setIsUploading] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
   const [ticketData, setTicketData] = useState({ title: '', description: '', category: 'software', priority: 'medium' });
@@ -243,13 +249,40 @@ export default function EmployeePortal() {
     },
   });
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_PRESET);
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        setEditData(prev => ({ ...prev, avatar_url: data.secure_url }));
+        toast.success("Avatar uploaded successfully!");
+      }
+    } catch (err) {
+      toast.error("Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { full_name: string; phone: string }) => {
+    mutationFn: async (data: { full_name: string; phone: string; avatar_url: string }) => {
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: data.full_name,
           phone: data.phone,
+          avatar_url: data.avatar_url,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user!.id);
@@ -280,6 +313,7 @@ export default function EmployeePortal() {
     setEditData({
       full_name: profile?.full_name || '',
       phone: profile?.phone || '',
+      avatar_url: profile?.avatar_url || '',
     });
     setIsEditing(true);
   };
@@ -345,6 +379,7 @@ export default function EmployeePortal() {
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <Avatar className="h-24 w-24 text-2xl">
+                <AvatarImage src={profile?.avatar_url || ''} />
                 <AvatarFallback className="gradient-primary text-primary-foreground">
                   {initials}
                 </AvatarFallback>
@@ -395,6 +430,21 @@ export default function EmployeePortal() {
             <CardContent className="space-y-4">
               {isEditing ? (
                 <>
+                  <div className="flex flex-col items-center gap-4 mb-6">
+                    <div className="relative group">
+                      <Avatar className="h-24 w-24 border-4 border-primary/10">
+                        <AvatarImage src={editData.avatar_url} />
+                        <AvatarFallback className="gradient-primary text-primary-foreground text-xl">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                        {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
+                        <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" disabled={isUploading} />
+                      </label>
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Click to change avatar</p>
+                  </div>
                   <div>
                     <Label>Full Name</Label>
                     <Input
@@ -456,7 +506,7 @@ export default function EmployeePortal() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Base Salary</span>
                 <span className="font-medium">
-                  ${Number(employee?.base_salary || 0).toLocaleString()}/month
+                  ৳{Number(employee?.base_salary || 0).toLocaleString()}/month
                 </span>
               </div>
               <Separator />

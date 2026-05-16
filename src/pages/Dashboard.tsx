@@ -93,8 +93,23 @@ export default function Dashboard() {
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team_status'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles' as any).select('id, full_name, avatar_url, status') as any;
-      return data || [];
+      // 1. Get all user IDs that are NOT clients
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .neq('role', 'client');
+      
+      if (!roles || roles.length === 0) return [];
+      
+      const userIds = roles.map(r => r.user_id);
+      
+      // 2. Get profiles for those users
+      const { data: members } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, status')
+        .in('id', userIds);
+        
+      return members || [];
     },
     refetchInterval: 5000
   });
@@ -430,7 +445,7 @@ export default function Dashboard() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.05} />
                     <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} dy={10} />
-                    <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val / 1000}k`} />
+                    <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `৳${val / 1000}k`} />
                     <Tooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
                     <Area type="monotone" dataKey="Budget" stroke="#C00707" strokeWidth={3} fillOpacity={1} fill="url(#colorBudget)" />
                     <Area type="monotone" dataKey="Paid" stroke="#134E8E" strokeWidth={3} fillOpacity={1} fill="url(#colorPaid)" />

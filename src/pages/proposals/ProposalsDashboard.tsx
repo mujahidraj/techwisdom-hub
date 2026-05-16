@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Plus, FileText, Download, Send, CheckCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { formatCurrency } from '@/lib/currency';
 
 export default function ProposalsDashboard() {
   const { user } = useAuth();
@@ -191,7 +192,7 @@ export default function ProposalsDashboard() {
                         <Input type="number" value={item.unit_price} onChange={e => updateItem(index, 'unit_price', Number(e.target.value))} />
                       </div>
                       <div className="w-24 pt-6 text-right font-semibold">
-                        ${(item.quantity * item.unit_price).toLocaleString()}
+                        ৳{(item.quantity * item.unit_price).toLocaleString()}
                       </div>
                       <Button variant="ghost" size="icon" className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeItem(index)}>
                         <Trash2 className="h-3 w-3" />
@@ -202,7 +203,7 @@ export default function ProposalsDashboard() {
                   
                   <div className="border-t pt-4 flex justify-between items-center text-xl font-bold">
                     <span>Total Investment</span>
-                    <span className="text-primary">${total.toLocaleString()}</span>
+                    <span className="text-primary">{formatCurrency(total)}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -256,7 +257,7 @@ export default function ProposalsDashboard() {
                   <Badge variant={p.status === 'accepted' ? 'default' : p.status === 'rejected' ? 'destructive' : p.status === 'sent' ? 'secondary' : 'outline'} className="capitalize">
                     {p.status}
                   </Badge>
-                  <span className="font-bold text-lg text-primary">${p.total_amount?.toLocaleString() || 0}</span>
+                  <span className="font-bold text-lg text-primary">{formatCurrency(p.total_amount || 0)}</span>
                 </div>
                 <h3 className="font-bold text-lg leading-tight mb-1">{p.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4">Lead: {p.leads?.business_name || 'Unknown'}</p>

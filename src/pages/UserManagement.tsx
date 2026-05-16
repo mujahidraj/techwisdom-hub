@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,6 +66,7 @@ interface UserWithRole {
     full_name: string | null;
     email: string | null;
     phone: string | null;
+    avatar_url: string | null;
   } | null;
 }
 
@@ -107,7 +108,7 @@ export default function UserManagement() {
       const userIds = roles?.map(r => r.user_id) || [];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, phone')
+        .select('user_id, full_name, email, phone, avatar_url')
         .in('user_id', userIds);
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
@@ -374,6 +375,7 @@ export default function UserManagement() {
                 >
                   <div className="flex items-center gap-4">
                     <Avatar className="h-10 w-10">
+                      <AvatarImage src={u.profile?.avatar_url || ''} />
                       <AvatarFallback className="bg-primary/10 text-primary">
                         {(u.profile?.full_name || u.profile?.email || 'U')
                           .split(' ')

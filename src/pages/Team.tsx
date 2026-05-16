@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Users, DollarSign, MoreVertical, Edit, Trash2, Calendar, Receipt } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -55,7 +55,7 @@ export default function Team() {
       const userIds = data.map(e => e.user_id);
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email')
+        .select('user_id, full_name, email, avatar_url')
         .in('user_id', userIds);
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
@@ -131,7 +131,7 @@ export default function Team() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Monthly Burn Rate</p>
-                        <div className="text-2xl font-bold">${totalBurnRate.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">৳{totalBurnRate.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">Total monthly salaries</p>
                       </div>
                       <DollarSign className="h-8 w-8 text-warning" />
@@ -146,6 +146,7 @@ export default function Team() {
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
                         <Avatar className="h-12 w-12">
+                          <AvatarImage src={employee.profile?.avatar_url || ''} />
                           <AvatarFallback className="bg-primary/10 text-primary">
                             {(employee.profile?.full_name || 'U')
                               .split(' ')
@@ -174,7 +175,7 @@ export default function Team() {
                             {employee.profile?.email || employee.phone}
                           </p>
                           <p className="text-sm font-medium mt-2">
-                            ${Number(employee.base_salary).toLocaleString()}/mo
+                            ৳{Number(employee.base_salary).toLocaleString()}/mo
                           </p>
                         </div>
                         <DropdownMenu>
@@ -225,6 +226,7 @@ export default function Team() {
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <Avatar className="h-12 w-12">
+                      <AvatarImage src={employee.profile?.avatar_url || ''} />
                       <AvatarFallback className="bg-primary/10 text-primary">
                         {(employee.profile?.full_name || 'U')
                           .split(' ')
