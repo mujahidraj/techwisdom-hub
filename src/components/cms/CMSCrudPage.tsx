@@ -47,9 +47,23 @@ export function CMSCrudPage({ title, table, fields, cardRender, queryKey, jsonKe
   const { data: items = [], isLoading } = useQuery({
     queryKey: [queryKey],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from(table).select('*').order('display_order', { ascending: true });
+      // Fetch without order to avoid "column does not exist" errors on tables without display_order
+      const { data, error } = await (supabase as any).from(table).select('*');
       if (error) throw error;
-      return data || [];
+      
+      // Sort client-side
+      const sortedData = (data || []).sort((a: any, b: any) => {
+        if (a.display_order !== undefined && b.display_order !== undefined) {
+          return a.display_order - b.display_order;
+        }
+        // Fallback to created_at if available
+        if (a.created_at && b.created_at) {
+           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        }
+        return 0;
+      });
+      
+      return sortedData;
     },
   });
 
@@ -130,12 +144,52 @@ export function CMSCrudPage({ title, table, fields, cardRender, queryKey, jsonKe
       const formatData = data.map((item: any) => {
         const formatted: Record<string, any> = {};
         for (const [key, value] of Object.entries(item)) {
-          formatted[toSnake(key)] = value;
+          let dbKey = toSnake(key);
+          
+          // Fix: Prevent inserting string IDs into the UUID primary key 'id' column
+          if (dbKey === 'id' && typeof value === 'string') {
+             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+             if (!isUUID) {
+                // Map the string ID to the correct table-specific column
+                if (table === 'cms_products') dbKey = 'product_id';
+                else if (table === 'cms_demo_projects') dbKey = 'project_id';
+                else if (table === 'cms_job_openings') dbKey = 'job_id';
+                else if (table === 'cms_services' || table === 'cms_service_details') dbKey = 'service_id';
+                else if (table === 'cms_portfolio') dbKey = 'project_id';
+                else if (table === 'cms_blog_posts') dbKey = 'slug';
+                else continue; // If we can't map it, skip 'id' entirely so Supabase generates a UUID
+             }
+          }
+          
+          // Fix: prevent trying to insert unsupported nested objects or columns not in DB
+          if (dbKey === 'comparison' || dbKey === 'platforms' || dbKey === 'pricing') continue;
+
+          formatted[dbKey] = value;
         }
         return formatted;
       });
       
-      const { error } = await (supabase as any).from(table).insert(formatData);
+      let conflictKey = 'id';
+      if (table === 'cms_products') conflictKey = 'product_id';
+      else if (table === 'cms_demo_projects') conflictKey = 'project_id';
+      else if (table === 'cms_job_openings') conflictKey = 'job_id';
+      else if (table === 'cms_services' || table === 'cms_service_details') conflictKey = 'service_id';
+      else if (table === 'cms_portfolio') conflictKey = 'project_id';
+      else if (table === 'cms_blog_posts') conflictKey = 'slug';
+
+      // Deduplicate payload to prevent "ON CONFLICT DO UPDATE command cannot affect row a second time"
+      const uniqueDataMap = new Map();
+      formatData.forEach(item => {
+        const key = item[conflictKey];
+        if (key) {
+          uniqueDataMap.set(key, item); // Keeps the last occurrence
+        } else {
+          uniqueDataMap.set(Math.random().toString(), item);
+        }
+      });
+      const deduplicatedData = Array.from(uniqueDataMap.values());
+
+      const { error } = await (supabase as any).from(table).upsert(deduplicatedData, { onConflict: conflictKey });
       if (error) throw error;
     },
     onSuccess: () => { 

@@ -32,7 +32,13 @@ import {
   Target,
   LifeBuoy,
   Megaphone,
-  Receipt
+  Award,
+  FileCheck,
+  Activity,
+  ShieldAlert,
+  Clock,
+  Receipt,
+  FileWarning
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -78,6 +84,7 @@ const crmItems = [
 const managementItems = [
   { title: 'IT Helpdesk', url: '/helpdesk', icon: LifeBuoy },
   { title: 'OKRs & Goals', url: '/okr', icon: Target },
+  { title: 'DMS & E-Signatures', url: '/dms', icon: FileCheck },
   { title: 'Assets', url: '/assets', icon: Package },
   { title: 'Maintenance', url: '/maintenance', icon: ShieldCheck },
 ];
@@ -91,14 +98,21 @@ const financeItems = [
 
 const hrItems = [
   { title: 'Team Directory', url: '/team', icon: UserCircle },
+  { title: 'Leave', url: '/hr/leave', icon: Calendar },
+  { title: 'Payroll', url: '/hr/payroll', icon: Receipt },
   { title: 'Candidates', url: '/hr/candidates', icon: UserPlus },
   { title: 'ATS Pipeline', url: '/hr/pipeline', icon: GitPullRequest },
   { title: 'Interviews', url: '/hr/interviews', icon: CalendarClock },
+  { title: 'Performance Reviews', url: '/hr/reviews', icon: Award },
   { title: 'Portal Admin', url: '/hr/portal-admin', icon: Megaphone },
 ];
 
 const adminItems = [
   { title: 'Users', url: '/users', icon: UserCog },
+  { title: 'Organizational Audit', url: '/admin/audit', icon: Activity },
+  { title: 'Security Audit', url: '/admin/security', icon: ShieldAlert },
+  { title: 'Time & Productivity', url: '/admin/time', icon: Clock },
+  { title: 'Financial Ledger', url: '/admin/reconciliation', icon: FileWarning },
   { title: 'Workflows', url: '/workflows', icon: Zap },
 ];
 

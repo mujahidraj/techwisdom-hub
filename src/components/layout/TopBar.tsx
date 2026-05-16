@@ -36,12 +36,17 @@ export function TopBar() {
         .single();
 
       if (data?.avatar_url) {
-        // Transform the filepath into a public URL that the <img> tag can read
-        const { data: publicData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(data.avatar_url);
-        
-        setAvatarUrl(publicData.publicUrl);
+        // If it's already an absolute URL, use it directly
+        if (data.avatar_url.startsWith('http')) {
+          setAvatarUrl(data.avatar_url);
+        } else {
+          // Otherwise, transform the filepath into a public URL
+          const { data: publicData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(data.avatar_url);
+          
+          setAvatarUrl(publicData.publicUrl);
+        }
       }
     }
 

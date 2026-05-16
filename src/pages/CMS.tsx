@@ -41,12 +41,19 @@ export default function CMSHub() {
   const globalUploadMutation = useMutation({
     mutationFn: async (json: any) => {
       // 1. Is it an array of demo projects?
-      if (Array.isArray(json) && json[0] && json[0].techStack !== undefined) {
+      if (Array.isArray(json) && json[0] && (json[0].techStack !== undefined || json[0].tech_stack !== undefined)) {
          const mapped = json.map(item => ({
-           project_id: item.id, title: item.title, category: item.category, image: item.image,
-           short_description: item.shortDescription, full_description: item.fullDescription,
-           live_link: item.liveLink, tech_stack: item.techStack, features: item.features,
-           design_unique: item.designUnique, development_process: item.developmentProcess
+           project_id: item.id || item.project_id, 
+           title: item.title, 
+           category: item.category, 
+           image: item.image,
+           short_description: item.shortDescription || item.short_description, 
+           full_description: item.fullDescription || item.full_description,
+           live_link: item.liveLink || item.live_link, 
+           tech_stack: item.techStack || item.tech_stack, 
+           features: item.features,
+           design_unique: item.designUnique || item.design_unique, 
+           development_process: item.developmentProcess || item.development_process
          }));
          const { error } = await (supabase as any).from('cms_demo_projects').insert(mapped);
          if (error) throw error;
@@ -54,13 +61,26 @@ export default function CMSHub() {
       }
       
       // 2. Is it an array of products?
-      if (Array.isArray(json) && json[0] && json[0].developer !== undefined && json[0].builtFor !== undefined) {
+      if (Array.isArray(json) && json[0] && (json[0].developer !== undefined || json[0].builtFor !== undefined || json[0].built_for !== undefined)) {
          const mapped = json.map(item => ({
-           product_id: item.id, title: item.title, developer: item.developer, tagline: item.tagline, summary: item.summary,
-           hero_image: item.heroImage, gallery: item.gallery, overview: item.overview,
-           highlights: item.highlights, capabilities: item.capabilities, built_for: item.builtFor,
-           status: item.status, comparison: item.comparison, pricing: item.pricing, platforms: item.platforms,
-           web_app_url: item.webAppUrl, app_store_url: item.appStoreUrl, play_store_url: item.playStoreUrl
+           product_id: item.id || item.product_id, 
+           title: item.title, 
+           developer: item.developer, 
+           tagline: item.tagline, 
+           summary: item.summary,
+           hero_image: item.heroImage || item.hero_image, 
+           gallery: item.gallery, 
+           overview: item.overview,
+           highlights: item.highlights, 
+           capabilities: item.capabilities, 
+           built_for: item.builtFor || item.built_for,
+           status: item.status, 
+           comparison: item.comparison, 
+           pricing: item.pricing, 
+           platforms: item.platforms,
+           web_app_url: item.webAppUrl || item.web_app_url, 
+           app_store_url: item.appStoreUrl || item.app_store_url, 
+           play_store_url: item.playStoreUrl || item.play_store_url
          }));
          const { error } = await (supabase as any).from('cms_products').insert(mapped);
          if (error) throw error;
@@ -68,11 +88,18 @@ export default function CMSHub() {
       }
 
       // 3. Is it openings?
-      if (json.openings && Array.isArray(json.openings)) {
-         const mapped = json.openings.map((item: any) => ({
-           job_id: item.id, title: item.title, department: item.department, location: item.location, type: item.type,
-           short_description: item.shortDescription, about_role: item.aboutRole,
-           responsibilities: item.responsibilities, requirements: item.requirements, salary: item.salary
+      if (Array.isArray(json) && json[0] && json[0].department !== undefined) {
+         const mapped = json.map((item: any) => ({
+           job_id: item.id || item.job_id, 
+           title: item.title, 
+           department: item.department, 
+           location: item.location, 
+           type: item.type,
+           short_description: item.shortDescription || item.short_description, 
+           about_role: item.aboutRole || item.about_role,
+           responsibilities: item.responsibilities, 
+           requirements: item.requirements, 
+           salary: item.salary
          }));
          const { error } = await (supabase as any).from('cms_job_openings').insert(mapped);
          if (error) throw error;
@@ -96,17 +123,33 @@ export default function CMSHub() {
          if (json.hero) { 
            await (supabase as any).from('cms_hero_section').insert([{
              headline: json.hero.headline, subheadline: json.hero.subheadline,
-             cta_primary: json.hero.cta?.text || '', cta_secondary: ''
+             cta_primary: json.hero.cta?.primary || json.hero.cta?.text || ''
            }]); 
            msg.push('Hero'); 
          }
          if (json.stats) { await (supabase as any).from('cms_stats').insert(json.stats); msg.push('Stats'); }
          if (json.partners) { await (supabase as any).from('cms_partners').insert(json.partners); msg.push('Partners'); }
          if (json.whyUs) { await (supabase as any).from('cms_why_us').insert(json.whyUs); msg.push('Why Us'); }
-         if (json.about) { await (supabase as any).from('cms_about_section').insert([{
-             mission_content: json.about.mission, vision_content: json.about.vision, goals: json.about.goals
-         }]); msg.push('About'); }
-         if (json.team) { await (supabase as any).from('cms_team_members').insert(json.team); msg.push('Team'); }
+         if (json.about) { 
+           await (supabase as any).from('cms_about_section').insert([{
+             mission_title: json.about.mission?.title,
+             mission_content: json.about.mission?.content || json.about.mission, 
+             vision_title: json.about.vision?.title,
+             vision_content: json.about.vision?.content || json.about.vision, 
+             goals: json.about.goals
+           }]); 
+           msg.push('About'); 
+         }
+         if (json.team) { 
+           const mappedTeam = json.team.map((t: any) => ({
+             name: t.name, role: t.role, bio: t.bio, image: t.image,
+             linkedin: t.socials?.linkedin || t.linkedin,
+             email: t.socials?.email || t.email,
+             portfolio: t.socials?.portfolio || t.portfolio
+           }));
+           await (supabase as any).from('cms_team_members').insert(mappedTeam); 
+           msg.push('Team'); 
+         }
          if (json.timeline) { await (supabase as any).from('cms_timeline').insert(json.timeline); msg.push('Timeline'); }
          if (json.gallery) { await (supabase as any).from('cms_gallery').insert(json.gallery); msg.push('Gallery'); }
          
@@ -149,8 +192,8 @@ export default function CMSHub() {
 
          if (json.blog && json.blog.posts) {
            const mapped = json.blog.posts.map((p: any) => ({
-             slug: p.id, title: p.title, excerpt: p.excerpt, category: p.category, author: p.author,
-             date: p.date, read_time: p.readTime, image: p.image, content: p.content
+             slug: p.id || p.slug, title: p.title, excerpt: p.excerpt, category: p.category, author: p.author,
+             read_time: p.readTime || p.read_time, image: p.image, content: p.content
            }));
            await (supabase as any).from('cms_blog_posts').insert(mapped);
            msg.push('Blog');
@@ -177,9 +220,12 @@ export default function CMSHub() {
            if (json.careers.perks) await (supabase as any).from('cms_career_perks').insert(json.careers.perks);
            if (json.careers.openings) {
              const mappedOpenings = json.careers.openings.map((item: any) => ({
-               job_id: item.id, title: item.title, department: item.department, location: item.location, type: item.type,
-               short_description: item.shortDescription, about_role: item.aboutRole,
-               responsibilities: item.responsibilities, requirements: item.requirements, salary: item.salary
+               job_id: item.id || item.job_id, title: item.title, department: item.department, location: item.location, type: item.type,
+               short_description: item.shortDescription || item.short_description, 
+               about_role: item.aboutRole || item.about_role,
+               responsibilities: item.responsibilities, 
+               requirements: item.requirements, 
+               salary: item.salary
              }));
              await (supabase as any).from('cms_job_openings').insert(mappedOpenings);
            }

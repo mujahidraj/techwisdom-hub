@@ -11,8 +11,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { AddEmployeeDialog } from '@/components/team/AddEmployeeDialog';
 import { EditEmployeeDialog } from '@/components/team/EditEmployeeDialog';
-import { LeaveManagement } from '@/components/team/LeaveManagement';
-import { PayrollManagement } from '@/components/team/PayrollManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
@@ -114,23 +112,7 @@ export default function Team() {
         </div>
 
         {isAdmin ? (
-          <Tabs defaultValue="team" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="team" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Team
-              </TabsTrigger>
-              <TabsTrigger value="leave" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Leave
-              </TabsTrigger>
-              <TabsTrigger value="payroll" className="flex items-center gap-2">
-                <Receipt className="h-4 w-4" />
-                Payroll
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="team" className="space-y-6">
+            <>
               <div className="grid gap-4 md:grid-cols-2">
                 <Card className="glass-card">
                   <CardContent className="pt-6">
@@ -234,16 +216,7 @@ export default function Team() {
                   </Card>
                 )}
               </div>
-            </TabsContent>
-
-            <TabsContent value="leave">
-              <LeaveManagement />
-            </TabsContent>
-
-            <TabsContent value="payroll">
-              <PayrollManagement />
-            </TabsContent>
-          </Tabs>
+            </>
         ) : (
           // Non-admin view - just show team list
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

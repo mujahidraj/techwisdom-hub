@@ -22,6 +22,10 @@ import EmployeePortal from "./pages/EmployeePortal";
 import UserManagement from "./pages/UserManagement";
 import Messaging from "./pages/Messaging";
 import Maintenance from './pages/Maintenance';
+import OrganizationalAudit from './pages/admin/OrganizationalAudit';
+import SecurityAudit from './pages/admin/SecurityAudit';
+import TimeAudit from './pages/admin/TimeAudit';
+import FinancialReconciliationAudit from './pages/admin/FinancialReconciliationAudit';
 import CMS from "./pages/CMS";
 import Notes from "./pages/Notes";
 import Reports from "./pages/Reports";
@@ -63,6 +67,12 @@ import Candidates from "./pages/hr/Candidates";
 import ATSPipeline from "./pages/hr/ATSPipeline";
 import Interviews from "./pages/hr/Interviews";
 import PortalAdmin from "./pages/hr/PortalAdmin";
+import PerformanceReviews from "./pages/hr/PerformanceReviews";
+import Leave from "./pages/hr/Leave";
+import Payroll from "./pages/hr/Payroll";
+
+// DMS
+import DocumentManagement from "./pages/dms/DocumentManagement";
 
 // AI Hub
 import AIHub from "./pages/ai/AIHub";
@@ -105,6 +115,10 @@ const App = () => (
               <Route path="/client-portal" element={<ClientPortal />} />
               <Route path="/employee-portal" element={<EmployeePortal />} />
               <Route path="/users" element={<UserManagement />} />
+              <Route path="/admin/audit" element={<OrganizationalAudit />} />
+              <Route path="/admin/security" element={<SecurityAudit />} />
+              <Route path="/admin/time" element={<TimeAudit />} />
+              <Route path="/admin/reconciliation" element={<FinancialReconciliationAudit />} />
               <Route path="/messages" element={<Messaging />} />
               <Route path="/cms" element={<CMS />} />
               <Route path="/cms/recruitment" element={<CMSRecruitment />} />
@@ -135,6 +149,10 @@ const App = () => (
               <Route path="/hr/pipeline" element={<ATSPipeline />} />
               <Route path="/hr/interviews" element={<Interviews />} />
               <Route path="/hr/portal-admin" element={<PortalAdmin />} />
+              <Route path="/hr/reviews" element={<PerformanceReviews />} />
+              <Route path="/hr/leave" element={<Leave />} />
+              <Route path="/hr/payroll" element={<Payroll />} />
+              <Route path="/dms" element={<DocumentManagement />} />
               <Route path="/ai-hub" element={<AIHub />} />
               <Route path="/okr" element={<OKRDashboard />} />
               <Route path="/proposals" element={<ProposalsDashboard />} />
