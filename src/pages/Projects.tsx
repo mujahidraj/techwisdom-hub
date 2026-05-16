@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import { AddProjectDialog } from '@/components/projects/AddProjectDialog';
 import { EditProjectDialog } from '@/components/projects/EditProjectDialog';
 import { ProjectDocuments } from '@/components/projects/ProjectDocuments';
@@ -88,6 +89,7 @@ const stageLabels: Record<ProjectStage, string> = {
 export default function Projects() {
   const navigate = useNavigate(); // Added Hook
   const { role, user } = useAuth();
+  const { sendNotification } = useNotifications();
   const isAdmin = role === 'admin';
   const queryClient = useQueryClient();
 
@@ -188,6 +190,17 @@ export default function Projects() {
 
   const handleStageChange = (project: Project, stage: ProjectStage) => {
     updateMutation.mutate({ id: project.id, updates: { stage } });
+    
+    if (project.client_id) {
+      sendNotification({
+        userId: project.client_id,
+        title: 'Project Update',
+        message: `Your project "${project.project_name}" has moved to the ${stageLabels[stage]} stage.`,
+        type: 'success',
+        actionLink: `/client-portal`
+      });
+    }
+
     toast.success(`Project moved to ${stageLabels[stage]}`);
   };
 

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import logo from '@/assets/techwisdom.png';
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +68,7 @@ export default function ClientPortal() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, role, signOut, loading } = useAuth();
+  const { sendNotification } = useNotifications();
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [ticketTitle, setTicketTitle] = useState('');
@@ -198,6 +201,12 @@ export default function ClientPortal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-messages', selectedProject] });
+      sendNotification({
+        title: 'New Client Message',
+        message: `Client sent a message in project: ${projects.find(p => p.id === selectedProject)?.project_name || 'Unknown'}`,
+        type: 'info',
+        actionLink: `/messages?projectId=${selectedProject}`
+      });
       setNewMessage('');
     },
     onError: (error) => {
@@ -224,6 +233,12 @@ export default function ClientPortal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-proposals'] });
+      sendNotification({
+        title: 'Proposal Accepted',
+        message: `A client has accepted and signed a proposal.`,
+        type: 'success',
+        actionLink: `/finance`
+      });
       toast.success("Proposal accepted! Our team will be in touch shortly to kick off the project.");
     },
     onError: (err) => toast.error(err.message)
@@ -238,6 +253,12 @@ export default function ClientPortal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-approvals'] });
+      sendNotification({
+        title: 'Approval Feedback',
+        message: `Client has responded to an approval request.`,
+        type: 'info',
+        actionLink: `/projects`
+      });
       toast.success("Feedback submitted successfully.");
     },
     onError: (err) => toast.error(err.message)
@@ -252,6 +273,12 @@ export default function ClientPortal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-tickets'] });
+      sendNotification({
+        title: 'New Support Ticket',
+        message: `A client has submitted a new support ticket: ${ticketTitle}`,
+        type: 'warning',
+        actionLink: `/helpdesk`
+      });
       setTicketTitle(''); setTicketDesc('');
       toast.success("Ticket submitted successfully. Our team will review it shortly.");
     },
@@ -336,6 +363,7 @@ export default function ClientPortal() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
+            <NotificationBell />
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
@@ -394,7 +422,7 @@ export default function ClientPortal() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Projects List */}
           <div className="lg:col-span-2 space-y-8">
-            
+
             {/* PROPOSALS SECTION */}
             {proposals.length > 0 && (
               <div className="space-y-4">
@@ -435,262 +463,259 @@ export default function ClientPortal() {
                   </CardContent>
                 </Card>
               ) : (
-              projects.map((project) => (
-                <Card key={project.id} className="glass-card">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>{project.project_name}</CardTitle>
-                        <CardDescription>{project.project_type}</CardDescription>
-                      </div>
-                      <Badge variant={project.status === 'active' ? 'default' : 'secondary'} className="capitalize">
-                        {project.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <Tabs defaultValue="overview" className="w-full">
-                      <div className="px-6 pt-4">
-                        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
-                          <TabsTrigger value="overview">Overview</TabsTrigger>
-                          <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
-                          <TabsTrigger value="approvals">Approvals</TabsTrigger>
-                          <TabsTrigger value="tickets">Support</TabsTrigger>
-                        </TabsList>
-                      </div>
-                      
-                      <TabsContent value="overview" className="p-6 space-y-6 mt-0">
-                        {/* Stage Progress */}
+                projects.map((project) => (
+                  <Card key={project.id} className="glass-card">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
                         <div>
-                          <div className="flex justify-between text-sm mb-2">
-                            <span className="font-medium">{stageLabels[project.stage]}</span>
-                            <span className="text-muted-foreground">
-                              Stage {stages.indexOf(project.stage) + 1} of {stages.length}
-                            </span>
-                          </div>
-                          <Progress value={getProgress(project.stage)} className="h-2" />
+                          <CardTitle>{project.project_name}</CardTitle>
+                          <CardDescription>{project.project_type}</CardDescription>
+                        </div>
+                        <Badge variant={project.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                          {project.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <Tabs defaultValue="overview" className="w-full">
+                        <div className="px-6 pt-4">
+                          <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+                            <TabsTrigger value="overview">Overview</TabsTrigger>
+                            <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
+                            <TabsTrigger value="approvals">Approvals</TabsTrigger>
+                            <TabsTrigger value="tickets">Support</TabsTrigger>
+                          </TabsList>
                         </div>
 
-                        {/* Stage Steps */}
-                        <div className="flex justify-between text-xs">
-                          {stages.map((stage, idx) => (
-                            <div
-                              key={stage}
-                              className={`flex flex-col items-center ${
-                                idx <= stages.indexOf(project.stage)
-                                  ? 'text-primary'
-                                  : 'text-muted-foreground'
-                              }`}
-                            >
+                        <TabsContent value="overview" className="p-6 space-y-6 mt-0">
+                          {/* Stage Progress */}
+                          <div>
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="font-medium">{stageLabels[project.stage]}</span>
+                              <span className="text-muted-foreground">
+                                Stage {stages.indexOf(project.stage) + 1} of {stages.length}
+                              </span>
+                            </div>
+                            <Progress value={getProgress(project.stage)} className="h-2" />
+                          </div>
+
+                          {/* Stage Steps */}
+                          <div className="flex justify-between text-xs">
+                            {stages.map((stage, idx) => (
                               <div
-                                className={`w-3 h-3 rounded-full ${
-                                  idx <= stages.indexOf(project.stage)
-                                    ? 'bg-primary'
-                                    : 'bg-muted'
-                                }`}
-                              />
-                              <span className="mt-1 hidden md:block">{stageLabels[stage]}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        <Separator />
-
-                        {/* Budget Info */}
-                        <div className="flex justify-between text-sm">
-                          <span>Budget: ${Number(project.total_budget).toLocaleString()}</span>
-                          <span className="text-success">Paid: ${Number(project.paid_amount).toLocaleString()}</span>
-                        </div>
-
-                        {project.deadline && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            <span>Deadline: {format(new Date(project.deadline), 'MMM d, yyyy')}</span>
-                          </div>
-                        )}
-
-                        {/* Message Button */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => setSelectedProject(
-                            selectedProject === project.id ? null : project.id
-                          )}
-                        >
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          {selectedProject === project.id ? 'Close Chat' : 'Message Team'}
-                        </Button>
-
-                        {/* Inline Chat */}
-                        {selectedProject === project.id && (
-                          <div className="border rounded-lg mt-3 bg-muted/30">
-                            <ScrollArea className="h-64 p-3">
-                              {messagesLoading ? (
-                                <div className="flex items-center justify-center h-full">
-                                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                                </div>
-                              ) : messages.length === 0 ? (
-                                <div className="text-center py-8 text-muted-foreground text-sm">
-                                  <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                                  No messages yet. Start the conversation!
-                                </div>
-                              ) : (
-                                <div className="space-y-3">
-                                  {messages.map((msg) => {
-                                    const isMine = msg.sender_id === user?.id;
-                                    return (
-                                      <div
-                                        key={msg.id}
-                                        className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
-                                      >
-                                        <div
-                                          className={`max-w-[80%] rounded-lg px-3 py-2 ${
-                                            isMine
-                                              ? 'bg-primary text-primary-foreground'
-                                              : 'bg-background border'
-                                          }`}
-                                        >
-                                          <p className="text-sm">{msg.message}</p>
-                                          <p className="text-xs opacity-70 mt-1">
-                                            {format(new Date(msg.created_at), 'MMM d, h:mm a')}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                  <div ref={messagesEndRef} />
-                                </div>
-                              )}
-                            </ScrollArea>
-                            <div className="p-3 border-t">
-                              <form
-                                onSubmit={(e) => {
-                                  e.preventDefault();
-                                  handleSendMessage();
-                                }}
-                                className="flex gap-2"
+                                key={stage}
+                                className={`flex flex-col items-center ${idx <= stages.indexOf(project.stage)
+                                    ? 'text-primary'
+                                    : 'text-muted-foreground'
+                                  }`}
                               >
-                                <Input
-                                  placeholder="Type a message..."
-                                  value={newMessage}
-                                  onChange={(e) => setNewMessage(e.target.value)}
-                                  disabled={sendMutation.isPending}
+                                <div
+                                  className={`w-3 h-3 rounded-full ${idx <= stages.indexOf(project.stage)
+                                      ? 'bg-primary'
+                                      : 'bg-muted'
+                                    }`}
                                 />
-                                <Button
-                                  type="submit"
-                                  size="icon"
-                                  disabled={!newMessage.trim() || sendMutation.isPending}
-                                >
-                                  {sendMutation.isPending ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Send className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </form>
-                            </div>
-                          </div>
-                        )}
-                      </TabsContent>
-
-                      <TabsContent value="deliverables" className="p-6 mt-0">
-                        <div className="space-y-3">
-                          {deliverables.filter((d: any) => d.project_id === project.id).length === 0 ? (
-                            <p className="text-muted-foreground text-sm">No deliverables shared yet.</p>
-                          ) : (
-                            deliverables.filter((d: any) => d.project_id === project.id).map((d: any) => (
-                              <div key={d.id} className="flex justify-between items-center p-3 border rounded-lg bg-muted/20">
-                                <div className="flex items-center gap-3">
-                                  <FileText className="h-5 w-5 text-primary" />
-                                  <div>
-                                    <p className="font-medium text-sm">{d.title}</p>
-                                    <p className="text-xs text-muted-foreground">{format(new Date(d.created_at), 'PPP')}</p>
-                                  </div>
-                                </div>
-                                <Button size="sm" variant="outline" asChild><a href={d.file_url} target="_blank" rel="noreferrer"><Download className="h-4 w-4" /></a></Button>
+                                <span className="mt-1 hidden md:block">{stageLabels[stage]}</span>
                               </div>
-                            ))
-                          )}
-                        </div>
-                      </TabsContent>
+                            ))}
+                          </div>
 
-                      <TabsContent value="approvals" className="p-6 mt-0 space-y-4">
-                        {approvals.filter((a: any) => a.project_id === project.id).length === 0 ? (
-                          <p className="text-muted-foreground text-sm">No pending approvals.</p>
-                        ) : (
-                          approvals.filter((a: any) => a.project_id === project.id).map((a: any) => (
-                            <Card key={a.id} className="border-muted">
-                              <CardContent className="p-4 space-y-3">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h4 className="font-bold">{a.title}</h4>
-                                    <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
-                                    {a.asset_url && <a href={a.asset_url} target="_blank" className="text-sm text-primary hover:underline mt-1 block">View Asset &rarr;</a>}
+                          <Separator />
+
+                          {/* Budget Info */}
+                          <div className="flex justify-between text-sm">
+                            <span>Budget: ${Number(project.total_budget).toLocaleString()}</span>
+                            <span className="text-success">Paid: ${Number(project.paid_amount).toLocaleString()}</span>
+                          </div>
+
+                          {project.deadline && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              <span>Deadline: {format(new Date(project.deadline), 'MMM d, yyyy')}</span>
+                            </div>
+                          )}
+
+                          {/* Message Button */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setSelectedProject(
+                              selectedProject === project.id ? null : project.id
+                            )}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            {selectedProject === project.id ? 'Close Chat' : 'Message Team'}
+                          </Button>
+
+                          {/* Inline Chat */}
+                          {selectedProject === project.id && (
+                            <div className="border rounded-lg mt-3 bg-muted/30">
+                              <ScrollArea className="h-64 p-3">
+                                {messagesLoading ? (
+                                  <div className="flex items-center justify-center h-full">
+                                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
                                   </div>
-                                  <Badge variant={a.status === 'approved' ? 'default' : a.status === 'changes_requested' ? 'destructive' : 'secondary'} className="capitalize">
-                                    {a.status.replace('_', ' ')}
-                                  </Badge>
-                                </div>
-                                {a.status === 'pending' && (
-                                  <div className="pt-3 border-t mt-3">
-                                    <Label>Your Feedback</Label>
-                                    <Input 
-                                      className="mt-1 mb-2" 
-                                      placeholder="Any changes needed?" 
-                                      value={approvalFeedback[a.id] || ''} 
-                                      onChange={(e) => setApprovalFeedback({...approvalFeedback, [a.id]: e.target.value})}
-                                    />
-                                    <div className="flex gap-2">
-                                      <Button size="sm" onClick={() => respondApprovalMutation.mutate({ approvalId: a.id, status: 'approved', feedback: approvalFeedback[a.id] })}>
-                                        <ThumbsUp className="h-4 w-4 mr-2" /> Approve
-                                      </Button>
-                                      <Button size="sm" variant="destructive" onClick={() => respondApprovalMutation.mutate({ approvalId: a.id, status: 'changes_requested', feedback: approvalFeedback[a.id] })}>
-                                        Request Changes
-                                      </Button>
-                                    </div>
+                                ) : messages.length === 0 ? (
+                                  <div className="text-center py-8 text-muted-foreground text-sm">
+                                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                                    No messages yet. Start the conversation!
+                                  </div>
+                                ) : (
+                                  <div className="space-y-3">
+                                    {messages.map((msg) => {
+                                      const isMine = msg.sender_id === user?.id;
+                                      return (
+                                        <div
+                                          key={msg.id}
+                                          className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                                        >
+                                          <div
+                                            className={`max-w-[80%] rounded-lg px-3 py-2 ${isMine
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'bg-background border'
+                                              }`}
+                                          >
+                                            <p className="text-sm">{msg.message}</p>
+                                            <p className="text-xs opacity-70 mt-1">
+                                              {format(new Date(msg.created_at), 'MMM d, h:mm a')}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    <div ref={messagesEndRef} />
                                   </div>
                                 )}
-                              </CardContent>
-                            </Card>
-                          ))
-                        )}
-                      </TabsContent>
-
-                      <TabsContent value="tickets" className="p-6 mt-0">
-                        <div className="mb-6 space-y-3 bg-muted/20 p-4 rounded-lg">
-                          <h4 className="font-semibold text-sm">Submit a Support Ticket</h4>
-                          <Input placeholder="Ticket Title" value={ticketTitle} onChange={e => setTicketTitle(e.target.value)} />
-                          <Input placeholder="Describe the issue..." value={ticketDesc} onChange={e => setTicketDesc(e.target.value)} />
-                          <Button size="sm" disabled={!ticketTitle || createTicketMutation.isPending} onClick={() => createTicketMutation.mutate({ projectId: project.id })}>
-                            <LifeBuoy className="h-4 w-4 mr-2" /> Submit Ticket
-                          </Button>
-                        </div>
-                        <div className="space-y-3">
-                          <h4 className="font-semibold text-sm">Past Tickets</h4>
-                          {tickets.filter((t: any) => t.project_id === project.id).length === 0 && <p className="text-muted-foreground text-xs">No tickets submitted.</p>}
-                          {tickets.filter((t: any) => t.project_id === project.id).map((t: any) => (
-                            <div key={t.id} className="p-3 border rounded-lg text-sm space-y-2">
-                              <div className="flex justify-between font-medium">
-                                <span>{t.title}</span>
-                                <Badge variant={t.status === 'resolved' ? 'default' : 'secondary'} className="capitalize text-[10px]">{t.status}</Badge>
+                              </ScrollArea>
+                              <div className="p-3 border-t">
+                                <form
+                                  onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                  }}
+                                  className="flex gap-2"
+                                >
+                                  <Input
+                                    placeholder="Type a message..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    disabled={sendMutation.isPending}
+                                  />
+                                  <Button
+                                    type="submit"
+                                    size="icon"
+                                    disabled={!newMessage.trim() || sendMutation.isPending}
+                                  >
+                                    {sendMutation.isPending ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Send className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </form>
                               </div>
-                              <p className="text-muted-foreground">{t.description}</p>
-                              {t.resolution_notes && (
-                                <div className="bg-green-50 text-green-800 p-2 rounded text-xs mt-2 border border-green-200">
-                                  <strong>Resolution:</strong> {t.resolution_notes}
-                                </div>
-                              )}
                             </div>
-                          ))}
-                        </div>
-                      </TabsContent>
+                          )}
+                        </TabsContent>
 
-                    </Tabs>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+                        <TabsContent value="deliverables" className="p-6 mt-0">
+                          <div className="space-y-3">
+                            {deliverables.filter((d: any) => d.project_id === project.id).length === 0 ? (
+                              <p className="text-muted-foreground text-sm">No deliverables shared yet.</p>
+                            ) : (
+                              deliverables.filter((d: any) => d.project_id === project.id).map((d: any) => (
+                                <div key={d.id} className="flex justify-between items-center p-3 border rounded-lg bg-muted/20">
+                                  <div className="flex items-center gap-3">
+                                    <FileText className="h-5 w-5 text-primary" />
+                                    <div>
+                                      <p className="font-medium text-sm">{d.title}</p>
+                                      <p className="text-xs text-muted-foreground">{format(new Date(d.created_at), 'PPP')}</p>
+                                    </div>
+                                  </div>
+                                  <Button size="sm" variant="outline" asChild><a href={d.file_url} target="_blank" rel="noreferrer"><Download className="h-4 w-4" /></a></Button>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="approvals" className="p-6 mt-0 space-y-4">
+                          {approvals.filter((a: any) => a.project_id === project.id).length === 0 ? (
+                            <p className="text-muted-foreground text-sm">No pending approvals.</p>
+                          ) : (
+                            approvals.filter((a: any) => a.project_id === project.id).map((a: any) => (
+                              <Card key={a.id} className="border-muted">
+                                <CardContent className="p-4 space-y-3">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="font-bold">{a.title}</h4>
+                                      <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+                                      {a.asset_url && <a href={a.asset_url} target="_blank" className="text-sm text-primary hover:underline mt-1 block">View Asset &rarr;</a>}
+                                    </div>
+                                    <Badge variant={a.status === 'approved' ? 'default' : a.status === 'changes_requested' ? 'destructive' : 'secondary'} className="capitalize">
+                                      {a.status.replace('_', ' ')}
+                                    </Badge>
+                                  </div>
+                                  {a.status === 'pending' && (
+                                    <div className="pt-3 border-t mt-3">
+                                      <Label>Your Feedback</Label>
+                                      <Input
+                                        className="mt-1 mb-2"
+                                        placeholder="Any changes needed?"
+                                        value={approvalFeedback[a.id] || ''}
+                                        onChange={(e) => setApprovalFeedback({ ...approvalFeedback, [a.id]: e.target.value })}
+                                      />
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => respondApprovalMutation.mutate({ approvalId: a.id, status: 'approved', feedback: approvalFeedback[a.id] })}>
+                                          <ThumbsUp className="h-4 w-4 mr-2" /> Approve
+                                        </Button>
+                                        <Button size="sm" variant="destructive" onClick={() => respondApprovalMutation.mutate({ approvalId: a.id, status: 'changes_requested', feedback: approvalFeedback[a.id] })}>
+                                          Request Changes
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))
+                          )}
+                        </TabsContent>
+
+                        <TabsContent value="tickets" className="p-6 mt-0">
+                          <div className="mb-6 space-y-3 bg-muted/20 p-4 rounded-lg">
+                            <h4 className="font-semibold text-sm">Submit a Support Ticket</h4>
+                            <Input placeholder="Ticket Title" value={ticketTitle} onChange={e => setTicketTitle(e.target.value)} />
+                            <Input placeholder="Describe the issue..." value={ticketDesc} onChange={e => setTicketDesc(e.target.value)} />
+                            <Button size="sm" disabled={!ticketTitle || createTicketMutation.isPending} onClick={() => createTicketMutation.mutate({ projectId: project.id })}>
+                              <LifeBuoy className="h-4 w-4 mr-2" /> Submit Ticket
+                            </Button>
+                          </div>
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-sm">Past Tickets</h4>
+                            {tickets.filter((t: any) => t.project_id === project.id).length === 0 && <p className="text-muted-foreground text-xs">No tickets submitted.</p>}
+                            {tickets.filter((t: any) => t.project_id === project.id).map((t: any) => (
+                              <div key={t.id} className="p-3 border rounded-lg text-sm space-y-2">
+                                <div className="flex justify-between font-medium">
+                                  <span>{t.title}</span>
+                                  <Badge variant={t.status === 'resolved' ? 'default' : 'secondary'} className="capitalize text-[10px]">{t.status}</Badge>
+                                </div>
+                                <p className="text-muted-foreground">{t.description}</p>
+                                {t.resolution_notes && (
+                                  <div className="bg-green-50 text-green-800 p-2 rounded text-xs mt-2 border border-green-200">
+                                    <strong>Resolution:</strong> {t.resolution_notes}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -104,6 +105,7 @@ const emptyForm = {
 
 export default function Assets() {
   const { role, user } = useAuth();
+  const { sendNotification } = useNotifications();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -199,6 +201,17 @@ export default function Assets() {
           performed_by: user?.id || null,
           new_value: emp?.full_name,
         });
+
+        // Notify employee
+        if (emp?.user_id) {
+          sendNotification({
+            userId: emp.user_id,
+            title: 'New Asset Assigned',
+            message: `You have been assigned a new asset: ${f.asset_name} (${f.asset_tag})`,
+            type: 'info',
+            actionLink: '/employee-portal'
+          });
+        }
       }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['assets'] }); toast.success('Asset added'); setAddOpen(false); setForm(emptyForm); },
@@ -251,6 +264,8 @@ export default function Assets() {
         status: employeeId ? 'assigned' : 'available',
       }).eq('id', assetId);
       if (error) throw error;
+      
+      const asset = assets.find(a => a.id === assetId);
       await supabase.from('asset_history').insert({
         asset_id: assetId,
         action: employeeId ? 'Assigned' : 'Unassigned',
@@ -258,6 +273,17 @@ export default function Assets() {
         performed_by: user?.id || null,
         new_value: employeeId ? emp?.full_name : null,
       });
+
+      // Notify employee on assignment
+      if (employeeId && emp?.user_id) {
+        sendNotification({
+          userId: emp.user_id,
+          title: 'Asset Assigned to You',
+          message: `The asset "${asset.asset_name}" (${asset.asset_tag}) has been assigned to you.`,
+          type: 'info',
+          actionLink: '/employee-portal'
+        });
+      }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['assets'] }); toast.success('Assignment updated'); },
     onError: (e) => toast.error('Failed: ' + e.message),

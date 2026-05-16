@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { format } from 'date-fns';
 export default function PortalAdmin() {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { sendNotification } = useNotifications();
   
   const [announceDialogOpen, setAnnounceDialogOpen] = useState(false);
   const [announceData, setAnnounceData] = useState({ title: '', content: '', type: 'general' });
@@ -67,6 +69,16 @@ export default function PortalAdmin() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-announcements'] });
+      
+      // Notify all employees & admins
+      sendNotification({
+        title: 'New Company Announcement',
+        message: announceData.title,
+        type: announceData.type === 'urgent' ? 'error' : 'info',
+        targetRoles: ['employee', 'admin'],
+        actionLink: '/employee-portal'
+      });
+
       toast.success('Announcement published!');
       setAnnounceDialogOpen(false);
       setAnnounceData({ title: '', content: '', type: 'general' });
@@ -95,6 +107,16 @@ export default function PortalAdmin() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-documents'] });
+      
+      // Notify the specific employee
+      sendNotification({
+        userId: docData.user_id,
+        title: 'New Document in Vault',
+        message: `A new document "${docData.title}" has been uploaded to your secure vault.`,
+        type: 'success',
+        actionLink: '/employee-portal'
+      });
+
       toast.success('Document uploaded to Vault!');
       setDocDialogOpen(false);
       setDocData({ user_id: '', title: '', document_url: '', type: 'other' });

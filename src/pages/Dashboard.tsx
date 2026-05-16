@@ -37,7 +37,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ['#C00707', '#FF4400', '#FFB33F', '#134E8E'];
+
+
+
 
 export default function Dashboard() {
   // 1. ALL HOOKS MUST BE DECLARED FIRST (Top Level)
@@ -90,7 +93,7 @@ export default function Dashboard() {
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team_status'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles' as any).select('id, full_name, avatar_url, status');
+      const { data } = await supabase.from('profiles' as any).select('id, full_name, avatar_url, status') as any;
       return data || [];
     },
     refetchInterval: 5000
@@ -132,6 +135,15 @@ export default function Dashboard() {
   const { data: projectsData } = useQuery({ queryKey: ['dash_projects'], queryFn: async () => (await supabase.from('active_projects').select('*')).data });
   const { data: unreadMessages } = useQuery({ queryKey: ['dash_msgs'], queryFn: async () => (await supabase.from('client_messages').select('id').eq('is_read', false)).data?.length || 0 });
   const { data: recentLeads } = useQuery({ queryKey: ['dash_recent'], queryFn: async () => (await supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(5)).data });
+  
+  const { data: priorityTicketsCount = 0 } = useQuery({
+    queryKey: ['priority_tickets_count'],
+    queryFn: async () => {
+      const { data: it } = await supabase.from('it_tickets').select('id').in('priority', ['urgent', 'high']).not('status', 'in', '("resolved","closed")');
+      const { data: client } = await supabase.from('client_tickets').select('id').in('priority', ['urgent', 'high']).not('status', 'in', '("resolved","closed")');
+      return (it?.length || 0) + (client?.length || 0);
+    }
+  });
 
   // More Mutation Hooks
   const addFocusMutation = useMutation({
@@ -202,19 +214,25 @@ export default function Dashboard() {
     ?.slice(0, 3) || [];
 
   const stats = [
-    { title: 'Total Leads', value: totalLeads.toString(), change: totalLeads > 0 ? `${totalLeads} leads` : 'No leads', trend: 'up' as const, icon: Users, description: 'in pipeline', color: 'text-blue-500', bg: 'bg-blue-500/10', route: '/crm' },
-    { title: 'Active Projects', value: activeProjects.toString(), change: `${activeProjects} active`, trend: 'up' as const, icon: FolderKanban, description: 'ongoing work', color: 'text-purple-500', bg: 'bg-purple-500/10', route: '/projects' },
-    { title: 'Conversion Rate', value: `${conversionRate}%`, change: `${wonDeals} won`, trend: conversionRate > 20 ? 'up' as const : 'down' as const, icon: TrendingUp, description: 'lead-to-deal', color: 'text-green-500', bg: 'bg-green-500/10', route: '/crm' },
-    { title: 'Total Revenue', value: formatCurrency(totalRevenue), change: `${formatCurrency(totalPaid)} paid`, trend: 'up' as const, icon: DollarSign, description: 'lifetime value', color: 'text-amber-500', bg: 'bg-amber-500/10', route: '/finances' },
+    { title: 'Total Leads', value: totalLeads.toString(), change: totalLeads > 0 ? `${totalLeads} leads` : 'No leads', trend: 'up' as const, icon: Users, description: 'in pipeline', color: 'text-[#C00707]', bg: 'bg-[#C00707]/10', route: '/crm' },
+    { title: 'Active Projects', value: activeProjects.toString(), change: `${activeProjects} active`, trend: 'up' as const, icon: FolderKanban, description: 'ongoing work', color: 'text-[#FF4400]', bg: 'bg-[#FF4400]/10', route: '/projects' },
+    { title: 'Conversion Rate', value: `${conversionRate}%`, change: `${wonDeals} won`, trend: conversionRate > 20 ? 'up' as const : 'down' as const, icon: TrendingUp, description: 'lead-to-deal', color: 'text-[#FFB33F]', bg: 'bg-[#FFB33F]/10', route: '/crm' },
+    { title: 'Total Revenue', value: formatCurrency(totalRevenue), change: `${formatCurrency(totalPaid)} paid`, trend: 'up' as const, icon: DollarSign, description: 'lifetime value', color: 'text-[#134E8E]', bg: 'bg-[#134E8E]/10', route: '/finances' },
   ];
+
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-blue-500';
-      case 'contacted': return 'bg-yellow-500';
-      case 'deal_won': return 'bg-green-500';
-      default: return 'bg-gray-500';
+      case 'new': return 'bg-[#C00707]';
+      case 'contacted': return 'bg-[#FF4400]';
+      case 'deal_won': return 'bg-[#FFB33F]';
+      default: return 'bg-slate-500';
     }
+
+
+
   };
 
   const chartData = projectsData?.slice(0, 7).map((p: any) => ({
@@ -235,44 +253,122 @@ export default function Dashboard() {
   // --- 3. LOADING GUARD (Must be AFTER all hooks) ---
   if (loading || !user) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-sm text-gray-500 font-medium">Loading Dashboard...</p>
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+            <div className="absolute inset-0 h-12 w-12 rounded-full border-4 border-transparent border-b-[#FF4400] animate-spin" style={{ animationDuration: '1.5s' }}></div>
+          </div>
+          <p className="text-sm text-[#C00707] font-bold uppercase tracking-widest animate-pulse">Syncing Hub...</p>
         </div>
       </div>
+
+
+
     );
   }
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   // --- 4. RENDER (Main Return) ---
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-fade-in pb-10">
 
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-6">
-          <div>
-            <div className="text-sm text-muted-foreground font-medium mb-1">
-              {format(new Date(), 'EEEE, MMMM do, yyyy')}
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Good Morning, <span className="text-primary">{user?.email?.split('@')[0]}</span> 👋
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              You have <span className="font-semibold text-foreground">{unreadMessages || 0} unread messages</span>.
-            </p>
+        {/* HEADER - REIMAGINED WITH VIBRANT THEME */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-gradient-to-br from-[#C00707]/10 via-[#FF4400]/5 to-transparent p-10 rounded-[2.5rem] border border-[#C00707]/20 shadow-2xl shadow-[#C00707]/5 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-10 opacity-[0.05] pointer-events-none group-hover:scale-125 group-hover:rotate-12 transition-all duration-1000">
+            <Zap className="h-64 w-64 text-[#FF4400]" />
           </div>
 
-          <div className="flex gap-2">
-            <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20" onClick={() => navigate('/crm')}>
-              <Users className="h-4 w-4 mr-2" /> Add Lead
-            </Button>
-            <Button className="bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/20" onClick={() => navigate('/projects')}>
-              <Plus className="h-4 w-4 mr-2" /> New Project
-            </Button>
-            <Button variant="outline" className="shadow-sm" onClick={() => navigate('/invoices')}>
-              <FileText className="h-4 w-4 mr-2" /> Invoice
-            </Button>
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#C00707]/10 text-[#C00707] dark:text-[#FFB33F] text-xs font-black mb-6 uppercase tracking-[0.2em] border border-[#C00707]/20">
+              <Calendar className="h-4 w-4" />
+              {format(new Date(), 'EEEE, MMMM do')}
+            </div>
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white leading-tight">
+              {getGreeting()}, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C00707] via-[#FF4400] to-[#134E8E] drop-shadow-sm">
+                {user?.email?.split('@')[0]}
+              </span> 🚀
+            </h1>
+            <div className="flex items-center gap-4 mt-8">
+              <div className="flex -space-x-3">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-10 w-10 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 shadow-xl overflow-hidden">
+                    <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" className="h-full w-full object-cover" />
+                  </div>
+                ))}
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">
+                <span className="text-[#C00707] font-black">
+                  {priorityTicketsCount + todaysFocus.filter((t: any) => !t.is_completed).length}
+                </span> priority tasks pending
+              </p>
+            </div>
+          </div>
+        </div>
+
+
+
+
+        {/* TEAM STATUS BAR (Vibrant Edition) */}
+        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/30 dark:border-slate-800/50 rounded-[2rem] p-8 flex items-center gap-10 overflow-x-auto no-scrollbar shadow-2xl shadow-[#C00707]/5">
+          <div className="flex flex-col items-center gap-3 pr-10 border-r-2 border-[#C00707]/10">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="relative cursor-pointer group">
+                  <div className="absolute -inset-1.5 bg-gradient-to-tr from-[#C00707] to-[#134E8E] rounded-full blur-md opacity-0 group-hover:opacity-70 transition duration-700 animate-pulse"></div>
+                  <Avatar className="h-20 w-20 border-4 border-white dark:border-slate-900 relative group-hover:scale-105 transition-transform duration-500 shadow-2xl">
+                    <AvatarImage src={teamMembers.find((m: any) => m.id === user?.id)?.avatar_url} />
+                    <AvatarFallback className="bg-[#C00707] text-white text-2xl font-black">{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className={`absolute bottom-1 right-1 h-6 w-6 rounded-full border-4 border-white dark:border-slate-900 shadow-lg ${teamMembers.find((m: any) => m.id === user?.id)?.status === 'online' ? 'bg-[#FF4400]' : teamMembers.find((m: any) => m.id === user?.id)?.status === 'busy' ? 'bg-[#FFB33F]' : 'bg-slate-400'}`} />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 p-3 rounded-2xl">
+                <div className="px-3 py-2 text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Status</div>
+                <DropdownMenuItem onClick={() => updateStatusMutation.mutate('online')} className="rounded-xl h-11 gap-3 focus:bg-[#FF4400]/10">
+                  <div className="h-2.5 w-2.5 rounded-full bg-[#FF4400] shadow-sm" /> <span className="font-bold">Active</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => updateStatusMutation.mutate('busy')} className="rounded-xl h-11 gap-3 focus:bg-[#FFB33F]/10">
+                  <div className="h-2.5 w-2.5 rounded-full bg-[#FFB33F] shadow-sm" /> <span className="font-bold">Away</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => updateStatusMutation.mutate('offline')} className="rounded-xl h-11 gap-3 focus:bg-slate-50">
+                  <div className="h-2.5 w-2.5 rounded-full bg-slate-400 shadow-sm" /> <span className="font-bold">Offline</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className="text-[10px] font-black text-[#C00707] uppercase tracking-widest">Operator</span>
+          </div>
+
+
+
+
+          <div className="flex items-center gap-7">
+            {teamMembers.filter((m: any) => m.id !== user?.id).map((member: any) => (
+              <div key={member.id} className="flex flex-col items-center gap-2 min-w-[70px] group cursor-default">
+                <div className="relative">
+                  <Avatar className="h-16 w-16 border-2 border-transparent group-hover:border-primary/30 transition-all duration-300 group-hover:scale-110 shadow-sm">
+                    <AvatarImage src={member.avatar_url} />
+                    <AvatarFallback className="bg-muted text-muted-foreground font-semibold">{member.full_name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-white dark:border-slate-900 shadow-sm transition-all duration-300 ${member.status === 'online' ? 'bg-green-500 animate-pulse' : member.status === 'busy' ? 'bg-amber-500' : 'bg-slate-300'}`} />
+                </div>
+                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate max-w-[70px] group-hover:text-primary transition-colors">
+                  {member.full_name?.split(' ')[0] || 'User'}
+                </span>
+              </div>
+            ))}
+
+            {teamMembers.length <= 1 && (
+              <p className="text-sm text-muted-foreground italic ml-4">Waiting for teammates to join...</p>
+            )}
           </div>
         </div>
 
@@ -311,32 +407,40 @@ export default function Dashboard() {
           <div className="lg:col-span-2 space-y-6">
 
             {/* 1. REVENUE CHART */}
-            <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/finances')}>
+            <Card className="glass-card cursor-pointer hover:shadow-2xl transition-all duration-500 border-[#C00707]/10 group" onClick={() => navigate('/finances')}>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500" /> Revenue vs. Collection</CardTitle>
-                <CardDescription>Financial performance</CardDescription>
+                <CardTitle className="flex items-center gap-3 text-2xl font-black tracking-tight">
+                  <div className="p-2 bg-[#C00707]/10 rounded-lg group-hover:rotate-12 transition-transform">
+                    <TrendingUp className="h-6 w-6 text-[#C00707]" />
+                  </div>
+                  Scale Pulse
+                </CardTitle>
+                <CardDescription>Fiscal trajectory overview</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]">
+              <CardContent className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorBudget" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} /><stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#C00707" stopOpacity={0.3} /><stop offset="95%" stopColor="#C00707" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="colorPaid" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} /><stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#134E8E" stopOpacity={0.3} /><stop offset="95%" stopColor="#134E8E" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val / 1000}k`} />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="Budget" stroke="#8884d8" fillOpacity={1} fill="url(#colorBudget)" />
-                    <Area type="monotone" dataKey="Paid" stroke="#82ca9d" fillOpacity={1} fill="url(#colorPaid)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.05} />
+                    <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} dy={10} />
+                    <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val / 1000}k`} />
+                    <Tooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
+                    <Area type="monotone" dataKey="Budget" stroke="#C00707" strokeWidth={3} fillOpacity={1} fill="url(#colorBudget)" />
+                    <Area type="monotone" dataKey="Paid" stroke="#134E8E" strokeWidth={3} fillOpacity={1} fill="url(#colorPaid)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+
+
+
 
             {/* 2. UPCOMING DEADLINES */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/projects')}>
@@ -404,21 +508,30 @@ export default function Dashboard() {
 
             {/* 4. REVENUE GOAL */}
             <Card
-              className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0 shadow-xl cursor-pointer hover:scale-[1.02] transition-transform"
+              className="bg-gradient-to-br from-[#C00707] to-[#134E8E] text-white border-0 shadow-2xl shadow-[#C00707]/20 cursor-pointer hover:scale-[1.05] transition-all duration-500 overflow-hidden relative"
               onClick={() => navigate('/finances')}
             >
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-slate-300">Revenue Goal</CardTitle>
-                <div className="flex items-end gap-2">
-                  <span className="text-3xl font-bold">{formatCurrency(totalRevenue)}</span>
-                  <span className="text-sm text-slate-400 mb-1">/ {formatCurrency(monthlyGoal)}</span>
+              <div className="absolute -top-10 -right-10 h-40 w-40 bg-white/10 rounded-full blur-3xl"></div>
+              <CardHeader className="relative z-10">
+                <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-white/70">Profit Target</CardTitle>
+                <div className="flex items-end gap-2 mt-2">
+                  <span className="text-4xl font-black">{formatCurrency(totalRevenue)}</span>
+                  <span className="text-sm text-white/50 mb-1 font-bold">/ {formatCurrency(monthlyGoal)}</span>
                 </div>
               </CardHeader>
-              <CardContent>
-                <Progress value={goalProgress} className="h-2 bg-slate-700" />
-                <p className="text-xs text-slate-400 mt-2">{goalProgress.toFixed(1)}% achieved</p>
+              <CardContent className="relative z-10">
+                <div className="h-3 w-full bg-black/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#FFB33F] shadow-[0_0_20px_rgba(255,179,63,0.5)] transition-all duration-1000" style={{ width: `${goalProgress}%` }}></div>
+                </div>
+                <div className="flex justify-between items-center mt-4">
+                  <p className="text-xs font-black uppercase tracking-widest">{goalProgress.toFixed(1)}% MOMENTUM</p>
+                  <TrendingUp className="h-4 w-4 animate-bounce" />
+                </div>
               </CardContent>
             </Card>
+
+
+
 
             {/* 5. PROJECT STAGES */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/projects')}>
@@ -435,41 +548,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* --- TEAM AVAILABILITY --- */}
-            <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/team')}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm flex items-center gap-2"><Users className="h-4 w-4" /> Team Status</CardTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}><MoreHorizontal className="h-4 w-4" /></Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => updateStatusMutation.mutate('online')}>Set Online</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => updateStatusMutation.mutate('busy')}>Set Busy</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => updateStatusMutation.mutate('offline')}>Set Offline</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 max-h-[200px] overflow-y-auto">
-                  {teamMembers.map((member: any) => (
-                    <div key={member.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={member.avatar_url} />
-                            <AvatarFallback>{member.full_name?.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${member.status === 'online' ? 'bg-green-500' : member.status === 'busy' ? 'bg-amber-500' : 'bg-slate-300'}`} />
-                        </div>
-                        <span className="text-sm font-medium">{member.full_name || 'User'}</span>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] uppercase">{member.status || 'offline'}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+
 
             {/* --- TODAY'S FOCUS --- */}
             <Card className="glass-card">

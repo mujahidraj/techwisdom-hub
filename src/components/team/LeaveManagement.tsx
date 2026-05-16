@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +46,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secon
 
 export function LeaveManagement() {
   const { user } = useAuth();
+  const { sendNotification } = useNotifications();
   const queryClient = useQueryClient();
   const [reviewingLeave, setReviewingLeave] = useState<any>(null);
   const [reviewNotes, setReviewNotes] = useState('');
@@ -101,6 +103,19 @@ export function LeaveManagement() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-leave-applications'] });
+      
+      // Notify the employee
+      const leave = leaveApplications.find(l => l.id === variables.id);
+      if (leave && leave.employee?.user_id) {
+        sendNotification({
+          userId: leave.employee.user_id,
+          title: `Leave Application ${variables.status === 'approved' ? 'Approved' : 'Rejected'}`,
+          message: `Your leave application for ${LEAVE_TYPE_LABELS[leave.leave_type]} has been ${variables.status}.`,
+          type: variables.status === 'approved' ? 'success' : 'error',
+          actionLink: `/employee-portal`
+        });
+      }
+
       toast.success(`Leave application ${variables.status}`);
       setReviewingLeave(null);
       setReviewNotes('');

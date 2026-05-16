@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,7 @@ const LEAVE_TYPES = [
 
 export function LeaveApplicationDialog({ open, onOpenChange, employeeId }: LeaveApplicationDialogProps) {
   const queryClient = useQueryClient();
+  const { sendNotification } = useNotifications();
   const [formData, setFormData] = useState({
     leave_type: 'annual',
     start_date: '',
@@ -60,6 +62,12 @@ export function LeaveApplicationDialog({ open, onOpenChange, employeeId }: Leave
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-applications'] });
+      sendNotification({
+        title: 'New Leave Application',
+        message: `An employee has submitted a new leave application for ${formData.leave_type}.`,
+        type: 'info',
+        actionLink: `/hr/leave`
+      });
       toast.success('Leave application submitted successfully');
       onOpenChange(false);
       setFormData({ leave_type: 'annual', start_date: '', end_date: '', reason: '' });

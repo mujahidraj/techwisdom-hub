@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useNotifications } from '@/hooks/useNotifications';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ import { toast } from 'sonner';
 
 export default function EventsTasks() {
   const queryClient = useQueryClient();
+  const { sendNotification } = useNotifications();
   
   // Dialog States
   const [isTaskOpen, setIsTaskOpen] = useState(false);
@@ -120,6 +122,18 @@ export default function EventsTasks() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      
+      // Notify everyone about the new event
+      if (!editingEvent) {
+        sendNotification({
+          title: 'New Company Event',
+          message: `${eventForm.title} scheduled for ${format(new Date(eventForm.event_date), 'PPP p')}`,
+          type: 'info',
+          targetRoles: ['employee', 'admin'],
+          actionLink: '/employee-portal'
+        });
+      }
+
       setIsEventOpen(false);
       resetForms();
       toast.success(editingEvent ? "Event updated" : "Event scheduled");

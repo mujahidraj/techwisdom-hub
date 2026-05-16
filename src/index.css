@@ -5,116 +5,102 @@
 /* Apply Safe Area padding to the whole body */
 body {
   /* This reads the phone's notch height automatically */
-  padding-top: env(safe-area-inset-top); 
+  padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
-  
+
   /* Ensure background color fills the notch area */
-  background-color: #ffffff; /* Or your dashboard background color */
+  background-color: #EEEEEE;
+  /* Or your dashboard background color */
   min-height: 100vh;
 }
-
+ 
 /* TechWisdom ERP Design System - Glassmorphic SaaS */
-
+ 
 @layer base {
   :root {
-    /* TechWisdom Brand Colors */
-    --background: 210 20% 98%; /* slate-50 */
-    --foreground: 215 25% 9%; /* slate-900 */
-
+    --background: 0 0% 100%;
+    --foreground: 211 76% 10%;
+ 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 9%;
-
+    --card-foreground: 211 76% 10%;
+ 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 9%;
-
-    /* TechWisdom Blue #2563EB */
-    --primary: 217 91% 60%;
+    --popover-foreground: 211 76% 10%;
+ 
+    --primary: 0 93% 38%; /* #C00707 */
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 215 25% 9%;
-
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%; /* slate-500 */
-
-    /* Wisdom Purple #9333EA */
-    --accent: 271 81% 56%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 214 32% 91%; /* slate-200 */
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
-
-    --radius: 0.75rem;
-
-    /* Success/Warning colors */
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    /* Sidebar */
+ 
+    --secondary: 16 100% 50%; /* #FF4400 */
+    --secondary-foreground: 0 0% 100%;
+ 
+    --muted: 211 20% 95%;
+    --muted-foreground: 211 76% 31%;
+ 
+    --accent: 36 100% 62%; /* #FFB33F */
+    --accent-foreground: 0 93% 38%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 211 20% 90%;
+    --input: 211 20% 90%;
+    --ring: 211 76% 31%; /* #134E8E */
+ 
+    --radius: 1rem;
+ 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 25% 9%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-foreground: 211 76% 31%;
+    --sidebar-primary: 0 93% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 96%;
-    --sidebar-accent-foreground: 215 25% 9%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 217 91% 60%;
-
+    --sidebar-accent: 16 100% 96%;
+    --sidebar-accent-foreground: 0 93% 38%;
+    --sidebar-border: 211 20% 90%;
+    --sidebar-ring: 211 76% 31%;
+ 
     /* Glassmorphic effects */
     --glass-bg: 0 0% 100% / 0.8;
-    --glass-border: 0 0% 100% / 0.2;
+    --glass-border: 0 0% 0% / 0.1;
   }
-
+ 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217 91% 60%;
+    --background: 211 76% 4%;
+    --foreground: 36 100% 90%;
+ 
+    --card: 211 76% 6%;
+    --card-foreground: 36 100% 90%;
+ 
+    --popover: 211 76% 6%;
+    --popover-foreground: 36 100% 90%;
+ 
+    --primary: 0 93% 38%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 271 81% 56%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
-
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
+ 
+    --secondary: 16 100% 50%;
+    --secondary-foreground: 0 0% 100%;
+ 
+    --muted: 211 50% 15%;
+    --muted-foreground: 36 100% 70%;
+ 
+    --accent: 211 76% 31%;
+    --accent-foreground: 36 100% 90%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+ 
+    --border: 211 50% 15%;
+    --input: 211 50% 15%;
+    --ring: 16 100% 50%;
+ 
+    --sidebar-background: 211 76% 4%;
+    --sidebar-foreground: 36 100% 90%;
+    --sidebar-primary: 0 93% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 217 91% 60%;
-
-    --glass-bg: 222 47% 8% / 0.8;
+    --sidebar-accent: 211 50% 15%;
+    --sidebar-accent-foreground: 0 93% 38%;
+    --sidebar-border: 211 50% 15%;
+    --sidebar-ring: 16 100% 50%;
+ 
+    --glass-bg: 211 76% 4% / 0.8;
     --glass-border: 0 0% 100% / 0.1;
   }
 }
@@ -133,19 +119,22 @@ body {
   .glass-card {
     @apply bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm;
   }
-  
+
   .glass-sidebar {
     @apply bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border;
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(271 81% 56%) 100%);
+    background: linear-gradient(135deg, hsl(0 93% 38%) 0%, hsl(16 100% 50%) 100%);
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(271 81% 56%) 100%);
+    background: linear-gradient(135deg, hsl(0 93% 38%) 0%, hsl(16 100% 50%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+
+
 }

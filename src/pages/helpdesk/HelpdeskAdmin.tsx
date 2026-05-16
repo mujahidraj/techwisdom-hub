@@ -13,55 +13,102 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Monitor, AlertTriangle, Search, Filter, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, Globe } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function HelpdeskAdmin() {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { sendNotification } = useNotifications();
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [resolutionNote, setResolutionNote] = useState('');
   const [newStatus, setNewStatus] = useState('open');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('internal');
 
   // Fetch all tickets with user profiles
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ['admin-tickets'],
     queryFn: async () => {
-      // Get tickets
-      const { data, error } = await supabase
+      // Get internal IT tickets
+      const { data: itData, error: itError } = await supabase
         .from('it_tickets')
-        .select(`
-          *,
-          user:user_id ( id )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (itError) throw itError;
 
-      // Get profiles to match
+      // Get client tickets
+      const { data: clientData, error: clientError } = await supabase
+        .from('client_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (clientError) throw clientError;
+
+      // Get profiles to match internal tickets
       const { data: profiles } = await supabase.from('profiles').select('user_id, full_name, email');
       
-      // Combine them
-      return data.map(t => {
+      // Get clients to match external tickets
+      const { data: clients } = await supabase.from('profiles').select('user_id, full_name, email');
+
+      const internalTickets = itData.map(t => {
         const profile = profiles?.find(p => p.user_id === t.user_id);
         return {
           ...t,
-          author_name: profile?.full_name || profile?.email || 'Unknown User'
+          source: 'internal',
+          reporter_id: t.user_id,
+          author_name: profile?.full_name || profile?.email || 'Unknown Employee'
         };
       });
+
+      const externalTickets = clientData.map(t => {
+        const client = clients?.find(c => c.user_id === t.client_id);
+        return {
+          ...t,
+          source: 'client',
+          reporter_id: t.client_id,
+          category: 'other', // Add a default category for client tickets to satisfy types
+          author_name: client?.full_name || client?.email || 'Unknown Client'
+        };
+      });
+
+      return [...internalTickets, ...externalTickets];
     }
   });
 
   const updateTicketMutation = useMutation({
-    mutationFn: async (payload: { id: string, status: "open" | "in_progress" | "resolved" | "closed", notes: string }) => {
+    mutationFn: async (payload: { id: string, status: "open" | "in_progress" | "resolved" | "closed", notes: string, source: 'internal' | 'client' }) => {
+      const table = payload.source === 'internal' ? 'it_tickets' : 'client_tickets';
+      
+      let updateData: any = {
+        status: payload.status,
+        resolution_notes: payload.notes,
+      };
+
+      if (payload.source === 'internal') {
+        updateData.resolved_by = (payload.status === 'resolved' || payload.status === 'closed') ? user?.id : null;
+      }
+      
       const { error } = await supabase
-        .from('it_tickets')
-        .update({
-          status: payload.status,
-          resolution_notes: payload.notes,
-          resolved_by: payload.status === 'resolved' || payload.status === 'closed' ? user?.id : null
-        })
+        .from(table as any)
+        .update(updateData)
         .eq('id', payload.id);
+      
       if (error) throw error;
+
+      // Send notification to the reporter
+      const ticket = tickets.find(t => t.id === payload.id);
+      if (ticket) {
+        sendNotification({
+          userId: ticket.reporter_id,
+          title: 'Support Ticket Update',
+          message: `Your ticket "${ticket.title}" status has been updated to ${payload.status.replace('_', ' ')}.`,
+          type: payload.status === 'resolved' ? 'success' : 'info',
+          actionLink: payload.source === 'internal' ? '/employee-portal' : '/client-portal'
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-tickets'] });
@@ -95,93 +142,50 @@ export default function HelpdeskAdmin() {
           <p className="text-muted-foreground mt-1">Manage, assign, and resolve internal employee support tickets.</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
-          <Card>
+        <div className="grid md:grid-cols-4 gap-4">
+          <Card className="glass-card">
             <CardContent className="p-6">
-              <p className="text-sm font-medium text-muted-foreground">Open Tickets</p>
-              <h3 className="text-2xl font-bold mt-1">{openTicketsCount}</h3>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Internal Open</p>
+              <h3 className="text-2xl font-bold mt-1">{tickets.filter(t => t.source === 'internal' && t.status === 'open').length}</h3>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-card">
             <CardContent className="p-6">
-              <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-              <h3 className="text-2xl font-bold mt-1 text-primary">{inProgressCount}</h3>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Client Open</p>
+              <h3 className="text-2xl font-bold mt-1 text-primary">{tickets.filter(t => t.source === 'client' && t.status === 'open').length}</h3>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-card">
             <CardContent className="p-6">
-              <p className="text-sm font-medium text-muted-foreground">Urgent Actions Needed</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Active</p>
+              <h3 className="text-2xl font-bold mt-1 text-orange-600">{tickets.filter(t => t.status !== 'closed' && t.status !== 'resolved').length}</h3>
+            </CardContent>
+          </Card>
+          <Card className="glass-card">
+            <CardContent className="p-6">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Urgent</p>
               <h3 className="text-2xl font-bold mt-1 text-destructive">{urgentCount}</h3>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Support Queue</CardTitle>
-              <CardDescription>All incoming requests from the team</CardDescription>
-            </div>
-            <div className="flex gap-2 items-center w-64">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tickets</SelectItem>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {filteredTickets.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground border rounded-lg border-dashed">
-                <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                <p>No tickets found matching this filter.</p>
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <div className="grid grid-cols-12 p-4 text-sm font-medium text-muted-foreground border-b bg-muted/50">
-                  <div className="col-span-4">Ticket</div>
-                  <div className="col-span-3">Reporter</div>
-                  <div className="col-span-2">Priority</div>
-                  <div className="col-span-2">Status</div>
-                  <div className="col-span-1 text-right">Action</div>
-                </div>
-                <div className="divide-y">
-                  {filteredTickets.map(ticket => (
-                    <div key={ticket.id} className="grid grid-cols-12 p-4 items-center hover:bg-muted/30 transition-colors">
-                      <div className="col-span-4 pr-4">
-                        <p className="font-medium text-sm truncate">{ticket.title}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{ticket.category} • {format(new Date(ticket.created_at), 'MMM d, yyyy')}</p>
-                      </div>
-                      <div className="col-span-3">
-                        <p className="text-sm truncate">{ticket.author_name}</p>
-                      </div>
-                      <div className="col-span-2">
-                        {ticket.priority === 'urgent' && <Badge variant="destructive" className="h-5 px-1.5"><AlertTriangle className="h-3 w-3 mr-1"/> Urgent</Badge>}
-                        {ticket.priority === 'high' && <Badge variant="destructive" className="h-5 px-1.5">High</Badge>}
-                        {ticket.priority === 'medium' && <Badge variant="secondary" className="h-5 px-1.5">Medium</Badge>}
-                        {ticket.priority === 'low' && <Badge variant="outline" className="h-5 px-1.5">Low</Badge>}
-                      </div>
-                      <div className="col-span-2">
-                        <Badge variant="outline" className={`capitalize ${ticket.status === 'resolved' ? 'border-success text-success' : ''}`}>
-                          {ticket.status.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                      <div className="col-span-1 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleOpenManage(ticket)}>Manage</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="internal" className="flex items-center gap-2">
+              <Users className="h-4 w-4" /> Internal (Employee)
+            </TabsTrigger>
+            <TabsTrigger value="client" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" /> External (Client)
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="internal" className="space-y-4">
+            {renderTicketQueue('internal')}
+          </TabsContent>
+          <TabsContent value="client" className="space-y-4">
+            {renderTicketQueue('client')}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={!!selectedTicket} onOpenChange={o => !o && setSelectedTicket(null)}>
@@ -224,10 +228,101 @@ export default function HelpdeskAdmin() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelectedTicket(null)}>Cancel</Button>
-            <Button className="gradient-primary" onClick={() => updateTicketMutation.mutate({ id: selectedTicket.id, status: newStatus as any, notes: resolutionNote })} disabled={updateTicketMutation.isPending}>Save Changes</Button>
+            <Button 
+              className="gradient-primary" 
+              onClick={() => updateTicketMutation.mutate({ 
+                id: selectedTicket.id, 
+                status: newStatus as any, 
+                notes: resolutionNote,
+                source: selectedTicket.source 
+              })} 
+              disabled={updateTicketMutation.isPending}
+            >
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
   );
+
+  function renderTicketQueue(source: 'internal' | 'client') {
+    const queueTickets = tickets.filter(t => t.source === source && (statusFilter === 'all' ? true : t.status === statusFilter));
+
+    return (
+      <Card className="glass-card">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>{source === 'internal' ? 'Internal Employee Tickets' : 'External Client Tickets'}</CardTitle>
+            <CardDescription>
+              {source === 'internal' ? 'Manage requests from your team' : 'Support requests from your clients'}
+            </CardDescription>
+          </div>
+          <div className="flex gap-2 items-center w-48">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tickets</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {queueTickets.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground border rounded-lg border-dashed">
+              <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-20" />
+              <p>No {source} tickets found matching this filter.</p>
+            </div>
+          ) : (
+            <div className="rounded-md border overflow-hidden">
+              <div className="grid grid-cols-12 p-4 text-sm font-bold text-muted-foreground border-b bg-muted/30">
+                <div className="col-span-4">Ticket</div>
+                <div className="col-span-3">Reporter</div>
+                <div className="col-span-2">Priority</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-1 text-right">Action</div>
+              </div>
+              <div className="divide-y">
+                {queueTickets.map(ticket => (
+                  <div key={ticket.id} className="grid grid-cols-12 p-4 items-center hover:bg-muted/30 transition-colors group">
+                    <div className="col-span-4 pr-4">
+                      <p className="font-bold text-sm truncate group-hover:text-primary transition-colors">{ticket.title}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        {source === 'internal' ? <Users className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
+                        {ticket.category || 'General Support'} • {format(new Date(ticket.created_at), 'MMM d, yyyy')}
+                      </p>
+                    </div>
+                    <div className="col-span-3">
+                      <p className="text-sm font-medium">{ticket.author_name}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="flex">
+                        {ticket.priority === 'urgent' && <Badge className="bg-red-600 hover:bg-red-700 h-5 px-1.5"><AlertTriangle className="h-3 w-3 mr-1 animate-pulse"/> Urgent</Badge>}
+                        {ticket.priority === 'high' && <Badge className="bg-orange-500 hover:bg-orange-600 h-5 px-1.5">High</Badge>}
+                        {ticket.priority === 'medium' && <Badge variant="secondary" className="h-5 px-1.5 text-blue-700 bg-blue-50">Medium</Badge>}
+                        {ticket.priority === 'low' && <Badge variant="outline" className="h-5 px-1.5 border-slate-300">Low</Badge>}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <Badge variant="outline" className={`capitalize font-bold ${ticket.status === 'resolved' ? 'border-success text-success bg-success/5' : ticket.status === 'open' ? 'border-primary text-primary bg-primary/5' : ''}`}>
+                        {ticket.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <Button variant="ghost" size="sm" className="font-bold hover:bg-primary hover:text-white" onClick={() => handleOpenManage(ticket)}>Manage</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 }

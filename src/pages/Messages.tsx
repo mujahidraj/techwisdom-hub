@@ -9,13 +9,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Send, Paperclip, Smile, Search, Phone, Video,
   Reply, X, FileText, Loader2, Trash2, Pencil, Hash,
-  MoreHorizontal, ChevronLeft, SmilePlus
+  MoreHorizontal, ChevronLeft, SmilePlus, AlertTriangle
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '@/hooks/useNotifications';
 import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 
 const CLOUDINARY_CLOUD_NAME = "dljiukpd4";
@@ -27,6 +28,7 @@ const GENERAL_CHAT = { id: 'general', full_name: 'General Feed', avatar_url: nul
 export default function Messages() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const { sendNotification } = useNotifications();
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -45,6 +47,27 @@ export default function Messages() {
   const [isUploading, setIsUploading] = useState(false);
   const [editingMessage, setEditingMessage] = useState<any>(null);
   const [editText, setEditText] = useState('');
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase.channel('online-team-presence', {
+      config: { presence: { key: user.id } }
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        setOnlineUsers(Object.keys(state));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
 
   const [reactingTo, setReactingTo] = useState<string | null>(null);
 
@@ -54,14 +77,13 @@ export default function Messages() {
     queryFn: async () => {
       const { data: rolesData } = await supabase.from('user_roles').select('user_id').in('role', ['admin', 'employee']);
       const validUserIds = rolesData?.map(r => r.user_id) || [];
-      
+
       if (validUserIds.length === 0) return [];
 
       const { data: profiles } = await supabase.from('profiles')
         .select('id, full_name, avatar_url')
-        .neq('id', user?.id)
         .in('id', validUserIds);
-        
+
       const usersWithCounts = await Promise.all((profiles || []).map(async (profile) => {
         const { count } = await supabase
           .from('team_messages')
@@ -107,6 +129,8 @@ export default function Messages() {
     markAsRead();
   }, [messages, activeChat, user?.id, queryClient]);
 
+
+
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase.channel('team_chat_final_v4')
@@ -128,6 +152,7 @@ export default function Messages() {
       sender_id: user?.id, receiver_id: targetId,
       content: messageText, reply_to: replyTo?.id || null, seen_by: [user?.id]
     });
+
     setMessageText(''); setReplyTo(null); setShowEmoji(false);
   };
 
@@ -185,9 +210,22 @@ export default function Messages() {
               <Input placeholder="Search..." className="pl-8 bg-white border-slate-200 rounded-lg h-8 text-[11px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
             </div>
 
-            <button onClick={() => setActiveChat(GENERAL_CHAT)} className={`w-full flex items-center gap-2 p-2 rounded-lg transition-all duration-200 ${activeChat?.id === 'general' ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'bg-primary text-white shadow-md'}`}>
-              <Hash className={`h-4 w-4 ${activeChat?.id === 'general' ? 'text-slate-500' : 'text-white'}`} />
-              <span className={`font-bold text-xs ${activeChat?.id === 'general' ? 'text-slate-700' : 'text-white'}`}>General Feed</span>
+            <button 
+              onClick={() => setActiveChat(GENERAL_CHAT)} 
+              className={`w-full flex items-center gap-2 p-2.5 rounded-xl transition-all duration-300 ${
+                activeChat?.id === 'general' 
+                ? 'bg-gradient-to-r from-[#C00707] to-[#FF4400] text-white shadow-lg shadow-red-200 scale-[1.02]' 
+                : 'hover:bg-red-50 text-slate-600'
+              }`}
+            >
+              <div className={`h-7 w-7 rounded-lg overflow-hidden flex items-center justify-center ${activeChat?.id === 'general' ? 'bg-white/20' : 'bg-red-50'}`}>
+                <img 
+                  src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=100&h=100" 
+                  alt="TechWisdom" 
+                  className="h-full w-full object-cover opacity-90"
+                />
+              </div>
+              <span className="font-black text-xs tracking-tight">General Feed</span>
             </button>
           </div>
 
@@ -195,13 +233,28 @@ export default function Messages() {
             <p className="px-3 mb-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">People</p>
             <div className="space-y-1">
               {users.filter(u => u.full_name.toLowerCase().includes(searchQuery.toLowerCase())).map((u: any) => (
-                <button key={u.id} onClick={() => setActiveChat(u)} className={`w-full flex items-center justify-between p-2 rounded-lg transition-all ${activeChat?.id === u.id ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-slate-200/50'}`}>
-                  <div className="flex items-center gap-2">
+                <button 
+                  key={u.id} 
+                  onClick={() => setActiveChat(u)} 
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all duration-300 ${
+                    activeChat?.id === u.id 
+                    ? 'bg-[#134E8E] text-white shadow-lg shadow-blue-200 scale-[1.02]' 
+                    : 'hover:bg-blue-50 text-slate-600'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
                     <div className="relative">
-                      <Avatar className="h-8 w-8 border border-white"><AvatarImage src={u.avatar_url} /><AvatarFallback className="text-[10px]">{u.full_name?.charAt(0)}</AvatarFallback></Avatar>
-                      <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-green-500 border-2 border-[#f8f9fa] rounded-full" />
+                      <Avatar className={`h-8 w-8 border-2 ${activeChat?.id === u.id ? 'border-white/30' : 'border-white'}`}>
+                        <AvatarImage src={u.avatar_url} />
+                        <AvatarFallback className={`${activeChat?.id === u.id ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700'} text-[10px] font-black`}>
+                          {u.full_name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 border-2 ${activeChat?.id === u.id ? 'border-[#134E8E]' : 'border-[#f8f9fa]'} rounded-full ${onlineUsers.includes(u.id) ? 'bg-green-400' : 'bg-slate-300'}`} />
                     </div>
-                    <p className={`font-bold text-xs truncate w-24 ${activeChat?.id === u.id ? 'text-slate-900' : 'text-slate-600'}`}>{u.full_name}</p>
+                    <p className={`font-black text-xs tracking-tight truncate w-24 ${activeChat?.id === u.id ? 'text-white' : 'text-slate-700'}`}>
+                      {u.full_name}
+                    </p>
                   </div>
                   {u.unread_count > 0 && activeChat?.id !== u.id && (
                     <div className="bg-red-500 text-white text-[9px] font-black h-4 w-4 flex items-center justify-center rounded-full animate-pulse shadow-sm">
@@ -227,11 +280,32 @@ export default function Messages() {
                 <ChevronLeft className="h-5 w-5" />
               </Button>
 
-              <Avatar className="h-8 w-8 border border-slate-100"><AvatarImage src={activeChat?.avatar_url} /><AvatarFallback className="bg-primary/5 text-primary text-[10px]">#</AvatarFallback></Avatar>
-              <div>
-                <h3 className="font-bold text-slate-900 text-xs">{activeChat ? activeChat.full_name : 'Team General'}</h3>
-                <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest">Active Now</p>
+              <div className="relative">
+                <Avatar className={`h-9 w-9 border-2 ${activeChat?.id === 'general' ? 'border-red-200' : 'border-blue-200'}`}>
+                  {activeChat?.id === 'general' ? (
+                    <AvatarImage src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=100&h=100" className="object-cover" />
+                  ) : (
+                    <AvatarImage src={activeChat?.avatar_url} />
+                  )}
+                  <AvatarFallback className={`${activeChat?.id === 'general' ? 'bg-gradient-to-br from-[#C00707] to-[#FF4400] text-white' : 'bg-[#134E8E] text-white'} text-xs font-black`}>
+                    {activeChat?.id === 'general' ? 'TW' : activeChat?.full_name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
               </div>
+                <h3 className={`font-black text-xs tracking-tight ${activeChat?.id === 'general' ? 'text-red-900' : 'text-blue-900'}`}>
+                  {activeChat ? activeChat.full_name : 'TechWisdom Feed'}
+                </h3>
+                {activeChat?.id !== 'general' && (
+                  <p className={`text-[9px] font-black uppercase tracking-widest ${onlineUsers.includes(activeChat?.id) ? 'text-blue-500' : 'text-slate-400'}`}>
+                    {onlineUsers.includes(activeChat?.id) ? 'Active Now' : 'Offline'}
+                  </p>
+                )}
+                {activeChat?.id === 'general' && (
+                  <p className="text-[9px] text-red-600 font-black uppercase tracking-widest flex items-center gap-1">
+                    <span className="h-1 w-1 bg-red-600 rounded-full animate-pulse" />
+                    TechWisdom Network
+                  </p>
+                )}
             </div>
             <div className="flex gap-1">
               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-8 w-8" onClick={() => navigate('/meeting')}><Phone className="h-4 w-4" /></Button>
@@ -276,8 +350,8 @@ export default function Messages() {
                       {/* MESSAGE TEXT BUBBLE - FIXED CLIPPING */}
                       {/* break-all forces long words to break. break-words handles normal text. */}
                       <div className={`px-3 py-2 rounded-xl transition-all shadow-sm break-words break-all whitespace-pre-wrap relative ${isMe
-                          ? 'bg-primary text-white rounded-tr-none shadow-primary/10'
-                          : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
+                        ? 'bg-primary text-white rounded-tr-none shadow-primary/10'
+                        : 'bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm'
                         }`}>
                         {isEditing ? (
                           <div className="flex flex-col gap-2 min-w-[200px]">

@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   MessageSquare,
   Send,
@@ -19,6 +20,7 @@ import {
   CheckCheck,
   Circle,
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Message = Tables<'client_messages'>;
@@ -33,8 +35,10 @@ interface ProjectWithMessages {
 
 export default function Messaging() {
   const { user, role } = useAuth();
+  const { sendNotification } = useNotifications();
   const queryClient = useQueryClient();
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selectedProject, setSelectedProject] = useState<string | null>(searchParams.get('projectId'));
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -91,12 +95,17 @@ export default function Messaging() {
   // Mark messages as read
   const markReadMutation = useMutation({
     mutationFn: async (projectId: string) => {
-      const { error } = await supabase
+      // Mark messages as read in database
+      await supabase
         .from('client_messages')
         .update({ is_read: true })
-        .eq('project_id', projectId)
-        .neq('sender_id', user?.id);
-      if (error) throw error;
+        .eq('project_id', projectId);
+      
+      // Global Notification Sync: Mark these specific notifications as read for ALL admins
+      await supabase.from('app_notifications')
+        .update({ is_read: true })
+        .eq('title', 'New Client Message')
+        .eq('action_link', `/messages?projectId=${projectId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messaging-projects'] });
@@ -119,12 +128,32 @@ export default function Messaging() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', selectedProject] });
       queryClient.invalidateQueries({ queryKey: ['messaging-projects'] });
+      
+      // Notify the client
+      if (selectedProjectData?.client_id) {
+        sendNotification({
+          userId: selectedProjectData.client_id,
+          title: 'New Message from Team',
+          message: `You have a new message regarding project: ${selectedProjectData.project_name}`,
+          type: 'info',
+          actionLink: '/client-portal'
+        });
+      }
+      
       setNewMessage('');
     },
     onError: (error) => {
       toast.error('Failed to send message: ' + error.message);
     },
   });
+
+  // Auto-select from URL if it changes
+  useEffect(() => {
+    const urlProjectId = searchParams.get('projectId');
+    if (urlProjectId) {
+      setSelectedProject(urlProjectId);
+    }
+  }, [searchParams]);
 
   // Mark as read when selecting project
   useEffect(() => {
@@ -268,19 +297,23 @@ export default function Messaging() {
                     ) : (
                       <div className="space-y-4">
                         {messages.map((msg) => {
+                          const isClient = msg.sender_id === selectedProjectData?.client_id;
                           const isMine = msg.sender_id === user?.id;
                           return (
                             <div
                               key={msg.id}
-                              className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                              className={`flex ${!isClient ? 'justify-end' : 'justify-start'}`}
                             >
                               <div
                                 className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                                  isMine
+                                  !isClient
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-muted'
                                 }`}
                               >
+                                {!isClient && !isMine && (
+                                  <p className="text-[10px] font-bold opacity-70 mb-1 uppercase tracking-tighter">Team Member</p>
+                                )}
                                 <p className="text-sm">{msg.message}</p>
                                 <div className={`flex items-center gap-1 mt-1 ${isMine ? 'justify-end' : ''}`}>
                                   <span className="text-xs opacity-70">

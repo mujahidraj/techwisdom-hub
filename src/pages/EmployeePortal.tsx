@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import logo from '@/assets/techwisdom.png';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +75,7 @@ export default function EmployeePortal() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, role, signOut, loading } = useAuth();
+  const { sendNotification } = useNotifications();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ full_name: '', phone: '' });
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
@@ -210,6 +213,12 @@ export default function EmployeePortal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['it-tickets'] });
+      sendNotification({
+        title: 'New IT Support Ticket',
+        message: `${profile?.full_name || 'An employee'} submitted a new IT ticket: ${ticketData.title}`,
+        type: 'warning',
+        actionLink: `/helpdesk`
+      });
       toast.success('Support ticket submitted!');
       setTicketDialogOpen(false);
       setTicketData({ title: '', description: '', category: 'software', priority: 'medium' });
@@ -248,6 +257,12 @@ export default function EmployeePortal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employee-profile'] });
+      sendNotification({
+        title: 'Profile Updated',
+        message: `${profile?.full_name || 'An employee'} has updated their profile information.`,
+        type: 'info',
+        actionLink: `/team`
+      });
       toast.success('Profile updated successfully');
       setIsEditing(false);
     },
@@ -315,6 +330,7 @@ export default function EmployeePortal() {
               </Button>
             </div>
             <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
+            <NotificationBell />
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
