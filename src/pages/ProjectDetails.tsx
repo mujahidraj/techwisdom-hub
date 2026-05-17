@@ -31,6 +31,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityLog } from '@/hooks/useActivityLog';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const STAGES = [
   'discovery', 'requirement', 'strategy', 'design',
@@ -43,6 +44,7 @@ export default function ProjectDetails() {
   const queryClient = useQueryClient();
   const { user, role } = useAuth();
   const { logActivity, logSecurity } = useActivityLog();
+  const { sendNotification } = useNotifications();
 
   // States
   const [noteInput, setNoteInput] = useState('');
@@ -388,7 +390,16 @@ export default function ProjectDetails() {
 
       if (dbError) throw dbError;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (project?.client_id) {
+        await sendNotification({
+          userId: project.client_id,
+          title: '📦 New Deliverable Uploaded',
+          message: `A new deliverable "${selectedFile?.name || 'Asset'}" has been uploaded for your project "${project.project_name}".`,
+          type: 'success',
+          actionLink: `/client-portal?project=${id}&tab=deliverables`
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['project_deliverables'] });
       setSelectedFile(null);
       setUploading(false);
@@ -404,7 +415,16 @@ export default function ProjectDetails() {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (project?.client_id) {
+        await sendNotification({
+          userId: project.client_id,
+          title: '⚖️ Approval Requested',
+          message: `Your approval is requested for "${approvalTitle}" under project "${project.project_name}".`,
+          type: 'warning',
+          actionLink: `/client-portal?project=${id}&tab=approvals`
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['project_approvals'] });
       setApprovalTitle(''); setApprovalDesc(''); setApprovalUrl('');
       toast.success("Approval requested from client.");

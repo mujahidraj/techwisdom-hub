@@ -62,18 +62,35 @@ export default function Notes() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
-  const { data: notes = [], isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['notes', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: notesData, error: notesError } = await supabase
         .from('notes')
         .select('*')
         .order('updated_at', { ascending: false });
-      if (error) throw error;
-      return data as Note[];
+      if (notesError) throw notesError;
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email');
+      if (profilesError) throw profilesError;
+
+      const profilesMap = new Map<string, { full_name: string | null; email: string | null }>();
+      profilesData?.forEach((p) => {
+        profilesMap.set(p.user_id, { full_name: p.full_name, email: p.email });
+      });
+
+      return {
+        notes: notesData as Note[],
+        profilesMap,
+      };
     },
     enabled: !!user?.id,
   });
+
+  const notes = data?.notes || [];
+  const profilesMap = data?.profilesMap || new Map();
 
   const createMutation = useMutation({
     mutationFn: async ({ title, content }: { title: string; content: string }) => {
@@ -240,7 +257,10 @@ export default function Notes() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {filteredNotes.map((note) => (
+                {filteredNotes.map((note) => {
+                  const profile = profilesMap.get(note.user_id);
+                  const ownerName = profile?.full_name || profile?.email || 'System';
+                  return (
                   <Card
                     key={note.id}
                     className={`cursor-pointer transition-all duration-200 border-border/40 hover:shadow-md relative overflow-hidden group ${
@@ -261,9 +281,13 @@ export default function Notes() {
                           <p className="font-bold text-xs text-slate-900 dark:text-white truncate">
                             {note.title}
                           </p>
-                          <div className="flex items-center gap-1 mt-1 text-[9px] text-muted-foreground font-semibold">
-                            <Calendar className="h-3 w-3" />
-                            <span>{format(new Date(note.updated_at), 'MMM d, yyyy')}</span>
+                          <div className="flex items-center gap-1.5 mt-1 text-[9px] text-muted-foreground font-semibold flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(new Date(note.updated_at), 'MMM d, yyyy')}
+                            </span>
+                            <span>•</span>
+                            <span>Owner: {ownerName}</span>
                           </div>
                         </div>
 
@@ -287,7 +311,7 @@ export default function Notes() {
                       )}
                     </CardContent>
                   </Card>
-                ))}
+                )})}
               </div>
             )}
           </div>
@@ -340,8 +364,8 @@ export default function Notes() {
                 </CardHeader>
                 
                 <CardContent className="p-5 flex-1 flex flex-col bg-white/30 dark:bg-slate-900/10">
-                  <div className="flex justify-between items-center text-[10px] text-muted-foreground font-semibold mb-2.5">
-                    <span>Repository Text Editor</span>
+                  <div className="flex justify-between items-center text-[10px] text-muted-foreground font-semibold mb-2.5 flex-wrap gap-2">
+                    <span>Repository Text Editor (Owner: {profilesMap.get(selectedNote.user_id)?.full_name || profilesMap.get(selectedNote.user_id)?.email || 'System'})</span>
                     <span>Last updated: {format(new Date(selectedNote.updated_at), 'MMM d, yyyy • h:mm a')}</span>
                   </div>
                   <Textarea

@@ -28,7 +28,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import {
   Plus, GripVertical, Calendar, Loader2, Flag, LayoutGrid,
-  CheckCircle2, Clock, PlayCircle, Eye, MoreVertical, Edit, Trash2
+  CheckCircle2, Clock, PlayCircle, Eye, MoreVertical, Edit, Trash2,
+  FileText
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -50,7 +51,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 // --- Droppable Column Component ---
-function KanbanColumn({ column, tasks, onEdit, onDelete }: { column: typeof COLUMNS[0]; tasks: any[]; onEdit: (t: any) => void; onDelete: (id: string) => void }) {
+function KanbanColumn({ column, tasks, onEdit, onDelete, onView }: { column: typeof COLUMNS[0]; tasks: any[]; onEdit: (t: any) => void; onDelete: (id: string) => void; onView: (t: any) => void }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const Icon = column.icon;
 
@@ -71,7 +72,7 @@ function KanbanColumn({ column, tasks, onEdit, onDelete }: { column: typeof COLU
       <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[calc(100vh-280px)] sidebar-scroll">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
-            <SortableTaskCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} />
+            <SortableTaskCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} onView={onView} />
           ))}
         </SortableContext>
         {tasks.length === 0 && (
@@ -85,7 +86,7 @@ function KanbanColumn({ column, tasks, onEdit, onDelete }: { column: typeof COLU
 }
 
 // --- Sortable Task Card ---
-function SortableTaskCard({ task, onEdit, onDelete }: { task: any; onEdit: (t: any) => void; onDelete: (id: string) => void }) {
+function SortableTaskCard({ task, onEdit, onDelete, onView }: { task: any; onEdit: (t: any) => void; onDelete: (id: string) => void; onView: (t: any) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { task },
@@ -113,23 +114,24 @@ function SortableTaskCard({ task, onEdit, onDelete }: { task: any; onEdit: (t: a
           <div {...attributes} {...listeners} className="mt-1 opacity-0 group-hover:opacity-60 transition-opacity cursor-grab">
             <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onView(task)}>
             <div className="flex items-start justify-between gap-1">
-              <p className="text-sm font-semibold leading-snug line-clamp-2">{task.title}</p>
+              <p className="text-sm font-semibold leading-snug line-clamp-2 hover:text-primary transition-colors">{task.title}</p>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={(e) => e.stopPropagation()}>
                     <MoreVertical className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-36">
-                  <DropdownMenuItem onClick={() => onEdit(task)}><Edit className="h-3.5 w-3.5 mr-2" />Edit</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(task); }}><Eye className="h-3.5 w-3.5 mr-2" />View Details</DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(task); }}><Edit className="h-3.5 w-3.5 mr-2" />Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(task.id); }} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             {task.description && (
-              <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">{task.description}</p>
             )}
             <div className="flex items-center gap-2 mt-2.5 flex-wrap">
               <div className="flex items-center gap-1">
@@ -173,6 +175,7 @@ export default function TaskKanban() {
   const { logActivity, logSecurity } = useActivityLog();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
+  const [viewingTask, setViewingTask] = useState<any>(null);
   const [activeTask, setActiveTask] = useState<any>(null);
   const [form, setForm] = useState({ title: '', description: '', priority: 'medium', due_date: '', status: 'todo', assigned_to_name: '' });
 
@@ -393,6 +396,7 @@ export default function TaskKanban() {
                 tasks={tasksByColumn[col.id] || []}
                 onEdit={openEdit}
                 onDelete={(id) => deleteMutation.mutate(id)}
+                onView={setViewingTask}
               />
             ))}
           </div>
@@ -458,6 +462,112 @@ export default function TaskKanban() {
               {editingTask ? 'Save' : 'Create'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Task Details Dialog */}
+      <Dialog open={!!viewingTask} onOpenChange={(o) => !o && setViewingTask(null)}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border border-border/80 dark:border-slate-800 shadow-2xl rounded-2xl bg-white dark:bg-slate-950">
+          {/* Header Banner */}
+          <div className="relative p-6 pb-4 bg-gradient-to-r from-primary/5 via-violet-500/5 to-transparent border-b border-border/40">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <Badge variant="outline" className="px-2.5 py-1 bg-background/80 backdrop-blur-sm border-border capitalize text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm">
+                <span className={`h-2 w-2 rounded-full ${viewingTask?.status === 'completed' ? 'bg-emerald-500' :
+                  viewingTask?.status === 'review' ? 'bg-amber-500' :
+                    viewingTask?.status === 'in_progress' ? 'bg-blue-500' : 'bg-slate-400'
+                  }`} />
+                {COLUMNS.find(c => c.id === viewingTask?.status)?.title || viewingTask?.status}
+              </Badge>
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white ${viewingTask?.priority === 'high' ? 'bg-red-500 shadow-red-500/20' :
+                  viewingTask?.priority === 'medium' ? 'bg-amber-500 shadow-amber-500/20' : 'bg-blue-400 shadow-blue-400/20'
+                  } shadow-sm`}>
+                  {viewingTask?.priority} Priority
+                </span>
+              </div>
+            </div>
+            <DialogTitle className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-snug mt-2 whitespace-pre-wrap break-words pr-2">
+              {viewingTask?.title}
+            </DialogTitle>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Description Card */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5 text-primary/70" />
+                Task Description
+              </h4>
+              {viewingTask?.description ? (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-l-4 border-l-primary/50 border-border rounded-r-xl text-sm leading-relaxed text-slate-800 dark:text-slate-100 whitespace-pre-wrap break-words max-h-60 overflow-y-auto sidebar-scroll shadow-sm w-full overflow-x-hidden">
+                  {viewingTask.description}
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-l-4 border-l-slate-300 dark:border-l-slate-800 border-border rounded-r-xl text-sm text-slate-400 dark:text-slate-500 italic shadow-sm w-full">
+                  No description provided for this task.
+                </div>
+              )}
+            </div>
+
+            {/* Metadata Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border/30">
+              {/* Due Date Card */}
+              <div className="p-3 bg-muted/20 dark:bg-slate-900/30 border border-border/40 rounded-xl flex items-center gap-3">
+                <div className="p-2.5 bg-primary/10 rounded-lg text-primary">
+                  <Calendar className="h-4.5 w-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase block">Due Date</span>
+                  {viewingTask?.due_date ? (
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate mt-0.5">
+                      {format(new Date(viewingTask.due_date), 'PPP, p')}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400 dark:text-slate-500 italic block mt-0.5">No deadline set</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Assignee Card */}
+              <div className="p-3 bg-muted/20 dark:bg-slate-900/30 border border-border/40 rounded-xl flex items-center gap-3">
+                {viewingTask?.assigned_to_name ? (
+                  <>
+                    <div className="h-9 w-9 rounded-lg gradient-primary flex items-center justify-center text-xs font-bold text-white shadow-sm shrink-0">
+                      {viewingTask.assigned_to_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase block">Assigned To</span>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate mt-0.5">{viewingTask.assigned_to_name}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-600 shrink-0 border border-dashed border-slate-200 dark:border-slate-700">
+                      ?
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase block">Assigned To</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500 italic block mt-0.5">Unassigned</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Footer */}
+          <div className="p-4 bg-muted/10 dark:bg-slate-950/20 border-t border-border/40 flex flex-col-reverse sm:flex-row items-center justify-end gap-2">
+            <Button variant="outline" className="w-full sm:w-auto font-semibold" onClick={() => setViewingTask(null)}>
+              Close
+            </Button>
+            <Button className="gradient-primary w-full sm:w-auto font-semibold shadow-md shadow-primary/10" onClick={() => {
+              const t = viewingTask;
+              setViewingTask(null);
+              openEdit(t);
+            }}>
+              <Edit className="h-4 w-4 mr-2" /> Edit Task
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

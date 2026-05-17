@@ -217,7 +217,19 @@ export default function HelpdeskAdmin() {
                 </div>
               </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="mb-1 block">Status</Label>
+                  <Select value={newStatus} onValueChange={setNewStatus}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <Label className="mb-1 block">Priority</Label>
                   <Select value={newPriority} onValueChange={setNewPriority}>
@@ -230,7 +242,7 @@ export default function HelpdeskAdmin() {
                     </SelectContent>
                   </Select>
                 </div>
-                {selectedTicket.source === 'internal' && (
+                {selectedTicket.source === 'internal' ? (
                   <div>
                     <Label className="mb-1 block">Category</Label>
                     <Select value={newCategory} onValueChange={setNewCategory}>
@@ -243,6 +255,8 @@ export default function HelpdeskAdmin() {
                       </SelectContent>
                     </Select>
                   </div>
+                ) : (
+                  <div className="hidden md:block" />
                 )}
               </div>
 

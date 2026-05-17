@@ -67,7 +67,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </Button>
             </header>
           )}
-          <main className="flex-1 p-6 overflow-auto relative">
+          <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden relative">
             {children}
           </main>
           {role === 'admin' && <AIChatButton />}

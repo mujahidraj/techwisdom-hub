@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +21,7 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -83,7 +85,7 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isSortableDragging ? 0.5 : 1,
+    opacity: isSortableDragging ? 0.4 : 1,
   };
 
   const navigate = useNavigate();
@@ -93,63 +95,73 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
       ref={setNodeRef}
       style={style}
       onClick={() => navigate(`/crm/${lead.id}`)}
-      className={`glass-card cursor-grab hover:shadow-medium transition-shadow group ${
-        isDragging ? 'shadow-lg ring-2 ring-primary' : ''
+      className={`bg-white border border-slate-100 hover:border-orange-500/20 hover:shadow-md hover:shadow-slate-100/40 cursor-pointer transition-all rounded-2xl group overflow-hidden flex min-h-[110px] ${
+        isDragging ? 'shadow-lg ring-2 ring-orange-500/35 border-orange-500/30' : ''
       }`}
     >
-      <CardContent  className="p-3 space-y-2">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-            </div>
-            
-            <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                #{(lead as any).sl_no || lead.id.slice(0,4)}
-            </span>
+      {/* Left Grip Handle Strip: Highly grabable full-height DND trigger */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="w-8 shrink-0 bg-slate-50/80 group-hover:bg-orange-50/40 border-r border-slate-100/80 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-slate-350 hover:text-slate-550 transition-colors"
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent card navigation click when grabbing
+        }}
+      >
+        <GripVertical className="h-4 w-4" />
+      </div>
 
-            <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="font-medium text-sm truncate">{lead.business_name}</span>
-          </div>
+      {/* Right Content Area */}
+      <div className="flex-1 p-3.5 space-y-2 min-w-0">
+        
+        {/* Top Header Row */}
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <span className="text-[9px] font-black tracking-widest text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 shrink-0">
+            #{(lead as any).sl_no || lead.id.slice(0, 4)}
+          </span>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
+                className="h-6 w-6 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-50 opacity-0 group-hover:opacity-100 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation(); // Stop card navigation click
+                }}
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(lead); }}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+            <DropdownMenuContent align="end" className="rounded-xl border-slate-100 shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(lead); }} className="rounded-lg text-slate-700">
+                <Edit className="h-4 w-4 mr-2 text-slate-400" />
+                Edit Lead
               </DropdownMenuItem>
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <ChevronRight className="h-4 w-4 mr-2" />
-                  Move to
+                <DropdownMenuSubTrigger className="rounded-lg text-slate-700">
+                  <ChevronRight className="h-4 w-4 mr-2 text-slate-400" />
+                  Move Column
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent className="rounded-xl border-slate-100">
                   {columns
                     .filter((c) => c.id !== lead.status)
                     .map((col) => (
                       <DropdownMenuItem
                         key={col.id}
                         onClick={(e) => { e.stopPropagation(); onStatusChange(lead, col.id); }}
+                        className="rounded-lg"
                       >
                         <div className={`w-2 h-2 rounded-full ${col.color} mr-2`} />
-                        {col.title}
+                        <span className="capitalize">{col.title.replace('_', ' ')}</span>
                       </DropdownMenuItem>
                     ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="border-slate-50" />
               <DropdownMenuItem
                 onClick={(e) => { e.stopPropagation(); onDelete(lead); }}
-                className="text-destructive focus:text-destructive"
+                className="rounded-lg text-red-600 focus:text-red-600 focus:bg-red-50"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -157,44 +169,152 @@ function LeadCard({ lead, onEdit, onDelete, onStatusChange, isDragging }: LeadCa
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        {lead.contact_person && (
-          <p className="text-xs text-muted-foreground">{lead.contact_person}</p>
-        )}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {lead.phone && (
-            <span className="flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {lead.phone}
-            </span>
+
+        {/* Company Name on Absolute Focus */}
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Building2 className="h-4 w-4 text-orange-500 shrink-0" />
+            <h4 className="font-extrabold text-sm text-slate-805 tracking-tight truncate leading-snug group-hover:text-orange-600 transition-colors">
+              {lead.business_name}
+            </h4>
+          </div>
+          {lead.contact_person && (
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide pl-5 truncate">
+              {lead.contact_person}
+            </p>
           )}
         </div>
-        {lead.category && (
-          <Badge variant="outline" className="text-[10px] capitalize">
-            {lead.category.replace('_', ' ')}
-          </Badge>
-        )}
-      </CardContent>
+
+        {/* Info badges */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100/60">
+          <div className="flex items-center gap-2 text-xs text-slate-550 min-w-0">
+            {lead.phone && (
+              <span className="flex items-center gap-1 text-[11px] font-medium text-slate-400 truncate">
+                <Phone className="h-3 w-3 text-slate-400 shrink-0" />
+                {lead.phone}
+              </span>
+            )}
+          </div>
+          {lead.category && (
+            <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-wider bg-slate-50 border border-slate-100 text-slate-500 rounded-md px-1.5 py-0.5 shrink-0">
+              {lead.category.replace('_', ' ')}
+            </Badge>
+          )}
+        </div>
+
+      </div>
     </Card>
   );
 }
 
 function DragOverlayCard({ lead }: { lead: Lead }) {
   return (
-    <Card className="glass-card shadow-lg ring-2 ring-primary cursor-grabbing opacity-90 rotate-2 scale-105">
-      <CardContent className="p-3 space-y-2">
-        <div className="flex items-center gap-2">
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-          <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-             #{(lead as any).sl_no || lead.id.slice(0,4)}
+    <Card className="bg-white border border-orange-500/30 shadow-2xl ring-2 ring-orange-500/20 cursor-grabbing opacity-90 rotate-2 scale-105 flex min-h-[110px] w-[280px]">
+      <div className="w-8 shrink-0 bg-orange-50/40 border-r border-slate-100 flex flex-col items-center justify-center text-orange-500">
+        <GripVertical className="h-4 w-4" />
+      </div>
+      <div className="flex-1 p-3.5 space-y-2 min-w-0">
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] font-black tracking-widest text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 shrink-0">
+            #{(lead as any).sl_no || lead.id.slice(0, 4)}
           </span>
-          <Building2 className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium text-sm truncate">{lead.business_name}</span>
         </div>
-        {lead.contact_person && (
-          <p className="text-xs text-muted-foreground">{lead.contact_person}</p>
-        )}
-      </CardContent>
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Building2 className="h-4 w-4 text-orange-500 shrink-0 animate-pulse" />
+            <h4 className="font-extrabold text-sm text-slate-805 tracking-tight truncate leading-snug">
+              {lead.business_name}
+            </h4>
+          </div>
+          {lead.contact_person && (
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide pl-5 truncate">
+              {lead.contact_person}
+            </p>
+          )}
+        </div>
+      </div>
     </Card>
+  );
+}
+
+interface KanbanColumnProps {
+  column: typeof columns[0];
+  allColumnLeads: Lead[];
+  visibleLeads: Lead[];
+  hasMore: boolean;
+  limit: number;
+  showMore: (columnId: string) => void;
+  onEdit: (lead: Lead) => void;
+  onDelete: (lead: Lead) => void;
+  onStatusChange: (lead: Lead, status: LeadStatus) => void;
+}
+
+function KanbanColumn({
+  column,
+  allColumnLeads,
+  visibleLeads,
+  hasMore,
+  limit,
+  showMore,
+  onEdit,
+  onDelete,
+  onStatusChange,
+}: KanbanColumnProps) {
+  const { setNodeRef } = useDroppable({
+    id: column.id,
+  });
+
+  return (
+    <div className="space-y-3 w-full lg:flex-1 lg:min-w-0">
+      <div className="flex items-center gap-2 px-2">
+        <div className={`w-2 h-2 rounded-full ${column.color}`} />
+        <h3 className="font-semibold text-sm text-slate-700 capitalize">
+          {column.title.replace('_', ' ')}
+        </h3>
+        <Badge variant="secondary" className="ml-auto font-black bg-slate-100 text-slate-500 text-[10px]">
+          {allColumnLeads.length}
+        </Badge>
+      </div>
+      <SortableContext
+        items={visibleLeads.map((l) => l.id)}
+        strategy={verticalListSortingStrategy}
+        id={column.id}
+      >
+        <div
+          ref={setNodeRef}
+          className="space-y-3 min-h-[300px] p-2 bg-slate-50/50 rounded-2xl border border-slate-100/60 shadow-inner"
+          data-column-id={column.id}
+        >
+          {visibleLeads.map((lead) => (
+            <LeadCard
+              key={lead.id}
+              lead={lead}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onStatusChange={onStatusChange}
+            />
+          ))}
+          
+          {hasMore && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-white rounded-xl py-2 h-auto"
+              onClick={() => showMore(column.id)}
+            >
+              <ChevronDown className="h-3 w-3 mr-1" />
+              Show More ({allColumnLeads.length - limit} remaining)
+            </Button>
+          )}
+
+          {allColumnLeads.length === 0 && (
+            <div className="h-32 flex items-center justify-center text-xs text-slate-405 border border-dashed border-slate-200 rounded-2xl bg-white/40 font-bold uppercase tracking-wider">
+              Drop items here
+            </div>
+          )}
+        </div>
+      </SortableContext>
+    </div>
   );
 }
 
@@ -390,7 +510,7 @@ export function LeadKanban({
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
       >
-        <div className="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-6 items-start h-full">
+        <div className="flex flex-col lg:flex-row gap-4.5 items-start h-full w-full">
           {columns.map((column) => {
             const allColumnLeads = getLeadsByStatus(column.id);
             const limit = columnLimits[column.id] || INITIAL_LIMIT;
@@ -398,63 +518,28 @@ export function LeadKanban({
             const hasMore = allColumnLeads.length > limit;
 
             return (
-              <div 
-                key={column.id} 
-                className="space-y-3 w-full lg:w-[300px] flex-shrink-0"
-              >
-                <div className="flex items-center gap-2 px-2">
-                  <div className={`w-2 h-2 rounded-full ${column.color}`} />
-                  <h3 className="font-semibold">{column.title}</h3>
-                  <Badge variant="secondary" className="ml-auto">
-                    {allColumnLeads.length}
-                  </Badge>
-                </div>
-                <SortableContext
-                  items={visibleLeads.map((l) => l.id)}
-                  strategy={verticalListSortingStrategy}
-                  id={column.id}
-                >
-                  <div
-                    className="space-y-3 min-h-[150px] p-2 bg-muted/30 rounded-lg border border-border/50"
-                    data-column-id={column.id}
-                  >
-                    {visibleLeads.map((lead) => (
-                      <LeadCard
-                        key={lead.id}
-                        lead={lead}
-                        onEdit={setEditLead}
-                        onDelete={setDeleteLead}
-                        onStatusChange={handleStatusChange}
-                      />
-                    ))}
-                    
-                    {hasMore && (
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="w-full text-xs text-muted-foreground hover:bg-white"
-                            onClick={() => showMore(column.id)}
-                        >
-                            <ChevronDown className="h-3 w-3 mr-1" />
-                            Show More ({allColumnLeads.length - limit} remaining)
-                        </Button>
-                    )}
-
-                    {allColumnLeads.length === 0 && (
-                      <div className="h-32 flex items-center justify-center text-sm text-muted-foreground border-2 border-dashed rounded-lg bg-background/50">
-                        Drop items here
-                      </div>
-                    )}
-                  </div>
-                </SortableContext>
-              </div>
+              <KanbanColumn
+                key={column.id}
+                column={column}
+                allColumnLeads={allColumnLeads}
+                visibleLeads={visibleLeads}
+                hasMore={hasMore}
+                limit={limit}
+                showMore={showMore}
+                onEdit={setEditLead}
+                onDelete={setDeleteLead}
+                onStatusChange={handleStatusChange}
+              />
             );
           })}
         </div>
 
-        <DragOverlay>
-          {activeLead ? <DragOverlayCard lead={activeLead} /> : null}
-        </DragOverlay>
+        {createPortal(
+          <DragOverlay>
+            {activeLead ? <DragOverlayCard lead={activeLead} /> : null}
+          </DragOverlay>,
+          document.body
+        )}
       </DndContext>
 
       <EditLeadDialog lead={editLead} onOpenChange={(open) => !open && setEditLead(null)} />

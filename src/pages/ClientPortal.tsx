@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -78,6 +78,10 @@ export default function ClientPortal() {
   const [approvalFeedback, setApprovalFeedback] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [searchParams] = useSearchParams();
+  const queryProjectId = searchParams.get('project');
+  const queryTab = searchParams.get('tab');
+
   useEffect(() => {
     if (!loading && (!user || role !== 'client')) {
       navigate('/auth');
@@ -97,6 +101,17 @@ export default function ClientPortal() {
     },
     enabled: !!user,
   });
+
+  useEffect(() => {
+    if (queryProjectId && projects.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(`project-card-${queryProjectId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+    }
+  }, [queryProjectId, projects]);
 
   const { data: updates = [] } = useQuery({
     queryKey: ['client-updates', projects.map(p => p.id)],
@@ -465,21 +480,25 @@ export default function ClientPortal() {
                   </CardContent>
                 </Card>
               ) : (
-                projects.map((project) => (
-                  <Card key={project.id} className="glass-card">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>{project.project_name}</CardTitle>
-                          <CardDescription>{project.project_type}</CardDescription>
+                 projects.map((project) => {
+                  const isTargetProject = queryProjectId === project.id;
+                  const defaultTab = isTargetProject && queryTab ? queryTab : 'overview';
+
+                  return (
+                    <Card key={project.id} id={`project-card-${project.id}`} className="glass-card">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>{project.project_name}</CardTitle>
+                            <CardDescription>{project.project_type}</CardDescription>
+                          </div>
+                          <Badge variant={project.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                            {project.status}
+                          </Badge>
                         </div>
-                        <Badge variant={project.status === 'active' ? 'default' : 'secondary'} className="capitalize">
-                          {project.status}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <Tabs defaultValue="overview" className="w-full">
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <Tabs defaultValue={defaultTab} key={`${project.id}-${defaultTab}`} className="w-full">
                         <div className="px-6 pt-4">
                           <TabsList className="grid w-full grid-cols-4 h-auto p-1">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -652,7 +671,7 @@ export default function ClientPortal() {
                                   <div className="flex justify-between items-start">
                                     <div>
                                       <h4 className="font-bold">{a.title}</h4>
-                                      <p className="text-sm text-muted-foreground mt-1">{a.description}</p>
+                                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{a.description}</p>
                                       {a.asset_url && <a href={a.asset_url} target="_blank" className="text-sm text-primary hover:underline mt-1 block">View Asset &rarr;</a>}
                                     </div>
                                     <Badge variant={a.status === 'approved' ? 'default' : a.status === 'changes_requested' ? 'destructive' : 'secondary'} className="capitalize">
@@ -713,9 +732,9 @@ export default function ClientPortal() {
                                   <span>{t.title}</span>
                                   <Badge variant={t.status === 'resolved' ? 'default' : 'secondary'} className="capitalize text-[10px]">{t.status}</Badge>
                                 </div>
-                                <p className="text-muted-foreground">{t.description}</p>
+                                <p className="text-muted-foreground whitespace-pre-wrap">{t.description}</p>
                                 {t.resolution_notes && (
-                                  <div className="bg-green-50 text-green-800 p-2 rounded text-xs mt-2 border border-green-200">
+                                  <div className="bg-green-50 text-green-800 p-2 rounded text-xs mt-2 border border-green-200 whitespace-pre-wrap">
                                     <strong>Resolution:</strong> {t.resolution_notes}
                                   </div>
                                 )}
@@ -727,7 +746,8 @@ export default function ClientPortal() {
                       </Tabs>
                     </CardContent>
                   </Card>
-                ))
+                );
+              })
               )}
             </div>
           </div>
