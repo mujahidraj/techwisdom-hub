@@ -311,11 +311,11 @@ export default function Assets() {
   // Shared form fields renderer
   const renderForm = (f: typeof emptyForm, setF: (v: typeof emptyForm) => void) => (
     <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><Label>Asset Name *</Label><Input value={f.asset_name} onChange={e => setF({ ...f, asset_name: e.target.value })} placeholder="MacBook Pro 16" /></div>
         <div><Label>Asset Tag *</Label><Input value={f.asset_tag} onChange={e => setF({ ...f, asset_tag: e.target.value })} placeholder="TW-001" /></div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><Label>Category</Label>
           <Select value={f.category} onValueChange={v => setF({ ...f, category: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -324,19 +324,19 @@ export default function Assets() {
         </div>
         <div><Label>Brand</Label><Input value={f.brand} onChange={e => setF({ ...f, brand: e.target.value })} placeholder="Apple" /></div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><Label>Model</Label><Input value={f.model} onChange={e => setF({ ...f, model: e.target.value })} placeholder="M3 Max" /></div>
         <div><Label>Serial Number</Label><Input value={f.serial_number} onChange={e => setF({ ...f, serial_number: e.target.value })} /></div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><Label>Purchase Date</Label><Input type="date" value={f.purchase_date} onChange={e => setF({ ...f, purchase_date: e.target.value })} /></div>
         <div><Label>Purchase Price</Label><Input type="number" value={f.purchase_price} onChange={e => setF({ ...f, purchase_price: +e.target.value })} /></div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><Label>Warranty Expiry</Label><Input type="date" value={f.warranty_expiry} onChange={e => setF({ ...f, warranty_expiry: e.target.value })} /></div>
         <div><Label>Location</Label><Input value={f.location} onChange={e => setF({ ...f, location: e.target.value })} placeholder="Office A" /></div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><Label>Status</Label>
           <Select value={f.status} onValueChange={v => setF({ ...f, status: v as AssetStatus })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -353,7 +353,7 @@ export default function Assets() {
           </Select>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div><Label>Condition</Label>
           <Select value={f.condition} onValueChange={v => setF({ ...f, condition: v as AssetCondition })}>
             <SelectTrigger><SelectValue /></SelectTrigger>

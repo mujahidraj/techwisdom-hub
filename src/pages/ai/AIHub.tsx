@@ -256,7 +256,7 @@ ${JSON.stringify(leadsData, null, 2)}`;
           </Card>
 
           <Card className="glass-card flex flex-col h-[70vh]">
-            <CardHeader className="shrink-0 border-b border-border/50 pb-4 flex flex-row items-center justify-between">
+            <CardHeader className="shrink-0 border-b border-border/50 pb-4 flex flex-col md:flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> AI Output</CardTitle>
                 <CardDescription>Generated results will appear here</CardDescription>

@@ -229,7 +229,7 @@ export default function Finances() {
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
@@ -242,7 +242,7 @@ export default function Finances() {
           </Card>
 
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
               <Receipt className="h-4 w-4 text-destructive" />
             </CardHeader>
@@ -255,7 +255,7 @@ export default function Finances() {
           </Card>
 
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Payroll Costs</CardTitle>
               <TrendingDown className="h-4 w-4 text-yellow-500" />
             </CardHeader>
@@ -268,7 +268,7 @@ export default function Finances() {
           </Card>
 
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
               <PiggyBank className="h-4 w-4 text-success" />
             </CardHeader>

@@ -198,7 +198,7 @@ export default function EventsTasks() {
           
           {/* --- LEFT: TASKS --- */}
           <Card className="flex flex-col h-full glass-card border-t-4 border-t-blue-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <CheckSquare className="h-5 w-5 text-blue-500" /> My Tasks
               </CardTitle>
@@ -258,7 +258,7 @@ export default function EventsTasks() {
 
           {/* --- RIGHT: EVENTS --- */}
           <Card className="flex flex-col h-full glass-card border-t-4 border-t-purple-500">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5 text-purple-500" /> Upcoming Events
               </CardTitle>
@@ -320,7 +320,7 @@ export default function EventsTasks() {
               <div>
                 <Input placeholder="Task Title" value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select value={taskForm.priority} onValueChange={val => setTaskForm({...taskForm, priority: val})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>

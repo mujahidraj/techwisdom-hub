@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, LogOut, User, Menu, Building2, MessageSquare, Video, FolderKanban, Bot, Mail } from 'lucide-react'; // Added icons for TopBar nav
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client'; // Added Supabase client
@@ -19,9 +19,20 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { format } from 'date-fns';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { GlobalCalendarPop } from '@/components/layout/GlobalCalendarPop';
+import { cn } from '@/lib/utils';
+
+const navItems = [
+  { label: 'Messages', path: '/teamChat' },
+  { label: 'Meeting', path: '/meeting' },
+  { label: 'Projects', path: '/projects' },
+  { label: 'AI Hub', path: '/ai-hub' },
+  { label: 'Client', path: '/messages' },
+];
 
 export function TopBar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, role, signOut } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -87,52 +98,71 @@ export function TopBar() {
   return (
     <>
       <GlobalSearch />
-      <header className="h-16 border-b border-border/50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
+      <header className="h-20 border-b border-border/40 bg-background/60 backdrop-blur-2xl flex items-center justify-between px-6 sticky top-0 z-40 shadow-[0_4px_32px_rgba(0,0,0,0.02)] transition-all duration-300">
 
         <div className="flex items-center gap-4">
           <SidebarTrigger className="lg:hidden text-primary">
             <Menu className="h-6 w-6" />
           </SidebarTrigger>
 
-          <div className="relative hidden xl:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+          <div className="relative hidden xl:block group/search">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 transition-colors duration-300 group-hover/search:text-primary" />
             <Input
-              placeholder="Search..."
-              className="w-40 pl-9 h-10 bg-slate-100/50 dark:bg-slate-900/50 border-transparent hover:bg-white dark:hover:bg-slate-800 transition-all rounded-xl cursor-pointer text-xs"
+              placeholder="Search anything..."
+              className="w-64 pl-10 pr-12 h-11 bg-card/40 border-border/50 hover:bg-card/80 hover:border-primary/30 focus:border-primary/50 focus:bg-card transition-all duration-300 rounded-2xl cursor-pointer text-sm shadow-sm"
               readOnly
               onClick={() => {
                 const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true });
                 document.dispatchEvent(event);
               }}
             />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-60">
+              <kbd className="bg-muted px-1.5 py-0.5 rounded-md text-[10px] font-semibold border border-border/50">⌘</kbd>
+              <kbd className="bg-muted px-1.5 py-0.5 rounded-md text-[10px] font-semibold border border-border/50">K</kbd>
+            </div>
           </div>
         </div>
 
-        {/* CENTERED TEXT NAVIGATION */}
-        <nav className="hidden lg:flex items-center gap-10">
-          <button onClick={() => navigate('/teamChat')} className="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Messages</button>
-          <button onClick={() => navigate('/meeting')} className="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Meeting</button>
-          <button onClick={() => navigate('/projects')} className="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Projects</button>
-          <button onClick={() => navigate('/ai-hub')} className="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">AI Hub</button>
-          <button onClick={() => navigate('/messages')} className="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Client</button>
+        {/* CENTERED PILL NAVIGATION */}
+        <nav className="hidden lg:flex items-center gap-1 p-1.5 bg-card/30 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner">
+          {navItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.path);
+            return (
+              <button 
+                key={item.label}
+                onClick={() => navigate(item.path)} 
+                className={cn(
+                  "relative px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 overflow-hidden group/nav",
+                  isActive ? "text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-card/80 hover:shadow-sm"
+                )}
+              >
+                {isActive && (
+                  <div className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-xl transition-all duration-300" />
+                )}
+                <span className="relative z-10">{item.label}</span>
+              </button>
+            )
+          })}
         </nav>
 
         <div className="flex items-center gap-6">
-          {/* LIVE CLOCK (12H) */}
-          <div className="hidden md:flex flex-col items-end border-r pr-6 border-border/50">
-            <div className="text-sm font-black tracking-tighter font-mono text-primary tabular-nums leading-none uppercase">
-              {format(currentTime, 'hh:mm:ss a')}
+          {/* LIVE CLOCK */}
+          <GlobalCalendarPop>
+            <div className="hidden md:flex flex-col items-end px-4 py-1.5 bg-card/40 rounded-xl border border-border/50 shadow-sm transition-all duration-300 hover:bg-card/80 hover:border-primary/30 cursor-pointer group/clock">
+              <div className="text-[15px] font-extrabold tracking-tight font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tabular-nums leading-none group-hover/clock:scale-105 transition-transform duration-300">
+                {format(currentTime, 'hh:mm:ss a')}
+              </div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-70 group-hover/clock:text-primary transition-colors duration-300">
+                {format(currentTime, 'MMM dd, yyyy')}
+              </div>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">
-              {format(currentTime, 'MMM dd')}
-            </div>
-          </div>
+          </GlobalCalendarPop>
 
           {/* Mobile search button */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden bg-card/40 border border-border/50 rounded-xl hover:bg-card/80 hover:border-primary/30 transition-all duration-300 shadow-sm"
             onClick={() => {
               const event = new KeyboardEvent('keydown', {
                 key: 'k',
@@ -142,40 +172,43 @@ export function TopBar() {
               document.dispatchEvent(event);
             }}
           >
-            <Search className="h-5 w-5" />
+            <Search className="h-5 w-5 text-muted-foreground" />
           </Button>
 
           {/* Notifications */}
-          <NotificationBell />
+          <div className="p-1 bg-card/40 rounded-xl border border-border/50 shadow-sm hover:bg-card/80 hover:border-primary/30 transition-all duration-300">
+            <NotificationBell />
+          </div>
 
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2">
-                <Avatar className="h-8 w-8">
-                  {/* Shows image if URL exists, otherwise falls back to initials */}
-                  <AvatarImage src={avatarUrl || ''} className="object-cover" />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                    {getInitials()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium leading-tight">{user?.email}</p>
-                  <Badge variant={getRoleBadgeVariant()} className="text-[10px] px-1.5 py-0 h-4 capitalize">
+              <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 h-auto bg-card/30 hover:bg-card/80 rounded-2xl transition-all duration-300 border border-border/40 hover:border-primary/30 shadow-sm group">
+                <div className="hidden sm:flex flex-col items-end text-right">
+                  <p className="text-sm font-bold leading-tight text-foreground/90 group-hover:text-primary transition-colors">{user?.email?.split('@')[0]}</p>
+                  <Badge variant={getRoleBadgeVariant()} className="text-[9px] px-2 py-0 h-4 capitalize mt-0.5 shadow-sm font-bold tracking-wider">
                     {role}
                   </Badge>
                 </div>
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-tr from-primary to-secondary rounded-full opacity-40 blur-sm group-hover:opacity-70 transition-opacity duration-300" />
+                  <Avatar className="h-10 w-10 ring-2 ring-background relative z-10 shadow-md transform group-hover:scale-105 transition-transform duration-300">
+                    <AvatarImage src={avatarUrl || ''} className="object-cover" />
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
+            <DropdownMenuContent align="end" className="w-56 rounded-xl border-border/50 shadow-xl backdrop-blur-md bg-card/95">
+              <DropdownMenuLabel className="font-bold text-muted-foreground">My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-border/50" />
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-lg cursor-pointer font-medium hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors mb-1">
                 <User className="mr-2 h-4 w-4" />
                 Profile Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={handleSignOut} className="rounded-lg cursor-pointer font-medium text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive transition-colors">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
               </DropdownMenuItem>

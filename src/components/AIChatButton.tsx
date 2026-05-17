@@ -139,7 +139,7 @@ export function AIChatButton() {
       {isOpen && (
         // CHANGED: Position (bottom-0 right-0), Height/Width (smaller), Border Radius (rounded-tl-xl)
         <Card className="fixed bottom-0 right-0 w-80 h-[450px] shadow-2xl z-50 flex flex-col border-blue-500/20 animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-tl-xl rounded-tr-none rounded-bl-none rounded-br-none border-r-0 border-b-0">
-          <CardHeader className="bg-blue-50/50 border-b p-3 flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="bg-blue-50/50 border-b p-3 flex flex-col md:flex-row items-center justify-between space-y-0">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <Bot className={`h-5 w-5 ${connectionStatus === 'error' ? 'text-red-600' : 'text-blue-600'}`} />

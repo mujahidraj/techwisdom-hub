@@ -360,7 +360,7 @@ export default function Maintenance() {
         <div className="grid gap-6 md:grid-cols-3">
           {/* --- MAIN LIST --- */}
           <Card className="md:col-span-2 glass-card">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between">
               <div>
                 <CardTitle>Active Contracts</CardTitle>
                 <CardDescription>Clients paying for maintenance and support.</CardDescription>
@@ -520,7 +520,7 @@ export default function Maintenance() {
               });
             }} className="space-y-4 py-4">
                {/* Form Fields Same as before */}
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label>Client Name</Label><Input name="client_name" required placeholder="Business Name" /></div>
                 <div>
                    <Label>Project Link</Label>
@@ -533,7 +533,7 @@ export default function Maintenance() {
                    </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Service Tier</Label>
                   <Select name="service_tier" defaultValue="Standard">
@@ -557,7 +557,7 @@ export default function Maintenance() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label>Amount</Label><Input name="amount" type="number" required placeholder="5000" /></div>
                 <div><Label>Next Bill</Label><Input name="next_billing_date" type="date" required /></div>
               </div>
@@ -586,7 +586,7 @@ export default function Maintenance() {
                     });
                 }} className="space-y-4 py-4">
                     <div><Label>Client Name</Label><Input name="client_name" defaultValue={selectedContract.client_name} /></div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><Label>Amount</Label><Input name="amount" type="number" defaultValue={selectedContract.amount} /></div>
                         <div><Label>Service Tier</Label><Input name="service_tier" defaultValue={selectedContract.service_tier} /></div>
                     </div>

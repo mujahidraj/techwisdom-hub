@@ -296,7 +296,7 @@ export default function LeadDetails() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card className="bg-green-50 border-green-100">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="p-2 bg-white rounded-full"><DollarSign className="h-5 w-5 text-green-600" /></div>
@@ -338,7 +338,7 @@ export default function LeadDetails() {
                 <Card>
                   <CardHeader><CardTitle>Business Information</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div><span className="text-sm text-muted-foreground">Contact Person</span><p className="font-medium">{lead.contact_person}</p></div>
                       <div><span className="text-sm text-muted-foreground">Email</span><div className="flex items-center gap-2"><Mail className="h-4 w-4" /><p className="font-medium">{lead.email}</p></div></div>
                       <div><span className="text-sm text-muted-foreground">Phone</span><div className="flex items-center gap-2"><Phone className="h-4 w-4" /><p className="font-medium">{lead.phone || 'N/A'}</p></div></div>
@@ -402,7 +402,7 @@ export default function LeadDetails() {
 
               <TabsContent value="files" className="mt-4">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader className="flex flex-col md:flex-row items-center justify-between">
                     <CardTitle>Documents</CardTitle>
                     <Button size="sm" variant="outline" onClick={() => setIsAddFileOpen(true)}><Paperclip className="h-4 w-4 mr-2" /> Upload File</Button>
                   </CardHeader>
@@ -448,7 +448,7 @@ export default function LeadDetails() {
             <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0">
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-bold mb-2">Quick Contact</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <Button variant="secondary" className="w-full text-xs" onClick={() => window.location.href = `tel:${lead.phone}`} disabled={!lead.phone}>
                         <Phone className="h-3 w-3 mr-2" /> Call
                     </Button>
@@ -484,7 +484,7 @@ export default function LeadDetails() {
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader><DialogTitle>Edit Lead</DialogTitle></DialogHeader>
-                <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                     <div><Label>Business Name</Label><Input value={editForm.business_name} onChange={e => setEditForm({...editForm, business_name: e.target.value})} /></div>
                     <div><Label>Contact Person</Label><Input value={editForm.contact_person} onChange={e => setEditForm({...editForm, contact_person: e.target.value})} /></div>
                     <div><Label>Email</Label><Input value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} /></div>

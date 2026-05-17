@@ -246,7 +246,7 @@ export default function OKRDashboard() {
               <Label>Description</Label>
               <Textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Level</Label>
                 <Select value={formData.level} onValueChange={v => setFormData({ ...formData, level: v })}>
@@ -285,7 +285,7 @@ export default function OKRDashboard() {
               <Label>Key Result Title</Label>
               <Input placeholder="e.g. Achieve 10,000 monthly active users" value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Target Value</Label>
                 <Input type="number" value={formData.target_value || ''} onChange={e => setFormData({ ...formData, target_value: Number(e.target.value) })} />

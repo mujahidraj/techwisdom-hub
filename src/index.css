@@ -121,7 +121,25 @@ body {
   }
 
   .glass-sidebar {
-    @apply bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border;
+    @apply bg-sidebar/70 backdrop-blur-2xl border-r border-sidebar-border/50 shadow-[4px_0_32px_rgba(0,0,0,0.04)];
+    transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease;
+  }
+
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--sidebar-border)) transparent;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    @apply bg-sidebar-border/50 rounded-full hover:bg-sidebar-border transition-colors;
   }
 
   .gradient-primary {

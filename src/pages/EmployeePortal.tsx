@@ -522,7 +522,7 @@ export default function EmployeePortal() {
 
         {/* Tabs for Leave & Salary */}
         <Tabs defaultValue="leave" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="flex overflow-x-auto overflow-y-hidden w-full h-auto p-1 bg-muted/50 rounded-xl justify-start md:grid md:grid-cols-8">
             <TabsTrigger value="announcements" className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> <span className="hidden lg:inline">Bulletin</span></TabsTrigger>
             <TabsTrigger value="events" className="flex items-center gap-2"><Calendar className="h-4 w-4" /> <span className="hidden lg:inline">Events</span></TabsTrigger>
             <TabsTrigger value="leave" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> <span className="hidden lg:inline">Leave</span></TabsTrigger>
@@ -903,7 +903,7 @@ export default function EmployeePortal() {
               <Label>Issue / Request Title</Label>
               <Input placeholder="e.g. Need access to Figma" value={ticketData.title} onChange={e => setTicketData({ ...ticketData, title: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Category</Label>
                 <Select value={ticketData.category} onValueChange={v => setTicketData({ ...ticketData, category: v })}>

@@ -342,7 +342,7 @@ export default function Invoices() {
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Manual Invoice</DialogTitle></DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
               <div><Label>Client</Label><Input value={formData.client_name} onChange={(e) => setFormData({...formData, client_name: e.target.value})} /></div>
               <div><Label>Due Date</Label><Input type="date" value={formData.due_date} onChange={(e) => setFormData({...formData, due_date: e.target.value})} /></div>
             </div>
@@ -460,7 +460,7 @@ export default function Invoices() {
                     </div>
 
                     {/* 2. Bill To & Details */}
-                    <div className="grid grid-cols-2 gap-12 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
                       <div>
                         <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Bill To</h3>
                         <p className="text-xl font-bold text-slate-900">{selectedInvoice.client_name}</p>

@@ -491,7 +491,7 @@ export default function Dashboard() {
 
             {/* 3. RECENT LEADS */}
             <Card className="glass-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/crm')}>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col md:flex-row items-center justify-between">
                 <div className="space-y-1">
                   <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5 text-blue-500" /> Recent Leads</CardTitle>
                 </div>
@@ -605,7 +605,7 @@ export default function Dashboard() {
 
             {/* --- REAL EVENTS --- */}
             <Card className="glass-card">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm flex items-center gap-2"><Calendar className="h-4 w-4" /> Next Events</CardTitle>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsAddEventOpen(true)}><Plus className="h-4 w-4" /></Button>
               </CardHeader>

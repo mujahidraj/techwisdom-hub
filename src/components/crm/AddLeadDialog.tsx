@@ -91,7 +91,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
             <Input {...register('business_name')} placeholder="Company name" />
             {errors.business_name && <p className="text-sm text-destructive mt-1">{errors.business_name.message}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Contact Person</Label>
               <Input {...register('contact_person')} placeholder="John Doe" />
@@ -105,7 +105,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
             <Label>Email</Label>
             <Input {...register('email')} type="email" placeholder="email@company.com" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Category</Label>
               <Select onValueChange={(v) => setValue('category', v as LeadCategory)} defaultValue="other">

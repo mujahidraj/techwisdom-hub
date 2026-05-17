@@ -384,7 +384,7 @@ export default function ClientPortal() {
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
               <FolderKanban className="h-4 w-4 text-primary" />
             </CardHeader>
@@ -393,7 +393,7 @@ export default function ClientPortal() {
             </CardContent>
           </Card>
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
@@ -402,7 +402,7 @@ export default function ClientPortal() {
             </CardContent>
           </Card>
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Amount Paid</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-success" />
             </CardHeader>
@@ -411,7 +411,7 @@ export default function ClientPortal() {
             </CardContent>
           </Card>
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Pending</CardTitle>
               <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
@@ -687,7 +687,7 @@ export default function ClientPortal() {
                         <TabsContent value="tickets" className="p-6 mt-0">
                           <div className="mb-6 space-y-3 bg-muted/20 p-4 rounded-lg">
                             <h4 className="font-semibold text-sm">Submit a Support Ticket</h4>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <Input placeholder="Ticket Title" value={ticketTitle} onChange={e => setTicketTitle(e.target.value)} />
                               <Select value={ticketPriority} onValueChange={setTicketPriority}>
                                 <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>

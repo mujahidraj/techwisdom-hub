@@ -172,7 +172,7 @@ export default function ProposalsDashboard() {
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row justify-between items-center">
+                <CardHeader className="flex flex-col md:flex-row justify-between items-center">
                   <CardTitle>Pricing / Line Items</CardTitle>
                   <Button variant="outline" size="sm" onClick={addItem}><Plus className="h-4 w-4 mr-1" /> Add Item</Button>
                 </CardHeader>

@@ -217,7 +217,7 @@ export default function HelpdeskAdmin() {
                 </div>
               </div>
 
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="mb-1 block">Priority</Label>
                   <Select value={newPriority} onValueChange={setNewPriority}>
@@ -290,7 +290,7 @@ export default function HelpdeskAdmin() {
 
     return (
       <Card className="glass-card">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col md:flex-row items-center justify-between">
           <div>
             <CardTitle>{source === 'internal' ? 'Internal Employee Tickets' : 'External Client Tickets'}</CardTitle>
             <CardDescription>
@@ -343,7 +343,7 @@ export default function HelpdeskAdmin() {
             </div>
           ) : (
             <div className="rounded-md border overflow-hidden">
-              <div className="grid grid-cols-12 p-4 text-sm font-bold text-muted-foreground border-b bg-muted/30">
+              <div className="flex flex-col md:grid md:grid-cols-12 p-4 text-sm font-bold text-muted-foreground border-b bg-muted/30">
                 <div className="col-span-4">Ticket</div>
                 <div className="col-span-3">Reporter</div>
                 <div className="col-span-2">Priority</div>
@@ -352,7 +352,7 @@ export default function HelpdeskAdmin() {
               </div>
               <div className="divide-y">
                 {queueTickets.map(ticket => (
-                  <div key={ticket.id} className="grid grid-cols-12 p-4 items-center hover:bg-muted/30 transition-colors group">
+                  <div key={ticket.id} className="flex flex-col md:grid md:grid-cols-12 p-4 items-center hover:bg-muted/30 transition-colors group">
                     <div className="col-span-4 pr-4">
                       <p className="font-bold text-sm truncate group-hover:text-primary transition-colors">{ticket.title}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">

@@ -192,7 +192,7 @@ export default function DocumentManagement() {
           <div className="text-center py-12 text-muted-foreground">Loading documents...</div>
         ) : (
           <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-            <div className="grid grid-cols-12 gap-4 p-4 border-b bg-muted/50 font-medium text-sm text-muted-foreground">
+            <div className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 border-b bg-muted/50 font-medium text-sm text-muted-foreground">
               <div className="col-span-6">Name</div>
               <div className="col-span-3">Status / Version</div>
               <div className="col-span-3 text-right">Actions</div>
@@ -200,7 +200,7 @@ export default function DocumentManagement() {
             
             <div className="divide-y">
               {folders.map((folder: any) => (
-                <div key={folder.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-muted/50 cursor-pointer" onClick={() => setCurrentFolderId(folder.id)}>
+                <div key={folder.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 items-center hover:bg-muted/50 cursor-pointer" onClick={() => setCurrentFolderId(folder.id)}>
                   <div className="col-span-6 flex items-center gap-3">
                     <Folder className="h-5 w-5 text-primary fill-primary/20" />
                     <span className="font-medium">{folder.name}</span>
@@ -227,7 +227,7 @@ export default function DocumentManagement() {
               ))}
 
               {files.map((file: any) => (
-                <div key={file.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-muted/50">
+                <div key={file.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 items-center hover:bg-muted/50">
                   <div className="col-span-6 flex items-center gap-3">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium">{file.name}</span>

@@ -346,7 +346,7 @@ export default function ProjectDetails() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* STATS */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="border-l-4 border-l-blue-500">
                     <CardContent className="p-4">
                         <p className="text-xs text-muted-foreground uppercase font-bold">Total Budget</p>
@@ -428,7 +428,7 @@ export default function ProjectDetails() {
 
               <TabsContent value="files" className="mt-4">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader className="flex flex-col md:flex-row items-center justify-between">
                     <CardTitle>Files & Assets</CardTitle>
                     <Button size="sm" variant="outline" onClick={() => setIsAddFileOpen(true)}><Paperclip className="h-4 w-4 mr-2" /> Upload</Button>
                   </CardHeader>
@@ -609,7 +609,7 @@ export default function ProjectDetails() {
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
             <DialogContent className="max-w-xl">
                 <DialogHeader><DialogTitle>Edit Project</DialogTitle></DialogHeader>
-                <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                     <div className="col-span-2"><Label>Project Name</Label><Input value={editForm.project_name} onChange={e => setEditForm({...editForm, project_name: e.target.value})} /></div>
                     <div><Label>Client Name</Label><Input value={editForm.client_name} onChange={e => setEditForm({...editForm, client_name: e.target.value})} /></div>
                     <div><Label>Status</Label>

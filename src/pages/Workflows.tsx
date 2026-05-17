@@ -269,7 +269,7 @@ export default function Workflows() {
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editId ? 'Edit' : 'Create'} Workflow</DialogTitle></DialogHeader>
           <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div><Label>Workflow Name *</Label><Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Welcome new lead" /></div>
               <div><Label>Trigger *</Label>
                 <Select value={triggerType} onValueChange={v => { setTriggerType(v); setConditions([]); }}>

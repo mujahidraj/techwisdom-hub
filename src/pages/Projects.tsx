@@ -291,7 +291,7 @@ export default function Projects() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
               <FolderKanban className="h-4 w-4 text-primary" />
             </CardHeader>
@@ -300,7 +300,7 @@ export default function Projects() {
             </CardContent>
           </Card>
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
               <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
@@ -309,7 +309,7 @@ export default function Projects() {
             </CardContent>
           </Card>
           <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Collected</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-success" />
             </CardHeader>

@@ -168,7 +168,7 @@ export default function Interviews() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Date & Time</Label>
                   <Input type="datetime-local" value={selectedInterview.scheduled_at ? new Date(selectedInterview.scheduled_at).toISOString().slice(0,16) : ''} onChange={e => setSelectedInterview({ ...selectedInterview, scheduled_at: new Date(e.target.value).toISOString() })} />
