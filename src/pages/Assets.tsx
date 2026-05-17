@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { toast } from 'sonner';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -106,6 +107,7 @@ const emptyForm = {
 export default function Assets() {
   const { role, user } = useAuth();
   const { sendNotification } = useNotifications();
+  const { logActivity, logSecurity } = useActivityLog();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -214,7 +216,14 @@ export default function Assets() {
         }
       }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['assets'] }); toast.success('Asset added'); setAddOpen(false); setForm(emptyForm); },
+    onSuccess: (data, variables) => {
+      qc.invalidateQueries({ queryKey: ['assets'] });
+      toast.success('Asset added');
+      setAddOpen(false);
+      setForm(emptyForm);
+      logActivity('created', 'asset', variables.asset_name);
+      logSecurity('CREATE', 'ASSET', `Created new company asset "${variables.asset_name}" (${variables.asset_tag})`);
+    },
     onError: (e) => toast.error('Failed: ' + e.message),
   });
 
@@ -240,7 +249,13 @@ export default function Assets() {
         performed_by: user?.id || null,
       });
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['assets'] }); toast.success('Asset updated'); setEditAsset(null); },
+    onSuccess: (data, variables) => {
+      qc.invalidateQueries({ queryKey: ['assets'] });
+      toast.success('Asset updated');
+      setEditAsset(null);
+      logActivity('updated', 'asset', variables.data.asset_name, variables.id);
+      logSecurity('UPDATE', 'ASSET', `Updated details for company asset "${variables.data.asset_name}" (${variables.data.asset_tag})`, variables.id);
+    },
     onError: (e) => toast.error('Failed: ' + e.message),
   });
 
@@ -250,7 +265,16 @@ export default function Assets() {
       const { error } = await supabase.from('assets').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['assets'] }); toast.success('Asset deleted'); setDeleteAsset(null); },
+    onSuccess: (data, variable) => {
+      qc.invalidateQueries({ queryKey: ['assets'] });
+      toast.success('Asset deleted');
+      setDeleteAsset(null);
+      const assetItem = assets.find(a => a.id === variable);
+      if (assetItem) {
+        logActivity('deleted', 'asset', assetItem.asset_name, variable);
+        logSecurity('DELETE', 'ASSET', `Deleted company asset "${assetItem.asset_name}" (${assetItem.asset_tag})`, variable);
+      }
+    },
     onError: (e) => toast.error('Failed: ' + e.message),
   });
 
@@ -285,7 +309,22 @@ export default function Assets() {
         });
       }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['assets'] }); toast.success('Assignment updated'); },
+    onSuccess: (data, variables) => {
+      qc.invalidateQueries({ queryKey: ['assets'] });
+      toast.success('Assignment updated');
+      
+      const asset = assets.find(a => a.id === variables.assetId);
+      if (asset) {
+        if (variables.employeeId) {
+          const emp = employees.find(e => e.id === variables.employeeId);
+          logActivity('assigned', 'asset', `${asset.asset_name} to ${emp?.full_name || 'employee'}`, variables.assetId);
+          logSecurity('UPDATE', 'ASSET_ASSIGNMENT', `Assigned company asset "${asset.asset_name}" (${asset.asset_tag}) to employee "${emp?.full_name || 'employee'}"`, variables.assetId);
+        } else {
+          logActivity('unassigned', 'asset', asset.asset_name, variables.assetId);
+          logSecurity('UPDATE', 'ASSET_ASSIGNMENT', `Unassigned/returned company asset "${asset.asset_name}" (${asset.asset_tag}) back to inventory`, variables.assetId);
+        }
+      }
+    },
     onError: (e) => toast.error('Failed: ' + e.message),
   });
 

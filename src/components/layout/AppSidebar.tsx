@@ -38,7 +38,9 @@ import {
   ShieldAlert,
   Clock,
   Receipt,
-  FileWarning
+  FileWarning,
+  LayoutGrid,
+  Gauge
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,6 +68,7 @@ import { toast } from 'sonner';
 const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Projects', url: '/projects', icon: FolderKanban },
+  { title: 'Task Board', url: '/kanban', icon: LayoutGrid },
   { title: 'Notes', url: '/notes', icon: StickyNote },
   { title: "Schedule", url: "/events", icon: Calendar },
 ];
@@ -109,6 +112,7 @@ const hrItems = [
 
 const adminItems = [
   { title: 'Users', url: '/users', icon: UserCog },
+  { title: 'KPI Dashboard', url: '/kpi', icon: Gauge },
   { title: 'Organizational Audit', url: '/admin/audit', icon: Activity },
   { title: 'Security Audit', url: '/admin/security', icon: ShieldAlert },
   { title: 'Time & Productivity', url: '/admin/time', icon: Clock },

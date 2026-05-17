@@ -43,7 +43,8 @@ import {
   Package,
   Target,
   MessageSquare,
-  Video
+  Video,
+  FolderKanban
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -207,6 +208,38 @@ export default function EmployeePortal() {
       return data;
     },
     enabled: !!user
+  });
+
+  const { data: myProjects = [], isLoading: loadingProjects } = useQuery({
+    queryKey: ['portal-assigned-projects', employee?.id],
+    queryFn: async () => {
+      try {
+        const { data: assignments, error: assignmentsError } = await (supabase
+          .from('project_assignments' as any)
+          .select('project_id')
+          .eq('employee_id', employee!.id) as any);
+        
+        if (assignmentsError) {
+          console.warn('project_assignments query error:', assignmentsError);
+          return [];
+        }
+        if (!assignments || assignments.length === 0) return [];
+        
+        const projectIds = assignments.map((a: any) => a.project_id);
+        
+        const { data: projects, error: projectsError } = await supabase
+          .from('active_projects')
+          .select('*')
+          .in('id', projectIds);
+          
+        if (projectsError) throw projectsError;
+        return projects || [];
+      } catch (e) {
+        console.error('Error fetching assigned projects:', e);
+        return [];
+      }
+    },
+    enabled: !!employee?.id,
   });
 
   const createTicketMutation = useMutation({
@@ -521,10 +554,11 @@ export default function EmployeePortal() {
         </div>
 
         {/* Tabs for Leave & Salary */}
-        <Tabs defaultValue="leave" className="space-y-4">
-          <TabsList className="flex overflow-x-auto overflow-y-hidden w-full h-auto p-1 bg-muted/50 rounded-xl justify-start md:grid md:grid-cols-8">
+        <Tabs defaultValue="projects" className="space-y-4">
+          <TabsList className="flex overflow-x-auto overflow-y-hidden w-full h-auto p-1 bg-muted/50 rounded-xl justify-start md:grid md:grid-cols-9">
             <TabsTrigger value="announcements" className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> <span className="hidden lg:inline">Bulletin</span></TabsTrigger>
             <TabsTrigger value="events" className="flex items-center gap-2"><Calendar className="h-4 w-4" /> <span className="hidden lg:inline">Events</span></TabsTrigger>
+            <TabsTrigger value="projects" className="flex items-center gap-2"><FolderKanban className="h-4 w-4" /> <span className="hidden lg:inline">Projects</span></TabsTrigger>
             <TabsTrigger value="leave" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> <span className="hidden lg:inline">Leave</span></TabsTrigger>
             <TabsTrigger value="salary" className="flex items-center gap-2"><DollarSign className="h-4 w-4" /> <span className="hidden lg:inline">Salary</span></TabsTrigger>
             <TabsTrigger value="helpdesk" className="flex items-center gap-2"><LifeBuoy className="h-4 w-4" /> <span className="hidden lg:inline">Helpdesk</span></TabsTrigger>
@@ -532,6 +566,98 @@ export default function EmployeePortal() {
             <TabsTrigger value="assets" className="flex items-center gap-2"><Package className="h-4 w-4" /> <span className="hidden lg:inline">Assets</span></TabsTrigger>
             <TabsTrigger value="okrs" className="flex items-center gap-2"><Target className="h-4 w-4" /> <span className="hidden lg:inline">My OKRs</span></TabsTrigger>
           </TabsList>
+
+          {/* PROJECTS */}
+          <TabsContent value="projects">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FolderKanban className="h-5 w-5 text-primary" />
+                  My Assigned Projects
+                </CardTitle>
+                <CardDescription>Projects you are explicitly assigned to manage, develop, or support.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingProjects ? (
+                  <div className="flex h-40 items-center justify-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-8 w-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin"></div>
+                      <p className="text-xs text-muted-foreground font-semibold">Syncing assignments...</p>
+                    </div>
+                  </div>
+                ) : myProjects.length === 0 ? (
+                  <div className="text-center py-10 border border-dashed rounded-2xl border-border/50 bg-muted/10">
+                    <FolderKanban className="h-10 w-10 mx-auto text-muted-foreground mb-3 opacity-40" />
+                    <h3 className="font-bold text-sm">No Projects Assigned</h3>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1 leading-relaxed">
+                      You are not currently assigned to any active client projects. Once assigned by an administrator, your project pipeline will appear here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    {myProjects.map((proj: any) => {
+                      const stagesList = ['discovery', 'requirement', 'strategy', 'design', 'development', 'qa', 'deployment', 'maintenance'];
+                      const stageIdx = stagesList.indexOf(proj.stage);
+                      const progress = ((stageIdx + 1) / stagesList.length) * 100;
+                      
+                      return (
+                        <Card key={proj.id} className="relative overflow-hidden hover:shadow-md transition-all border border-border/40 bg-card/60 backdrop-blur-sm flex flex-col justify-between">
+                          <CardHeader className="p-5 pb-3">
+                            <div className="flex justify-between items-start gap-2">
+                              <Badge variant="outline" className="capitalize text-[10px] rounded-md font-semibold border-primary/20 text-primary bg-primary/5">
+                                {proj.project_type}
+                              </Badge>
+                              <Badge className={`uppercase text-[9px] tracking-wider font-bold rounded-lg border-0 ${proj.status === 'active' ? 'bg-indigo-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+                                {proj.status}
+                              </Badge>
+                            </div>
+                            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 mt-2 line-clamp-1" title={proj.project_name}>
+                              {proj.project_name}
+                            </h3>
+                            <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+                              Client: <span className="font-bold text-slate-700 dark:text-slate-300">{proj.client_name}</span>
+                            </p>
+                          </CardHeader>
+                          <CardContent className="p-5 pt-0 space-y-4 flex-1 flex flex-col justify-between">
+                            {/* Milestone pipeline tracker */}
+                            <div className="space-y-1.5 flex-1">
+                              <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                                <span>{proj.stage} Stage</span>
+                                <span>{Math.round(progress)}% Done</span>
+                              </div>
+                              <Progress value={progress} className="h-2 rounded-full" />
+                            </div>
+                            
+                            <Separator className="opacity-60" />
+                            
+                            <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                              <div>
+                                <span className="font-semibold block text-[9px] uppercase tracking-wider text-slate-400">Start Date</span>
+                                <span className="font-bold text-slate-700 dark:text-slate-300">{proj.start_date ? format(new Date(proj.start_date), 'MMM d, yyyy') : 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="font-semibold block text-[9px] uppercase tracking-wider text-slate-400">Deadline</span>
+                                <span className={proj.deadline ? "font-bold text-red-500" : "font-bold text-slate-600 dark:text-slate-400"}>
+                                  {proj.deadline ? format(new Date(proj.deadline), 'MMM d, yyyy') : 'No Deadline'}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <Button 
+                              onClick={() => navigate(`/projects/${proj.id}`)}
+                              className="w-full mt-4 gradient-primary text-xs rounded-xl h-9 font-semibold text-white shadow-sm flex items-center justify-center gap-1.5"
+                            >
+                              <FolderKanban className="h-4 w-4" /> Enter Project Workspace
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* EVENTS */}
           <TabsContent value="events">

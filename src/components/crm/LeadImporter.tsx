@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, FileSpreadsheet, Check } from 'lucide-react';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { toast } from 'sonner';
 
 type LeadCategory = 'study_abroad' | 'fashion' | 'real_estate' | 'healthcare' | 'technology' | 'education' | 'retail' | 'hospitality' | 'other';
@@ -17,6 +18,7 @@ interface LeadImporterProps {
 }
 
 export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
+  const { logActivity, logSecurity } = useActivityLog();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<any[]>([]);
   // New state to control how many rows are shown (default to 10)
@@ -89,6 +91,8 @@ export function LeadImporter({ open, onOpenChange }: LeadImporterProps) {
       if (error) throw error;
 
       toast.success(`Successfully imported ${leads.length} leads!`);
+      logActivity('imported', 'crm_leads', `${leads.length} leads from spreadsheet "${file.name}"`);
+      logSecurity('IMPORT', 'CRM_LEADS', `Imported ${leads.length} CRM leads from spreadsheet "${file.name}"`);
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       onOpenChange(false);
       setFile(null);

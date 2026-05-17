@@ -101,7 +101,7 @@ export function LeadTable({
 
     // 2. Badge Filter
     if (filter === 'high_value') {
-        return (lead.value || 0) >= 5000;
+        return ((lead as any).value || 0) >= 5000;
     } else if (filter === 'new_week') {
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);

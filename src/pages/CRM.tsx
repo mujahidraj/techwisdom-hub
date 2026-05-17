@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +46,7 @@ const sourceData = [
 
 export default function CRM() {
   const queryClient = useQueryClient();
+  const { logActivity, logSecurity } = useActivityLog();
   const [view, setView] = useState<'kanban' | 'table'>('kanban');
   const [importerOpen, setImporterOpen] = useState(false);
   const [addLeadOpen, setAddLeadOpen] = useState(false);
@@ -78,6 +80,7 @@ export default function CRM() {
   // --- EXPORT FUNCTIONALITY (With All Filters) ---
   const handleExport = async () => {
     try {
+      logSecurity('EXPORT', 'CLIENT_LIST', 'Exported full leads/clients CRM pipeline list to CSV format');
       let query = supabase.from('leads').select('*');
 
       // 1. Search
@@ -101,7 +104,7 @@ export default function CRM() {
         query = query.ilike('city', `%${cityFilter}%`);
       }
       if (categoryFilter && categoryFilter !== 'all') {
-        query = query.eq('category', categoryFilter);
+        query = query.eq('category', categoryFilter as any);
       }
 
       // 4. Sorting
@@ -119,6 +122,8 @@ export default function CRM() {
       a.click();
       window.URL.revokeObjectURL(url);
       toast.success("Leads exported successfully");
+      logActivity('exported', 'crm_leads', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+      logSecurity('EXPORT', 'CRM_LEADS', `Exported CRM leads to CSV format`);
     } catch (e: any) {
       toast.error("Export failed: " + e.message);
     }

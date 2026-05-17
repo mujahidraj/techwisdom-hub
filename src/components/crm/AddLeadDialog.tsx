@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ interface AddLeadDialogProps {
 export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
   const queryClient = useQueryClient();
   const { sendNotification } = useNotifications();
+  const { logActivity, logSecurity } = useActivityLog();
   const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { category: 'other' },
@@ -62,6 +64,9 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
       const { error } = await supabase.from('leads').insert(insertData);
       if (error) throw error;
       
+      logActivity('created', 'lead', data.business_name);
+      logSecurity('CREATE', 'CRM_LEAD', `Created new CRM lead for "${data.business_name}"`);
+
       // Notify all admins
       sendNotification({
         title: 'New Lead Added',

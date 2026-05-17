@@ -43,7 +43,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return <Navigate to="/client-portal" replace />;
   }
 
-  const isEmployeeRoute = location.pathname.startsWith('/teamChat') || location.pathname.startsWith('/meeting');
+  const isEmployeeRoute = 
+    location.pathname.startsWith('/teamChat') || 
+    location.pathname.startsWith('/meeting') || 
+    location.pathname.startsWith('/projects');
+
   if (role === 'employee' && !isEmployeeRoute) {
     return <Navigate to="/employee-portal" replace />;
   }

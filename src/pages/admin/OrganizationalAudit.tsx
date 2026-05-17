@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { Loader2, Download, TrendingUp, DollarSign, Users, Briefcase, Activity, 
 import { format, subMonths, subWeeks, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 
 export default function OrganizationalAudit() {
+  const { logSecurity } = useActivityLog();
   const [viewType, setViewType] = useState<'monthly' | 'weekly'>('monthly');
   const [selectedRange, setSelectedRange] = useState<string>(
     viewType === 'monthly' ? format(new Date(), 'yyyy-MM') : format(new Date(), 'yyyy-ww')
@@ -192,6 +194,7 @@ export default function OrganizationalAudit() {
   }, [data, selectedRange, viewType]);
 
   const handleExport = () => {
+    logSecurity('EXPORT', 'ORGANIZATIONAL_AUDIT', 'Exported comprehensive company organizational audit metrics to CSV format');
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Metric,Value\n"
       + `Total Revenue,$${stats?.financial.revenue}\n`

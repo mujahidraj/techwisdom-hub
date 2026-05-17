@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ const COLORS = ['hsl(217, 91%, 60%)', 'hsl(142, 71%, 45%)', 'hsl(38, 92%, 50%)',
 
 export default function Reports() {
   const { role } = useAuth();
+  const { logActivity, logSecurity } = useActivityLog();
   const [selectedPeriod, setSelectedPeriod] = useState('6');
 
   // Fetch projects
@@ -297,6 +299,8 @@ export default function Reports() {
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Report exported successfully');
+    logActivity('exported', 'report', `${filename}.csv`);
+    logSecurity('EXPORT', 'REPORT', `Exported "${filename}" report to CSV format`);
   };
 
   const exportProjectReport = () => {

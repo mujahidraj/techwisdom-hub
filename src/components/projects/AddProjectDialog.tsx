@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +22,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -56,6 +60,7 @@ interface AddProjectDialogProps {
 
 export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) {
   const queryClient = useQueryClient();
+  const { logActivity } = useActivityLog();
 
   // Fetch client users
   const { data: clients = [] } = useQuery({
@@ -81,6 +86,28 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     enabled: open,
   });
 
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees-list-add'],
+    queryFn: async () => {
+      const { data: emps, error: empErr } = await supabase.from('employees').select('id, designation, user_id');
+      const { data: profs, error: profErr } = await supabase.from('profiles').select('user_id, full_name, avatar_url');
+      if (empErr || profErr) throw empErr || profErr;
+
+      return emps.map(emp => {
+        const profile = profs.find(p => p.user_id === emp.user_id);
+        return {
+          id: emp.id,
+          designation: emp.designation,
+          full_name: profile?.full_name || 'Unnamed Employee',
+          avatar_url: profile?.avatar_url
+        };
+      });
+    },
+    enabled: open,
+  });
+
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -99,23 +126,42 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     mutationFn: async (data: FormData) => {
       const { data: userData } = await supabase.auth.getUser();
 
-      const { error } = await supabase.from('active_projects').insert({
-        project_name: data.project_name,
-        client_name: data.client_name,
-        client_id: data.client_id || null,
-        project_type: data.project_type,
-        total_budget: parseFloat(data.total_budget),
-        paid_amount: parseFloat(data.paid_amount || '0'),
-        stage: data.stage as any,
-        deadline: data.deadline || null,
-        created_by: userData.user?.id,
-      });
+      const { data: newProject, error } = await supabase
+        .from('active_projects')
+        .insert({
+          project_name: data.project_name,
+          client_name: data.client_name,
+          client_id: data.client_id || null,
+          project_type: data.project_type,
+          total_budget: parseFloat(data.total_budget),
+          paid_amount: parseFloat(data.paid_amount || '0'),
+          stage: data.stage as any,
+          deadline: data.deadline || null,
+          created_by: userData.user?.id,
+        })
+        .select()
+        .single();
+
       if (error) throw error;
+
+      if (selectedEmployees.length > 0 && newProject) {
+        const assignments = selectedEmployees.map(empId => ({
+          project_id: newProject.id,
+          employee_id: empId
+        }));
+        const { error: assignError } = await supabase.from('project_assignments' as any).insert(assignments);
+        if (assignError) throw assignError;
+      }
+      return newProject;
     },
-    onSuccess: () => {
+    onSuccess: (newProject) => {
+      if (newProject) {
+        logActivity('created', 'project', newProject.project_name, newProject.id);
+      }
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('Project created successfully');
       form.reset();
+      setSelectedEmployees([]);
       onOpenChange(false);
     },
     onError: (error) => {
@@ -280,6 +326,36 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                   </FormItem>
                 )}
               />
+              {/* Assign Employees */}
+              <div className="col-span-2 space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Assign Employees to Project</Label>
+                <div className="border rounded-xl p-3 bg-muted/10 max-h-40 overflow-y-auto space-y-2.5">
+                  {employees.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-1 font-medium">No employees found.</p>
+                  ) : (
+                    employees.map((emp: any) => (
+                      <div key={emp.id} className="flex items-center space-x-3 p-1 rounded-lg hover:bg-muted/30 transition-colors">
+                        <Checkbox
+                          id={`emp-add-${emp.id}`}
+                          checked={selectedEmployees.includes(emp.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedEmployees([...selectedEmployees, emp.id]);
+                            } else {
+                              setSelectedEmployees(selectedEmployees.filter(id => id !== emp.id));
+                            }
+                          }}
+                          className="rounded h-4 w-4"
+                        />
+                        <Label htmlFor={`emp-add-${emp.id}`} className="text-xs font-normal cursor-pointer flex-1 flex flex-col">
+                          <span className="font-bold text-slate-800 dark:text-slate-200">{emp.full_name}</span>
+                          <span className="text-[10px] text-muted-foreground font-medium">{emp.designation}</span>
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

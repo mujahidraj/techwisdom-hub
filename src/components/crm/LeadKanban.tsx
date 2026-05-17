@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Phone, Building2, MoreVertical, Edit, Trash2, ChevronRight, GripVertical, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { EditLeadDialog } from './EditLeadDialog';
 import { DealWonDialog } from './DealWonDialog';
 import {
@@ -210,6 +211,7 @@ export function LeadKanban({
     categoryFilter?: string
 }) {
   const queryClient = useQueryClient();
+  const { logActivity, logSecurity } = useActivityLog();
   const [editLead, setEditLead] = useState<Lead | null>(null);
   const [deleteLead, setDeleteLead] = useState<Lead | null>(null);
   const [dealWonLead, setDealWonLead] = useState<Lead | null>(null);
@@ -253,7 +255,7 @@ export function LeadKanban({
 
     // 2. Badge Filter
     if (filter === 'high_value') {
-        return (lead.value || 0) >= 5000;
+        return ((lead as any).value || 0) >= 5000;
     } else if (filter === 'new_week') {
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -280,8 +282,13 @@ export function LeadKanban({
       const { error } = await supabase.from('leads').update({ status }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
+      const leadItem = leads.find((l) => l.id === variables.id);
+      if (leadItem) {
+        logActivity('updated', 'lead', `Moved lead "${leadItem.business_name}" status to "${variables.status}"`, variables.id);
+        logSecurity('UPDATE', 'CRM_LEAD', `Moved lead "${leadItem.business_name}" status from "${leadItem.status}" to "${variables.status}"`, variables.id);
+      }
     },
     onError: (error) => {
       toast.error('Failed to update status: ' + error.message);
@@ -290,8 +297,13 @@ export function LeadKanban({
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      const leadItem = leads.find((l) => l.id === id);
       const { error } = await supabase.from('leads').delete().eq('id', id);
       if (error) throw error;
+      if (leadItem) {
+        logActivity('deleted', 'lead', leadItem.business_name, id);
+        logSecurity('DELETE', 'CRM_LEAD', `Deleted CRM lead "${leadItem.business_name}"`, id);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });

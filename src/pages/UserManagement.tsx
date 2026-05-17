@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -74,6 +75,7 @@ export default function UserManagement() {
   const navigate = useNavigate();
   const { role, loading: authLoading, user } = useAuth();
   const queryClient = useQueryClient();
+  const { logSecurity } = useActivityLog();
 
   const [addOpen, setAddOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
@@ -133,7 +135,8 @@ export default function UserManagement() {
       if (data?.error) throw new Error(data.error);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      logSecurity('CREATE', 'USER_MANAGEMENT', `Created user account ${variables.email} with role ${variables.role}`);
       queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
       toast.success('User created successfully');
       setAddOpen(false);
@@ -153,7 +156,9 @@ export default function UserManagement() {
         .eq('user_id', userId);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      const userName = editUser?.profile?.full_name || editUser?.profile?.email || 'User';
+      logSecurity('UPDATE', 'USER_MANAGEMENT', `Updated role for ${userName} to ${variables.role}`, variables.userId);
       queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
       toast.success('User role updated successfully');
       setEditUser(null);
@@ -172,7 +177,9 @@ export default function UserManagement() {
         .eq('user_id', userId);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (data, userId) => {
+      const userName = deleteUser?.profile?.full_name || deleteUser?.profile?.email || 'User';
+      logSecurity('DELETE', 'USER_MANAGEMENT', `Removed user ${userName} role access from the system`, userId);
       queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
       toast.success('User role removed successfully');
       setDeleteUser(null);

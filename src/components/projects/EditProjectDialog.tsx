@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useActivityLog } from '@/hooks/useActivityLog';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -68,6 +70,7 @@ interface EditProjectDialogProps {
 
 export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogProps) {
   const queryClient = useQueryClient();
+  const { logActivity } = useActivityLog();
 
   // Fetch client users
   const { data: clients = [] } = useQuery({
@@ -92,6 +95,49 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
     },
     enabled: !!project,
   });
+
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+
+  const { data: currentAssignments = [] } = useQuery({
+    queryKey: ['project-assignments-edit', project?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase
+        .from('project_assignments' as any)
+        .select('employee_id')
+        .eq('project_id', project!.id) as any);
+      if (error) throw error;
+      return (data || []).map((a: any) => a.employee_id);
+    },
+    enabled: !!project?.id
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees-list-edit'],
+    queryFn: async () => {
+      const { data: emps, error: empErr } = await supabase.from('employees').select('id, designation, user_id');
+      const { data: profs, error: profErr } = await supabase.from('profiles').select('user_id, full_name, avatar_url');
+      if (empErr || profErr) throw empErr || profErr;
+
+      return emps.map(emp => {
+        const profile = profs.find(p => p.user_id === emp.user_id);
+        return {
+          id: emp.id,
+          designation: emp.designation,
+          full_name: profile?.full_name || 'Unnamed Employee',
+          avatar_url: profile?.avatar_url
+        };
+      });
+    },
+    enabled: !!project,
+  });
+
+  useEffect(() => {
+    if (currentAssignments.length > 0) {
+      setSelectedEmployees(currentAssignments);
+    } else {
+      setSelectedEmployees([]);
+    }
+  }, [currentAssignments, project]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -152,10 +198,33 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
           retainer_paid: data.retainer_paid,
         })
         .eq('id', project!.id);
+
       if (error) throw error;
+
+      // Delete old assignments
+      const { error: deleteError } = await supabase
+        .from('project_assignments' as any)
+        .delete()
+        .eq('project_id', project!.id);
+
+      if (deleteError) throw deleteError;
+
+      // Insert new assignments
+      if (selectedEmployees.length > 0) {
+        const assignments = selectedEmployees.map(empId => ({
+          project_id: project!.id,
+          employee_id: empId
+        }));
+        const { error: assignError } = await supabase.from('project_assignments' as any).insert(assignments);
+        if (assignError) throw assignError;
+      }
     },
     onSuccess: () => {
+      if (project) {
+        logActivity('updated', 'project', project.project_name, project.id);
+      }
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project_assigned_employees', project?.id] });
       toast.success('Project updated successfully');
       onOpenChange(false);
     },
@@ -347,6 +416,37 @@ export function EditProjectDialog({ project, onOpenChange }: EditProjectDialogPr
                   </FormItem>
                 )}
               />
+
+              {/* Assign Employees */}
+              <div className="col-span-2 space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Assign Employees to Project</Label>
+                <div className="border rounded-xl p-3 bg-muted/10 max-h-40 overflow-y-auto space-y-2.5">
+                  {employees.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-1 font-medium">No employees found.</p>
+                  ) : (
+                    employees.map((emp: any) => (
+                      <div key={emp.id} className="flex items-center space-x-3 p-1 rounded-lg hover:bg-muted/30 transition-colors">
+                        <Checkbox
+                          id={`emp-edit-${emp.id}`}
+                          checked={selectedEmployees.includes(emp.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedEmployees([...selectedEmployees, emp.id]);
+                            } else {
+                              setSelectedEmployees(selectedEmployees.filter(id => id !== emp.id));
+                            }
+                          }}
+                          className="rounded h-4 w-4"
+                        />
+                        <Label htmlFor={`emp-edit-${emp.id}`} className="text-xs font-normal cursor-pointer flex-1 flex flex-col">
+                          <span className="font-bold text-slate-800 dark:text-slate-200">{emp.full_name}</span>
+                          <span className="text-[10px] text-muted-foreground font-medium">{emp.designation}</span>
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
 
               {/* Deployment Checklist */}
               {currentStage === 'deployment' && (

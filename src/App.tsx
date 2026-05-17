@@ -86,6 +86,10 @@ import ProposalsDashboard from "./pages/proposals/ProposalsDashboard";
 // Helpdesk
 import HelpdeskAdmin from "./pages/helpdesk/HelpdeskAdmin";
 
+// New Features
+import TaskKanban from "./pages/TaskKanban";
+import KPIDashboard from "./pages/KPIDashboard";
+
 // Settings
 import NotificationPreferences from "./pages/settings/NotificationPreferences";
 
@@ -167,6 +171,8 @@ const App = () => (
               <Route path="/teamChat" element={<Messages />} />
               <Route path="/assets" element={<Assets />} />
               <Route path="/workflows" element={<Workflows />} />
+              <Route path="/kanban" element={<TaskKanban />} />
+              <Route path="/kpi" element={<KPIDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ErrorBoundary>
