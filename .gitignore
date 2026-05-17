@@ -27,3 +27,11 @@ dist-ssr
 dist/
 release/
 build/
+
+# Credentials & Environment Variables
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+.env*.local
