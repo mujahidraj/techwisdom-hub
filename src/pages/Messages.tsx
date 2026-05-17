@@ -83,8 +83,8 @@ export default function Messages() {
       if (validUserIds.length === 0) return [];
 
       const { data: profiles } = await supabase.from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', validUserIds);
+        .select('id, user_id, full_name, avatar_url')
+        .in('user_id', validUserIds);
 
       const usersWithCounts = await Promise.all((profiles || []).map(async (profile) => {
         const { count } = await supabase
@@ -218,10 +218,10 @@ export default function Messages() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-100px)] w-full overflow-hidden bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xl">
+      <div className="absolute inset-0 flex overflow-hidden bg-background rounded-none border-0">
 
         {/* ══════════════════ SIDEBAR (Conversations list) ══════════════════ */}
-        <div className={`w-full md:w-80 flex flex-col border-r border-slate-150/60 dark:border-slate-800 bg-white/80 dark:bg-slate-900/40 backdrop-blur-md shrink-0 z-20 ${activeChat ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-80 flex flex-col border-r border-border/40 bg-card shrink-0 z-20 ${activeChat ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 pb-2">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Chats</h2>
@@ -229,31 +229,30 @@ export default function Messages() {
                 <Users className="h-4 w-4" />
               </div>
             </div>
-            
+
             {/* Search inputs */}
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-              <Input 
-                placeholder="Search Messenger..." 
-                className="pl-9 bg-slate-100/80 dark:bg-slate-800/80 border-0 text-xs rounded-full h-9 focus-visible:ring-1 focus-visible:ring-indigo-500 placeholder:text-slate-400" 
-                value={searchQuery} 
-                onChange={e => setSearchQuery(e.target.value)} 
+              <Input
+                placeholder="Search Messenger..."
+                className="pl-9 bg-slate-100/80 dark:bg-slate-800/80 border-0 text-xs rounded-full h-9 focus-visible:ring-1 focus-visible:ring-indigo-500 placeholder:text-slate-400"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
               />
             </div>
 
             {/* General Feed quick button */}
-            <button 
-              onClick={() => setActiveChat(GENERAL_CHAT)} 
-              className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 ${
-                activeChat?.id === 'general' 
-                ? 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-550/15' 
-                : 'hover:bg-slate-100/80 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
-              }`}
+            <button
+              onClick={() => setActiveChat(GENERAL_CHAT)}
+              className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 ${activeChat?.id === 'general'
+                  ? 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-550/15'
+                  : 'hover:bg-slate-100/80 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                }`}
             >
               <div className={`h-9 w-9 rounded-full overflow-hidden flex items-center justify-center shrink-0 ${activeChat?.id === 'general' ? 'bg-white/20' : 'bg-indigo-50 dark:bg-indigo-950/45 text-indigo-500'}`}>
-                <img 
-                  src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=100&h=100" 
-                  alt="TechWisdom" 
+                <img
+                  src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=100&h=100"
+                  alt="TechWisdom"
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -268,10 +267,10 @@ export default function Messages() {
           <div className="px-4 py-2 shrink-0 border-b border-slate-100/60 dark:border-slate-800 pb-3">
             <p className="px-1 mb-2 text-[9px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest">Active Now</p>
             <div className="flex gap-3 overflow-x-auto sidebar-scroll pb-1">
-              {users.filter(u => onlineUsers.includes(u.id)).length === 0 ? (
+              {users.filter(u => onlineUsers.includes(u.user_id)).length === 0 ? (
                 <p className="text-[10px] text-muted-foreground italic px-1">No other team members active</p>
               ) : (
-                users.filter(u => onlineUsers.includes(u.id)).map((u: any) => (
+                users.filter(u => onlineUsers.includes(u.user_id)).map((u: any) => (
                   <button key={u.id} onClick={() => setActiveChat(u)} className="flex flex-col items-center gap-1 shrink-0 group focus:outline-none">
                     <div className="relative">
                       <Avatar className="h-10 w-10 border-2 border-emerald-500 p-0.5">
@@ -296,14 +295,13 @@ export default function Messages() {
             <p className="px-3 mb-2 text-[9px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest">Participants</p>
             <div className="space-y-0.5">
               {users.filter(u => u.full_name.toLowerCase().includes(searchQuery.toLowerCase())).map((u: any) => (
-                <button 
-                  key={u.id} 
-                  onClick={() => setActiveChat(u)} 
-                  className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all duration-200 ${
-                    activeChat?.id === u.id 
-                    ? 'bg-slate-100/80 dark:bg-slate-800/80 shadow-sm' 
-                    : 'hover:bg-slate-50/80 dark:hover:bg-slate-900/60'
-                  }`}
+                <button
+                  key={u.id}
+                  onClick={() => setActiveChat(u)}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all duration-200 ${activeChat?.id === u.id
+                      ? 'bg-slate-100/80 dark:bg-slate-800/80 shadow-sm'
+                      : 'hover:bg-slate-50/80 dark:hover:bg-slate-900/60'
+                    }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="relative shrink-0">
@@ -313,14 +311,14 @@ export default function Messages() {
                           {u.full_name?.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 border-2 border-white dark:border-slate-900 rounded-full ${onlineUsers.includes(u.id) ? 'bg-emerald-500' : 'bg-slate-350'}`} />
+                      <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 border-2 border-white dark:border-slate-900 rounded-full ${onlineUsers.includes(u.user_id) ? 'bg-emerald-500' : 'bg-slate-350'}`} />
                     </div>
                     <div className="min-w-0 text-left">
                       <p className="font-bold text-xs text-slate-700 dark:text-slate-200 truncate">
                         {u.full_name}
                       </p>
                       <p className="text-[10px] text-slate-400 truncate mt-0.5 font-medium">
-                        {onlineUsers.includes(u.id) ? 'Active now' : 'Away'}
+                        {onlineUsers.includes(u.user_id) ? 'Active now' : 'Away'}
                       </p>
                     </div>
                   </div>
@@ -336,11 +334,11 @@ export default function Messages() {
         </div>
 
         {/* ══════════════════ CHAT WINDOW (Active Chat Area) ══════════════════ */}
-        <div className={`flex-1 flex flex-col bg-slate-50 dark:bg-slate-955 overflow-hidden ${!activeChat ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col bg-background overflow-hidden ${!activeChat ? 'hidden md:flex' : 'flex'}`}>
           {activeChat ? (
             <>
               {/* Chat Header (Frosted Glassmorphism) */}
-              <div className="h-14 px-4 md:px-6 border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-md z-10 shrink-0">
+              <div className="h-14 px-4 md:px-6 border-b border-border/40 flex justify-between items-center bg-card z-10 shrink-0">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Button
                     variant="ghost"
@@ -362,7 +360,7 @@ export default function Messages() {
                         {activeChat?.id === 'general' ? 'TW' : activeChat?.full_name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    {activeChat?.id !== 'general' && onlineUsers.includes(activeChat?.id) && (
+                    {activeChat?.id !== 'general' && onlineUsers.includes(activeChat?.user_id) && (
                       <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-955" />
                     )}
                   </div>
@@ -371,8 +369,8 @@ export default function Messages() {
                       {activeChat.full_name}
                     </h3>
                     {activeChat?.id !== 'general' ? (
-                      <p className={`text-[9px] font-bold uppercase tracking-widest ${onlineUsers.includes(activeChat?.id) ? 'text-emerald-500' : 'text-slate-450'}`}>
-                        {onlineUsers.includes(activeChat?.id) ? 'Active now' : 'Offline'}
+                      <p className={`text-[9px] font-bold uppercase tracking-widest ${onlineUsers.includes(activeChat?.user_id) ? 'text-emerald-500' : 'text-slate-450'}`}>
+                        {onlineUsers.includes(activeChat?.user_id) ? 'Active now' : 'Offline'}
                       </p>
                     ) : (
                       <p className="text-[9px] text-indigo-500 font-bold uppercase tracking-widest flex items-center gap-1">
@@ -382,7 +380,7 @@ export default function Messages() {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Header Action Buttons */}
                 <div className="flex gap-0.5 shrink-0">
                   <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-500 rounded-full h-8 w-8 hover:bg-slate-100/60 dark:hover:bg-slate-800/60" onClick={() => navigate('/meeting')}><Phone className="h-4 w-4" /></Button>
@@ -394,10 +392,10 @@ export default function Messages() {
               {/* Chat Message Stream */}
               <div
                 ref={chatContainerRef}
-                className="flex-1 overflow-y-auto px-4 md:px-6 relative w-full bg-slate-50/50 dark:bg-slate-900/10 sidebar-scroll scroll-smooth"
+                className="flex-1 overflow-y-auto px-4 md:px-6 relative w-full bg-background sidebar-scroll scroll-smooth"
               >
                 <div className="max-w-4xl mx-auto py-6 pb-2 w-full">
-                  
+
                   {/* Beautiful Messenger Greeting Hero Block */}
                   <div className="flex flex-col items-center justify-center text-center py-10 mb-8 border-b border-slate-150/40 dark:border-slate-800/40 animate-fade-in">
                     <div className="relative mb-3">
@@ -417,8 +415,8 @@ export default function Messages() {
                     </div>
                     <h4 className="font-extrabold text-sm text-slate-800 dark:text-white">{activeChat.full_name}</h4>
                     <p className="text-[10px] text-slate-400 mt-1 max-w-[280px] leading-relaxed font-semibold">
-                      {activeChat?.id === 'general' 
-                        ? 'This is the official global channel for all TechWisdom team members.' 
+                      {activeChat?.id === 'general'
+                        ? 'This is the official global channel for all TechWisdom team members.'
                         : `You are connected with ${activeChat.full_name}. Say hello to start your direct line.`}
                     </p>
                   </div>
@@ -440,7 +438,7 @@ export default function Messages() {
 
                         return (
                           <div key={msg.id} className={`flex gap-2.5 items-end ${isMe ? 'justify-end' : 'justify-start'} group animate-in fade-in slide-in-from-bottom-2 duration-300 w-full mb-3`}>
-                            
+
                             {/* Receiver Avatar displayed next to their bubble */}
                             {!isMe && (
                               <Avatar className="h-7 w-7 border shrink-0">
@@ -546,10 +544,10 @@ export default function Messages() {
                       <button onClick={() => setReplyTo(null)}><X className="h-3 w-3 text-slate-400" /></button>
                     </div>
                   )}
-                  
+
                   {/* Floating Frosted Glass Capsule */}
                   <div className="flex items-center gap-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg p-2.5 pl-4 pr-3.5 rounded-2xl border border-slate-100 dark:border-slate-800/85 shadow-lg shadow-slate-100/40 dark:shadow-none focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:bg-white dark:focus-within:bg-slate-950 transition-all">
-                    
+
                     {/* Emoji Trigger */}
                     <div className="relative shrink-0">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-500 rounded-full hover:bg-slate-200/50" onClick={() => setShowEmoji(!showEmoji)}>
@@ -577,18 +575,18 @@ export default function Messages() {
                     </div>
 
                     {/* Message input */}
-                    <Input 
-                      className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-slate-800 dark:text-white placeholder:text-slate-450 font-bold text-xs h-9 p-0" 
-                      placeholder="Type a message..." 
-                      value={messageText} 
-                      onChange={e => setMessageText(e.target.value)} 
-                      onKeyDown={e => e.key === 'Enter' && handleSend()} 
+                    <Input
+                      className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-slate-800 dark:text-white placeholder:text-slate-450 font-bold text-xs h-9 p-0"
+                      placeholder="Type a message..."
+                      value={messageText}
+                      onChange={e => setMessageText(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSend()}
                     />
 
                     {/* Send button */}
-                    <Button 
-                      onClick={handleSend} 
-                      className="rounded-xl h-8 w-8 shrink-0 bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-550/15 hover:scale-[1.05] transition-transform p-0 flex items-center justify-center" 
+                    <Button
+                      onClick={handleSend}
+                      className="rounded-xl h-8 w-8 shrink-0 bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-550/15 hover:scale-[1.05] transition-transform p-0 flex items-center justify-center"
                       disabled={!messageText.trim()}
                     >
                       <Send className="h-3.5 w-3.5 text-white" />
@@ -598,7 +596,7 @@ export default function Messages() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-450 dark:text-slate-500 p-6 bg-slate-50/10">
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-450 dark:text-slate-500 p-6 bg-background">
               <div className="p-4 bg-indigo-50 dark:bg-indigo-950/45 text-indigo-500 rounded-3xl mb-4 shadow-sm border border-slate-100/50 dark:border-slate-800">
                 <Users className="h-8 w-8 opacity-75" />
               </div>

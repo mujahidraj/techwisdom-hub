@@ -98,14 +98,14 @@ export function TopBar() {
   return (
     <>
       <GlobalSearch />
-      <header className="h-20 border-b border-border/40 bg-background/60 backdrop-blur-2xl flex items-center justify-between px-6 sticky top-0 z-40 shadow-[0_4px_32px_rgba(0,0,0,0.02)] transition-all duration-300">
+      <header className="h-16 border-b border-border/40 bg-background/60 backdrop-blur-2xl flex items-center justify-between px-6 sticky top-0 z-40 shadow-[0_4px_32px_rgba(0,0,0,0.02)] transition-all duration-300">
 
         <div className="flex items-center gap-4">
           <SidebarTrigger className="lg:hidden text-primary">
             <Menu className="h-6 w-6" />
           </SidebarTrigger>
 
-          <div className="relative hidden xl:block group/search">
+          <div className="relative hidden 2xl:block group/search">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 transition-colors duration-300 group-hover/search:text-primary" />
             <Input
               placeholder="Search anything..."
@@ -116,7 +116,7 @@ export function TopBar() {
                 document.dispatchEvent(event);
               }}
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-60">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-row items-center gap-1 opacity-60 pointer-events-none select-none whitespace-nowrap">
               <kbd className="bg-muted px-1.5 py-0.5 rounded-md text-[10px] font-semibold border border-border/50">⌘</kbd>
               <kbd className="bg-muted px-1.5 py-0.5 rounded-md text-[10px] font-semibold border border-border/50">K</kbd>
             </div>
@@ -124,7 +124,7 @@ export function TopBar() {
         </div>
 
         {/* CENTERED PILL NAVIGATION */}
-        <nav className="hidden lg:flex items-center gap-1 p-1.5 bg-card/30 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner">
+        <nav className="hidden xl:flex items-center gap-1 p-1.5 bg-card/30 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner flex-shrink-0">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
@@ -132,7 +132,7 @@ export function TopBar() {
                 key={item.label}
                 onClick={() => navigate(item.path)} 
                 className={cn(
-                  "relative px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 overflow-hidden group/nav",
+                  "relative px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 overflow-hidden group/nav whitespace-nowrap flex-shrink-0",
                   isActive ? "text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-card/80 hover:shadow-sm"
                 )}
               >
@@ -149,10 +149,10 @@ export function TopBar() {
           {/* LIVE CLOCK */}
           <GlobalCalendarPop>
             <div className="hidden md:flex flex-col items-end px-4 py-1.5 bg-card/40 rounded-xl border border-border/50 shadow-sm transition-all duration-300 hover:bg-card/80 hover:border-primary/30 cursor-pointer group/clock">
-              <div className="text-[15px] font-extrabold tracking-tight font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tabular-nums leading-none group-hover/clock:scale-105 transition-transform duration-300">
+              <div className="text-[15px] font-extrabold tracking-tight font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tabular-nums leading-none group-hover/clock:scale-105 transition-transform duration-300 whitespace-nowrap">
                 {format(currentTime, 'hh:mm:ss a')}
               </div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-70 group-hover/clock:text-primary transition-colors duration-300">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-70 group-hover/clock:text-primary transition-colors duration-300 whitespace-nowrap">
                 {format(currentTime, 'MMM dd, yyyy')}
               </div>
             </div>
@@ -162,7 +162,7 @@ export function TopBar() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden bg-card/40 border border-border/50 rounded-xl hover:bg-card/80 hover:border-primary/30 transition-all duration-300 shadow-sm"
+            className="2xl:hidden bg-card/40 border border-border/50 rounded-xl hover:bg-card/80 hover:border-primary/30 transition-all duration-300 shadow-sm"
             onClick={() => {
               const event = new KeyboardEvent('keydown', {
                 key: 'k',

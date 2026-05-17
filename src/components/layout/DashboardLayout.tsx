@@ -43,9 +43,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return <Navigate to="/client-portal" replace />;
   }
 
-  const isEmployeeRoute = 
-    location.pathname.startsWith('/teamChat') || 
-    location.pathname.startsWith('/meeting') || 
+  const isEmployeeRoute =
+    location.pathname.startsWith('/teamChat') ||
+    location.pathname.startsWith('/meeting') ||
     location.pathname.startsWith('/projects');
 
   if (role === 'employee' && !isEmployeeRoute) {
@@ -58,14 +58,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {role === 'admin' && <AppSidebar />}
         <div className="flex-1 flex flex-col min-w-0">
           {role === 'admin' ? (
-             <TopBar />
+            <TopBar />
           ) : (
-             <header className="h-16 flex items-center px-6 border-b bg-card">
-               <Button variant="ghost" onClick={() => navigate('/employee-portal')}>
-                 <ArrowLeft className="h-4 w-4 mr-2" />
-                 Back to Portal
-               </Button>
-             </header>
+            <header className="h-16 flex items-center px-6 border-b bg-card">
+              <Button variant="ghost" onClick={() => navigate('/employee-portal')}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Portal
+              </Button>
+            </header>
           )}
           <main className="flex-1 p-6 overflow-auto relative">
             {children}

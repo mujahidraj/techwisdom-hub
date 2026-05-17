@@ -58,17 +58,18 @@ export default function Dashboard() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', start_time: '' });
   const [isNavigating, setIsNavigating] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
   // Effect Hooks
   useEffect(() => {
     if (!user?.id) return;
 
     const setOnline = async () => {
-      await supabase.from('profiles' as any).update({ status: 'online' }).eq('id', user.id);
+      await supabase.from('profiles' as any).update({ status: 'online' }).eq('user_id', user.id);
     };
 
     const setOffline = async () => {
-      await supabase.from('profiles' as any).update({ status: 'offline' }).eq('id', user.id);
+      await supabase.from('profiles' as any).update({ status: 'offline' }).eq('user_id', user.id);
     };
 
     setOnline();
@@ -84,10 +85,44 @@ export default function Dashboard() {
     };
   }, [user?.id]);
 
+  useEffect(() => {
+    const channel = supabase.channel('profiles-realtime-changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['team_status'] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase.channel('online-team-presence', {
+      config: { presence: { key: user.id } }
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        setOnlineUsers(Object.keys(state));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   // Mutation Hooks
   const updateStatusMutation = useMutation({
     mutationFn: async (status: string) => {
-      await supabase.from('profiles' as any).update({ status }).eq('id', user?.id);
+      await supabase.from('profiles' as any).update({ status }).eq('user_id', user?.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team_status'] });
@@ -112,8 +147,8 @@ export default function Dashboard() {
       // 2. Get profiles for those users
       const { data: members } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, status')
-        .in('id', userIds);
+        .select('id, user_id, full_name, avatar_url, status')
+        .in('user_id', userIds);
 
       return members || [];
     },
@@ -451,10 +486,10 @@ export default function Dashboard() {
                 <div className="relative cursor-pointer group">
                   <div className="absolute -inset-1.5 bg-gradient-to-tr from-[#C00707] to-[#134E8E] rounded-full blur-md opacity-0 group-hover:opacity-70 transition duration-700 animate-pulse"></div>
                   <Avatar className="h-20 w-20 border-4 border-white dark:border-slate-900 relative group-hover:scale-105 transition-transform duration-500 shadow-2xl">
-                    <AvatarImage src={teamMembers.find((m: any) => m.id === user?.id)?.avatar_url} />
+                    <AvatarImage src={teamMembers.find((m: any) => m.user_id === user?.id)?.avatar_url} />
                     <AvatarFallback className="bg-[#C00707] text-white text-2xl font-black">{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  <span className={`absolute bottom-1 right-1 h-6 w-6 rounded-full border-4 border-white dark:border-slate-900 shadow-lg ${teamMembers.find((m: any) => m.id === user?.id)?.status === 'online' ? 'bg-[#FF4400]' : teamMembers.find((m: any) => m.id === user?.id)?.status === 'busy' ? 'bg-[#FFB33F]' : 'bg-slate-400'}`} />
+                  <span className={`absolute bottom-1 right-1 h-6 w-6 rounded-full border-4 border-white dark:border-slate-900 shadow-lg ${teamMembers.find((m: any) => m.user_id === user?.id)?.status === 'online' ? 'bg-[#FF4400]' : teamMembers.find((m: any) => m.user_id === user?.id)?.status === 'busy' ? 'bg-[#FFB33F]' : 'bg-slate-400'}`} />
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56 p-3 rounded-2xl">
@@ -477,14 +512,14 @@ export default function Dashboard() {
 
 
           <div className="flex items-center gap-7">
-            {teamMembers.filter((m: any) => m.id !== user?.id).map((member: any) => (
+            {teamMembers.filter((m: any) => m.user_id !== user?.id).map((member: any) => (
               <div key={member.id} className="flex flex-col items-center gap-2 min-w-[70px] group cursor-default">
                 <div className="relative">
                   <Avatar className="h-16 w-16 border-2 border-transparent group-hover:border-primary/30 transition-all duration-300 group-hover:scale-110 shadow-sm">
                     <AvatarImage src={member.avatar_url} />
                     <AvatarFallback className="bg-muted text-muted-foreground font-semibold">{member.full_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-white dark:border-slate-900 shadow-sm transition-all duration-300 ${member.status === 'online' ? 'bg-green-500 animate-pulse' : member.status === 'busy' ? 'bg-amber-500' : 'bg-slate-300'}`} />
+                  <span className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-white dark:border-slate-900 shadow-sm transition-all duration-300 ${onlineUsers.includes(member.user_id) ? member.status === 'busy' ? 'bg-amber-500' : 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
                 </div>
                 <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate max-w-[70px] group-hover:text-primary transition-colors">
                   {member.full_name?.split(' ')[0] || 'User'}
