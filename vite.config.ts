@@ -5,8 +5,8 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  // IMPORTANT: This line ensures assets work in the PC app
-  base: "./", 
+  // IMPORTANT: This ensures assets work as absolute paths on Vercel Web, but remain relative in the PC/Mobile App
+  base: process.env.VERCEL === "1" ? "/" : "./", 
   server: {
     host: "::",
     port: 8080,
