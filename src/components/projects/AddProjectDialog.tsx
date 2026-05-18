@@ -209,12 +209,12 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Add New Project</DialogTitle>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto p-5 md:p-6">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-lg font-bold">Add New Project</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -360,42 +360,42 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                   </FormItem>
                 )}
               />
-              {/* Assign Employees */}
-              <div className="col-span-2 space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Assign Employees to Project</Label>
-                <div className="border rounded-xl p-3 bg-muted/10 max-h-40 overflow-y-auto space-y-2.5">
-                  {employees.length === 0 ? (
-                    <p className="text-xs text-muted-foreground py-1 font-medium">No employees found.</p>
-                  ) : (
-                    employees.map((emp: any) => (
-                      <div key={emp.id} className="flex items-center space-x-3 p-1 rounded-lg hover:bg-muted/30 transition-colors">
-                        <Checkbox
-                          id={`emp-add-${emp.id}`}
-                          checked={selectedEmployees.includes(emp.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedEmployees([...selectedEmployees, emp.id]);
-                            } else {
-                              setSelectedEmployees(selectedEmployees.filter(id => id !== emp.id));
-                            }
-                          }}
-                          className="rounded h-4 w-4"
-                        />
-                        <Label htmlFor={`emp-add-${emp.id}`} className="text-xs font-normal cursor-pointer flex-1 flex flex-col">
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{emp.full_name}</span>
-                          <span className="text-[10px] text-muted-foreground font-medium">{emp.designation}</span>
-                        </Label>
-                      </div>
-                    ))
-                  )}
-                </div>
+            </div>
+            {/* Assign Employees */}
+            <div className="space-y-1.5 pt-1">
+              <Label className="text-xs font-bold uppercase text-muted-foreground">Assign Employees to Project</Label>
+              <div className="border rounded-xl p-2.5 bg-muted/10 max-h-32 overflow-y-auto space-y-1.5">
+                {employees.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-1 font-medium">No employees found.</p>
+                ) : (
+                  employees.map((emp: any) => (
+                    <div key={emp.id} className="flex items-center space-x-3 p-1 rounded-lg hover:bg-muted/30 transition-colors">
+                      <Checkbox
+                        id={`emp-add-${emp.id}`}
+                        checked={selectedEmployees.includes(emp.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedEmployees([...selectedEmployees, emp.id]);
+                          } else {
+                            setSelectedEmployees(selectedEmployees.filter(id => id !== emp.id));
+                          }
+                        }}
+                        className="rounded h-4 w-4"
+                      />
+                      <Label htmlFor={`emp-add-${emp.id}`} className="text-xs font-normal cursor-pointer flex-1 flex flex-col">
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{emp.full_name}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">{emp.designation}</span>
+                      </Label>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button type="submit" size="sm" disabled={mutation.isPending}>
                 {mutation.isPending ? 'Creating...' : 'Create Project'}
               </Button>
             </div>

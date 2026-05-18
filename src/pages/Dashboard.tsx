@@ -28,6 +28,7 @@ import {
 import { toast } from 'sonner';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import { PWAInstallBanner } from '@/components/PWAInstallBanner';
+import { useTeamPresence } from '@/hooks/useTeamPresence';
 import {
   Dialog,
   DialogContent,
@@ -58,7 +59,7 @@ export default function Dashboard() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', start_time: '' });
   const [isNavigating, setIsNavigating] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const onlineUsers = useTeamPresence();
 
   // Effect Hooks
   useEffect(() => {
@@ -96,28 +97,6 @@ export default function Dashboard() {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    const channel = supabase.channel('online-team-presence', {
-      config: { presence: { key: user.id } }
-    });
-
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        setOnlineUsers(Object.keys(state));
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({ online_at: new Date().toISOString() });
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
 
   // Mutation Hooks
   const updateStatusMutation = useMutation({

@@ -562,8 +562,8 @@ export default function Invoices() {
                     <div>
                       <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-5">
                         <div className="space-y-3">
-                          <div className="bg-[#0f172a] p-2.5 rounded-xl inline-block shadow-sm">
-                            <img src={logo} className="h-7 w-auto object-contain" alt="TechWisdom Technologies" />
+                          <div className="inline-block py-1">
+                            <img src="/White_bg-removebg-preview.png" className="h-11 w-auto object-contain" alt="TechWisdom Technologies" />
                           </div>
                           <div className="text-[11px] text-slate-400 space-y-0.5 leading-relaxed">
                             <p className="font-bold text-slate-600">TechWisdom Technologies</p>

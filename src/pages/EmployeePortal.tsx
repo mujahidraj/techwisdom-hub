@@ -138,7 +138,6 @@ export default function EmployeePortal() {
           .from('employees')
           .insert({
             user_id: user!.id,
-            full_name: profile?.full_name || user!.email?.split('@')[0] || 'Employee Admin',
             designation: 'Senior Cloud Engineer',
             department: 'Engineering',
             base_salary: 95000,
@@ -459,8 +458,8 @@ export default function EmployeePortal() {
       <header className="border-b bg-white/60 dark:bg-slate-900/60 border-border/50 backdrop-blur-xl shrink-0 z-50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl">
-              <img src={logo} className="h-9 w-9" alt="TechWisdom Logo" />
+            <div className="p-1">
+              <img src="/White_bg-removebg-preview.png" className="h-10 w-auto object-contain" alt="TechWisdom Logo" />
             </div>
             <div>
               <span className="font-black text-slate-800 dark:text-white text-base tracking-tight">TechWisdom ERP</span>

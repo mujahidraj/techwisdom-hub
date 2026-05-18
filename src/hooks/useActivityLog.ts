@@ -36,8 +36,9 @@ export function useActivityLog() {
 
   // Subscribe to realtime inserts on audit_logs
   useEffect(() => {
+    const channelName = `audit_logs_realtime_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel('audit_logs_realtime')
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'audit_logs' },

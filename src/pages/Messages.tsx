@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useTeamPresence } from '@/hooks/useTeamPresence';
 import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 
 const CLOUDINARY_CLOUD_NAME = "dljiukpd4";
@@ -49,27 +50,7 @@ export default function Messages() {
   const [isUploading, setIsUploading] = useState(false);
   const [editingMessage, setEditingMessage] = useState<any>(null);
   const [editText, setEditText] = useState('');
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    const channel = supabase.channel('online-team-presence', {
-      config: { presence: { key: user.id } }
-    });
-
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        setOnlineUsers(Object.keys(state));
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({ online_at: new Date().toISOString() });
-        }
-      });
-
-    return () => { supabase.removeChannel(channel); };
-  }, [user?.id]);
+  const onlineUsers = useTeamPresence();
 
   const [reactingTo, setReactingTo] = useState<string | null>(null);
 

@@ -4,8 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { useTeamPresence } from "@/hooks/useTeamPresence";
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Maximize2, PhoneOff } from 'lucide-react';
@@ -108,28 +108,7 @@ import KPIDashboard from "./pages/KPIDashboard";
 import NotificationPreferences from "./pages/settings/NotificationPreferences";
 
 const GlobalPresenceTracker = () => {
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (!user?.id) return;
-    const channel = supabase.channel('online-team-presence', {
-      config: { presence: { key: user.id } }
-    });
-
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        // No-op: we just track the presence globally
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({ online_at: new Date().toISOString() });
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
+  useTeamPresence();
 
   return null;
 };

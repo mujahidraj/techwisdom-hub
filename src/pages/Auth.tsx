@@ -231,11 +231,8 @@ export default function Auth() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="p-2 gradient-primary rounded-lg">
-              <Building2 className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold gradient-text">TechWisdom</span>
+          <div className="lg:hidden flex items-center justify-center mb-8">
+            <img src="/White_bg-removebg-preview.png" className="h-14 w-auto object-contain" alt="TechWisdom Logo" />
           </div>
 
           {showForgotPassword ? (

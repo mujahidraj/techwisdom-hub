@@ -1100,9 +1100,13 @@ export default function ProjectDetails() {
 
         {/* --- EDIT PARAMETERS DIALOG --- */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="rounded-2xl max-w-xl">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><Edit className="h-5 w-5" /> Edit Project details</DialogTitle></DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3">
+          <DialogContent className="rounded-2xl max-w-xl max-h-[85vh] overflow-y-auto p-5 md:p-6">
+            <DialogHeader className="pb-2">
+              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                <Edit className="h-5 w-5" /> Edit Project Details
+              </DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-1">
               <div className="col-span-2">
                 <Label className="text-xs font-bold uppercase text-muted-foreground">Project Name</Label>
                 <Input value={editForm.project_name} onChange={e => setEditForm({ ...editForm, project_name: e.target.value })} className="mt-1 rounded-xl text-xs bg-muted/20 border-border/40 h-9" />
@@ -1146,38 +1150,40 @@ export default function ProjectDetails() {
                 <Label className="text-xs font-bold uppercase text-muted-foreground">Deadline Date</Label>
                 <Input type="date" value={editForm.deadline || ''} onChange={e => setEditForm({ ...editForm, deadline: e.target.value })} className="mt-1 rounded-xl text-xs bg-muted/20 border-border/40 h-9" />
               </div>
-              {/* Assign Employees */}
-              <div className="col-span-2 space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Assign Employees to Project</Label>
-                <div className="border rounded-xl p-3 bg-muted/10 max-h-40 overflow-y-auto space-y-2.5">
-                  {allEmployees.length === 0 ? (
-                    <p className="text-xs text-muted-foreground py-1 font-medium">No employees found.</p>
-                  ) : (
-                    allEmployees.map((emp: any) => (
-                      <div key={emp.id} className="flex items-center space-x-3 p-1 rounded-lg hover:bg-muted/30 transition-colors">
-                        <Checkbox
-                          id={`emp-edit-details-${emp.id}`}
-                          checked={selectedEmployees.includes(emp.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedEmployees([...selectedEmployees, emp.id]);
-                            } else {
-                              setSelectedEmployees(selectedEmployees.filter(id => id !== emp.id));
-                            }
-                          }}
-                          className="rounded h-4 w-4"
-                        />
-                        <Label htmlFor={`emp-edit-details-${emp.id}`} className="text-xs font-normal cursor-pointer flex-1 flex flex-col">
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{emp.full_name}</span>
-                          <span className="text-[10px] text-muted-foreground font-medium">{emp.designation}</span>
-                        </Label>
-                      </div>
-                    ))
-                  )}
-                </div>
+            </div>
+            
+            {/* Assign Employees */}
+            <div className="space-y-1.5 pt-1">
+              <Label className="text-xs font-bold uppercase text-muted-foreground">Assign Employees to Project</Label>
+              <div className="border rounded-xl p-2.5 bg-muted/10 max-h-32 overflow-y-auto space-y-1.5">
+                {allEmployees.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-1 font-medium">No employees found.</p>
+                ) : (
+                  allEmployees.map((emp: any) => (
+                    <div key={emp.id} className="flex items-center space-x-3 p-1 rounded-lg hover:bg-muted/30 transition-colors">
+                      <Checkbox
+                        id={`emp-edit-details-${emp.id}`}
+                        checked={selectedEmployees.includes(emp.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedEmployees([...selectedEmployees, emp.id]);
+                          } else {
+                            setSelectedEmployees(selectedEmployees.filter(id => id !== emp.id));
+                          }
+                        }}
+                        className="rounded h-4 w-4"
+                      />
+                      <Label htmlFor={`emp-edit-details-${emp.id}`} className="text-xs font-normal cursor-pointer flex-1 flex flex-col">
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{emp.full_name}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">{emp.designation}</span>
+                      </Label>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-            <DialogFooter className="mt-4">
+
+            <DialogFooter className="mt-3">
               <Button onClick={() => updateProjectMutation.mutate({ ...editForm, selectedEmps: selectedEmployees })} className="gradient-primary h-9 text-xs rounded-xl w-full sm:w-auto">Save Parameters</Button>
             </DialogFooter>
           </DialogContent>

@@ -85,7 +85,6 @@ async function executeStep(step: WorkflowStep, payload: Record<string, unknown>,
         title: String(config.title || 'Auto Note').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k)),
         content: String(config.content || '').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k)),
         user_id: userId || null,
-        color: '#4f46e5',
       });
       break;
 
@@ -119,7 +118,6 @@ async function executeStep(step: WorkflowStep, payload: Record<string, unknown>,
         title: `✅ TASK: ${String(config.title || 'Auto Task').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k))}`,
         content: `Assigned Role: ${config.assignee_role || 'employee'}\n\nGenerated automatically via workflow trigger.`,
         user_id: userId || null,
-        color: '#10b981',
       });
       break;
 
