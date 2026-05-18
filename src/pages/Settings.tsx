@@ -62,17 +62,27 @@ export default function Settings() {
         .single();
 
       if (existingProfile) {
-        // Update existing profile
+        // Update existing profile, setting id to user.id to repair any bad legacy ID values
         const { error } = await supabase
           .from('profiles')
-          .update({ full_name: fullName, phone })
+          .update({ 
+            id: user.id,
+            full_name: fullName, 
+            phone 
+          })
           .eq('user_id', user.id);
         if (error) throw error;
       } else {
-        // Insert new profile
+        // Insert new profile, setting 'id' to user.id to satisfy the profiles_id_fkey foreign key constraint
         const { error } = await supabase
           .from('profiles')
-          .insert({ user_id: user.id, full_name: fullName, phone, email: user.email });
+          .insert({ 
+            id: user.id,
+            user_id: user.id, 
+            full_name: fullName, 
+            phone, 
+            email: user.email 
+          });
         if (error) throw error;
       }
     },

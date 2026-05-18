@@ -52,7 +52,10 @@ export function AvatarUpload({ userId, currentAvatarUrl, userEmail, onAvatarChan
       // Update profile with avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ 
+          id: userId,
+          avatar_url: publicUrl 
+        })
         .eq('user_id', userId);
 
       if (updateError) throw updateError;
@@ -73,7 +76,10 @@ export function AvatarUpload({ userId, currentAvatarUrl, userEmail, onAvatarChan
       // Remove from profile
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: null })
+        .update({ 
+          id: userId,
+          avatar_url: null 
+        })
         .eq('user_id', userId);
 
       if (updateError) throw updateError;

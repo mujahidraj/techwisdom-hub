@@ -389,6 +389,7 @@ export default function EmployeePortal() {
       const { error } = await supabase
         .from('profiles')
         .update({
+          id: user!.id,
           full_name: data.full_name,
           phone: data.phone,
           avatar_url: data.avatar_url,
