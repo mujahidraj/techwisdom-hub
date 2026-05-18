@@ -351,22 +351,22 @@ ${JSON.stringify(leadsData, null, 2)}`;
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-130px)]">
+      <div className="space-y-6 flex flex-col lg:h-[calc(100vh-120px)]">
         
         {/* TOP ROW HEADER */}
-        <div className="flex flex-row items-center justify-between border-b pb-4 shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 shrink-0">
           <div>
-            <h1 className="text-3xl font-extrabold flex items-center gap-2 bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
-              <Sparkles className="h-8 w-8 text-primary animate-pulse" /> AI Assistant Hub
+            <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2 bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+              <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-primary animate-pulse" /> AI Assistant Hub
             </h1>
-            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 flex items-center gap-2">
               <Cpu className="h-4 w-4 text-indigo-500" /> High Availability Pool: {GROQ_KEYS.length} AI Tokens Active
             </p>
           </div>
           <Button 
             onClick={scoreLeads} 
             disabled={loading}
-            className="gradient-primary text-white font-bold h-11 px-5 rounded-xl shadow-lg hover:shadow-primary/20 hover:opacity-95 transition-all active:scale-[0.98] flex items-center gap-2"
+            className="gradient-primary text-white font-bold h-11 px-5 rounded-xl shadow-lg hover:shadow-primary/20 hover:opacity-95 transition-all active:scale-[0.98] flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4.5 w-4.5 text-amber-300" />}
             Auto-Score CRM Leads
@@ -374,20 +374,20 @@ ${JSON.stringify(leadsData, null, 2)}`;
         </div>
 
         {/* MAIN SPLIT WORKSPACE GRID */}
-        <div className="grid lg:grid-cols-2 gap-6 flex-1 min-h-0 items-stretch overflow-hidden pb-2">
+        <div className="grid lg:grid-cols-2 gap-6 flex-1 min-h-0 items-stretch lg:overflow-hidden pb-2">
           
           {/* LEFT CARDS: TOOLS WORKSPACE */}
-          <Card className="glass-card flex flex-col h-full overflow-hidden border-border/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl rounded-2xl">
-            <CardHeader className="shrink-0 border-b border-border/50 pb-4 flex flex-row items-center justify-between">
+          <Card className="glass-card flex flex-col lg:h-full overflow-hidden border-border/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl rounded-2xl">
+            <CardHeader className="shrink-0 border-b border-border/50 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-xl font-bold text-foreground">AI Workspaces</CardTitle>
+                <CardTitle className="text-lg sm:text-xl font-bold text-foreground">AI Workspaces</CardTitle>
                 <CardDescription className="text-xs">Select a workspace template to accelerate outputs</CardDescription>
               </div>
               
               {activeTab === 'copilot' && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                   <Select value={chatPersona} onValueChange={setChatPersona}>
-                    <SelectTrigger className="h-9 w-36 text-xs font-semibold rounded-xl bg-background/50 border-border/60">
+                    <SelectTrigger className="h-9 w-32 sm:w-36 text-xs font-semibold rounded-xl bg-background/50 border-border/60">
                       <SelectValue placeholder="Persona" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -408,9 +408,9 @@ ${JSON.stringify(leadsData, null, 2)}`;
               )}
             </CardHeader>
             
-            <CardContent className="p-0 flex-1 overflow-hidden flex flex-row min-h-0 h-full">
-              {/* VERTICAL TOOL SELECTOR SIDEBAR */}
-              <div className="w-[160px] shrink-0 border-r border-border/50 bg-slate-50/50 dark:bg-slate-950/20 p-2.5 flex flex-col gap-1 h-full select-none">
+            <CardContent className="p-0 flex-1 overflow-hidden flex flex-col md:flex-row min-h-0 lg:h-full">
+              {/* VERTICAL/HORIZONTAL TOOL SELECTOR SIDEBAR */}
+              <div className="w-full md:w-[160px] shrink-0 border-b md:border-b-0 md:border-r border-border/50 bg-slate-50/50 dark:bg-slate-950/20 p-2.5 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-x-visible scrollbar-none">
                 {TOOLS.map((tool) => {
                   const Icon = tool.icon;
                   const isActive = activeTab === tool.id;
@@ -419,7 +419,7 @@ ${JSON.stringify(leadsData, null, 2)}`;
                       key={tool.id}
                       onClick={() => setActiveTab(tool.id)}
                       type="button"
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.97] text-left ${
+                      className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.97] text-left whitespace-nowrap md:whitespace-normal shrink-0 md:shrink ${
                         isActive
                           ? 'bg-primary text-white shadow-md shadow-primary/10'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/60'
@@ -433,7 +433,7 @@ ${JSON.stringify(leadsData, null, 2)}`;
               </div>
 
               {/* DYNAMIC SCROLLABLE FORM PANEL (NO SCROLLBAR) */}
-              <div className="flex-1 p-5 overflow-y-auto min-h-0 h-full scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <div className="flex-1 p-4 sm:p-5 overflow-y-auto min-h-0 lg:h-full scrollbar-none">
                 
                 {/* 1. COPILOT */}
                 {activeTab === 'copilot' && (

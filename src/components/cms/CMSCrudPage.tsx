@@ -222,23 +222,23 @@ export function CMSCrudPage({ title, table, fields, cardRender, queryKey, jsonKe
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate('/cms')}><ArrowLeft className="h-5 w-5" /></Button>
-            <div><h1 className="text-2xl font-bold">{title}</h1><p className="text-muted-foreground">{items.length} items</p></div>
+            <div><h1 className="text-xl sm:text-2xl font-bold">{title}</h1><p className="text-xs sm:text-sm text-muted-foreground">{items.length} items</p></div>
           </div>
           {role === 'admin' && (
-            <div className="flex items-center gap-2">
-              <div>
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
+              <div className="w-full sm:w-auto">
                 <input type="file" id={`upload-${table}`} className="hidden" accept=".json" onChange={handleFileUpload} disabled={bulkUploadMutation.isPending} />
-                <Label htmlFor={`upload-${table}`} className="cursor-pointer">
-                  <div className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                <Label htmlFor={`upload-${table}`} className="cursor-pointer w-full">
+                  <div className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full sm:w-auto">
                     {bulkUploadMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
                     Upload JSON
                   </div>
                 </Label>
               </div>
-              <Button className="gradient-primary" onClick={openCreate}>
+              <Button className="gradient-primary w-full sm:w-auto" onClick={openCreate}>
                 <Plus className="h-4 w-4 mr-2" />Add New
               </Button>
             </div>
@@ -253,7 +253,7 @@ export function CMSCrudPage({ title, table, fields, cardRender, queryKey, jsonKe
                   <div className="flex-1 min-w-0">{cardRender(item)}</div>
                   {role === 'admin' && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openEdit(item)}><Edit className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setDeleteId(item.id)} className="text-destructive"><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>

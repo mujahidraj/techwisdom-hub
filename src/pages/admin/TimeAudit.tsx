@@ -5,13 +5,13 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Loader2, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle2, 
-  ListTodo, 
-  TrendingDown, 
+import {
+  Loader2,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  ListTodo,
+  TrendingDown,
   Hourglass,
   Calendar,
   AlertCircle,
@@ -36,107 +36,7 @@ export default function TimeAudit() {
       let updatesList = updates || [];
 
       // Auto-seed active_projects if empty
-      if (projectsList.length === 0) {
-        const sampleProjects = [
-          {
-            project_name: 'TechWisdom ERP System V4',
-            client_name: 'Mujahid Raj Corp',
-            project_type: 'Software Development',
-            total_budget: 45000,
-            paid_amount: 15000,
-            status: 'active',
-            stage: 'development',
-            created_at: new Date(Date.now() - 3600000 * 24 * 40).toISOString(), // Created 40 days ago
-            updated_at: new Date(Date.now() - 3600000 * 24 * 16).toISOString()  // Stalled for 16 days!
-          },
-          {
-            project_name: 'SaaS E-Commerce Redesign',
-            client_name: 'Global Retail Hub',
-            project_type: 'Web Application',
-            total_budget: 18000,
-            paid_amount: 18000,
-            status: 'completed',
-            stage: 'maintenance',
-            created_at: new Date(Date.now() - 3600000 * 24 * 35).toISOString(),
-            updated_at: new Date(Date.now() - 3600000 * 24 * 5).toISOString()  // Completed in 30 days
-          },
-          {
-            project_name: 'CRM Mobile Companion App',
-            client_name: 'NextGen Financials',
-            project_type: 'Mobile App',
-            total_budget: 24000,
-            paid_amount: 12000,
-            status: 'active',
-            stage: 'strategy',
-            created_at: new Date(Date.now() - 3600000 * 24 * 25).toISOString(), // Created 25 days ago
-            updated_at: new Date(Date.now() - 3600000 * 24 * 22).toISOString()  // Stalled for 22 days!
-          },
-          {
-            project_name: 'AI Analytics Intelligence Integration',
-            client_name: 'Apex Data Labs',
-            project_type: 'Machine Learning',
-            total_budget: 32000,
-            paid_amount: 32000,
-            status: 'completed',
-            stage: 'deployment',
-            created_at: new Date(Date.now() - 3600000 * 24 * 20).toISOString(),
-            updated_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString()  // Completed in 18 days
-          }
-        ];
-        
-        await supabase.from('active_projects').insert(sampleProjects);
-        const { data: refetchedProjs } = await supabase.from('active_projects').select('*').order('created_at', { ascending: false });
-        if (refetchedProjs) projectsList = refetchedProjs;
-      }
-
       // Auto-seed project_updates if empty
-      if (updatesList.length === 0 && projectsList.length > 0) {
-        const erpProj = projectsList.find(p => p.project_name.includes('ERP'));
-        const ecommerceProj = projectsList.find(p => p.project_name.includes('Commerce'));
-        
-        const sampleUpdates = [];
-        if (erpProj) {
-          sampleUpdates.push({
-            project_id: erpProj.id,
-            title: 'Database Schema Finalized',
-            message: 'Completed core migration schemas and loaded the initial seeds. Relational integrity models created.',
-            created_at: new Date(Date.now() - 3600000 * 24 * 20).toISOString()
-          });
-          sampleUpdates.push({
-            project_id: erpProj.id,
-            title: 'Auth Pipeline Implementation',
-            message: 'Set up JWT middleware routes, authorization checks, and locked admin dashboards behind app_roles.',
-            created_at: new Date(Date.now() - 3600000 * 24 * 16).toISOString()
-          });
-        }
-        
-        if (ecommerceProj) {
-          sampleUpdates.push({
-            project_id: ecommerceProj.id,
-            title: 'Storefront Design Signed Off',
-            message: 'Client approved the high-fidelity Figma user journey layouts and micro-interaction prototypes.',
-            created_at: new Date(Date.now() - 3600000 * 24 * 30).toISOString()
-          });
-          sampleUpdates.push({
-            project_id: ecommerceProj.id,
-            title: 'Checkout Sandbox Integrations',
-            message: 'Payment gateway integrations with Stripe completed. Dynamic discount vouchers validation engine configured.',
-            created_at: new Date(Date.now() - 3600000 * 24 * 15).toISOString()
-          });
-          sampleUpdates.push({
-            project_id: ecommerceProj.id,
-            title: 'Final Release Handover',
-            message: 'Transferred control panel secrets, setup RLS constraints, and handed over production bundle instructions.',
-            created_at: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
-          });
-        }
-
-        if (sampleUpdates.length > 0) {
-          await supabase.from('project_updates').insert(sampleUpdates);
-          const { data: refetchedUpdates } = await supabase.from('project_updates').select('*, project:project_id(project_name)').order('created_at', { ascending: false });
-          if (refetchedUpdates) updatesList = refetchedUpdates;
-        }
-      }
 
       return {
         projects: projectsList,
@@ -162,7 +62,7 @@ export default function TimeAudit() {
     const bottlenecks = activeProjects.map(p => {
       const daysSinceUpdate = differenceInDays(new Date(), new Date(p.updated_at || p.created_at));
       return { ...p, daysSinceUpdate };
-    }).filter(p => p.daysSinceUpdate > 14).sort((a,b) => b.daysSinceUpdate - a.daysSinceUpdate);
+    }).filter(p => p.daysSinceUpdate > 14).sort((a, b) => b.daysSinceUpdate - a.daysSinceUpdate);
 
     return {
       completedCount: completedProjects.length,
@@ -175,23 +75,23 @@ export default function TimeAudit() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in pb-10 flex flex-col h-[calc(100vh-120px)] min-h-0 overflow-hidden">
-        
+      <div className="space-y-6 animate-fade-in pb-10 flex flex-col lg:h-[calc(100vh-120px)] min-h-0 lg:overflow-hidden">
+
         {/* HEADER BAR */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 dark:bg-slate-900/60 border border-border/60 backdrop-blur-xl p-5 rounded-2xl shadow-xl shadow-slate-100/30 dark:shadow-none shrink-0">
           <div>
-            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
-              <Clock className="h-8 w-8 text-indigo-500 animate-pulse" />
+            <h1 className="text-xl sm:text-3xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+              <Clock className="h-7 w-7 sm:h-8 sm:w-8 text-indigo-500 animate-pulse" />
               Time & Delivery Bottleneck Audit
             </h1>
             <p className="text-xs text-slate-500 font-semibold mt-1">
               Live workflow monitoring: Automatically identify team blocks, project updates frequency, and average lifecycle durations.
             </p>
           </div>
-          <Button 
-            onClick={() => refetch()} 
+          <Button
+            onClick={() => refetch()}
             variant="outline"
-            className="h-10 rounded-xl font-bold border-border/60 hover:bg-slate-50 dark:hover:bg-slate-950/20 text-slate-700 dark:text-slate-350"
+            className="h-10 rounded-xl font-bold border-border/60 hover:bg-slate-50 dark:hover:bg-slate-950/20 text-slate-700 dark:text-slate-355 w-full sm:w-auto justify-center"
           >
             Refetch Logs
           </Button>
@@ -201,49 +101,49 @@ export default function TimeAudit() {
         {stats && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
             <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
-              <CardContent className="p-4.5 flex items-center gap-3.5">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500 rounded-xl shrink-0">
+              <CardContent className="p-4 sm:p-4.5 flex items-center gap-3 sm:gap-3.5">
+                <div className="p-2.5 sm:p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500 rounded-xl shrink-0">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div className="truncate">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Avg Completion</p>
-                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.avgDaysToComplete} Days</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Avg Completion</p>
+                  <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.avgDaysToComplete} Days</h3>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
-              <CardContent className="p-4.5 flex items-center gap-3.5 text-destructive">
-                <div className="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-500 rounded-xl shrink-0">
+              <CardContent className="p-4 sm:p-4.5 flex items-center gap-3 sm:gap-3.5 text-destructive">
+                <div className="p-2.5 sm:p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-500 rounded-xl shrink-0">
                   <AlertTriangle className="h-5 w-5 animate-pulse" />
                 </div>
                 <div className="truncate">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Critical Bottlenecks</p>
-                  <h3 className="text-lg font-black text-rose-600 dark:text-rose-455 truncate">{stats.bottlenecks.length} Stallers</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Critical Bottlenecks</p>
+                  <h3 className="text-base sm:text-lg font-black text-rose-600 dark:text-rose-455 truncate">{stats.bottlenecks.length} Stallers</h3>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
-              <CardContent className="p-4.5 flex items-center gap-3.5">
-                <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-500 rounded-xl shrink-0">
+              <CardContent className="p-4 sm:p-4.5 flex items-center gap-3 sm:gap-3.5">
+                <div className="p-2.5 sm:p-3 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-500 rounded-xl shrink-0">
                   <Hourglass className="h-5 w-5" />
                 </div>
                 <div className="truncate">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Workload</p>
-                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.activeCount} Projects</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Workload</p>
+                  <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.activeCount} Projects</h3>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
-              <CardContent className="p-4.5 flex items-center gap-3.5">
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/20 text-purple-500 rounded-xl shrink-0">
+              <CardContent className="p-4 sm:p-4.5 flex items-center gap-3 sm:gap-3.5">
+                <div className="p-2.5 sm:p-3 bg-purple-50 dark:bg-purple-950/20 text-purple-500 rounded-xl shrink-0">
                   <ListTodo className="h-5 w-5" />
                 </div>
                 <div className="truncate">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Milestone Logs</p>
-                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.totalUpdates} Updates</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Milestone Logs</p>
+                  <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.totalUpdates} Updates</h3>
                 </div>
               </CardContent>
             </Card>
@@ -257,12 +157,12 @@ export default function TimeAudit() {
             <p className="text-sm font-semibold text-slate-400">Processing lifecycle data...</p>
           </div>
         ) : (
-          
+
           /* SPLITindependent VIEWPORT WORKSPACE */
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0 overflow-hidden">
-            
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0 lg:overflow-hidden">
+
             {/* COLUMN 1: WORKFLOW BOTTLENECKS */}
-            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl flex flex-col min-h-0 overflow-hidden">
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl flex flex-col min-h-0 lg:overflow-hidden">
               <CardHeader className="pb-3 border-b border-border/40 shrink-0 bg-slate-50/50 dark:bg-slate-950/10">
                 <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
                   <TrendingDown className="h-5 w-5 text-rose-500" />
@@ -272,8 +172,8 @@ export default function TimeAudit() {
                   Active projects with no milestone changes or updates for over 14 days.
                 </CardDescription>
               </CardHeader>
-              
-              <CardContent className="p-5 flex-1 overflow-y-auto min-h-0 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] space-y-4">
+
+              <CardContent className="p-4 sm:p-5 flex-1 lg:overflow-y-auto min-h-0 scrollbar-none space-y-4">
                 {stats.bottlenecks.length === 0 ? (
                   <div className="bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 rounded-xl p-6 text-center flex flex-col items-center justify-center h-48 font-semibold text-xs">
                     <ShieldCheck className="h-10 w-10 text-emerald-500 mb-2.5" />
@@ -284,7 +184,7 @@ export default function TimeAudit() {
                   stats.bottlenecks.map((project) => (
                     <div key={project.id} className="border border-destructive/20 bg-destructive/5 rounded-xl p-4 relative overflow-hidden transition-all duration-150 hover:scale-[0.99]">
                       <div className="absolute top-0 bottom-0 left-0 w-1 bg-destructive" />
-                      
+
                       <div className="flex justify-between items-start mb-2 pl-1.5">
                         <div>
                           <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-200 leading-tight">
@@ -298,7 +198,7 @@ export default function TimeAudit() {
                           {project.daysSinceUpdate} Days Stalled
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center gap-1.5 text-2xs font-bold text-slate-450 uppercase mb-3 pl-1.5">
                         <span>Current Stage:</span>
                         <Badge variant="outline" className="text-2xs font-extrabold py-0.5 uppercase tracking-wide bg-background/50 border-border/40 select-none">
@@ -322,7 +222,7 @@ export default function TimeAudit() {
             </Card>
 
             {/* COLUMN 2: RECENT PRODUCTIVITY LOG */}
-            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl flex flex-col min-h-0 overflow-hidden">
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl flex flex-col min-h-0 lg:overflow-hidden">
               <CardHeader className="pb-3 border-b border-border/40 shrink-0 bg-slate-50/50 dark:bg-slate-950/10">
                 <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
                   <ListTodo className="h-5 w-5 text-indigo-500" />
@@ -332,18 +232,18 @@ export default function TimeAudit() {
                   Unified history stream of all submitted project milestone reports.
                 </CardDescription>
               </CardHeader>
-              
-              <CardContent className="p-5 flex-1 overflow-y-auto min-h-0 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+
+              <CardContent className="p-4 sm:p-5 flex-1 lg:overflow-y-auto min-h-0 scrollbar-none">
                 {data.updates.length === 0 ? (
                   <div className="bg-slate-500/5 border border-slate-500/20 text-slate-500 rounded-xl p-6 text-center flex flex-col items-center justify-center h-48 font-semibold text-xs">
                     <Calendar className="h-10 w-10 text-slate-400 mb-2.5" />
                     No milestones reported.
-                    <span className="text-[10px] text-slate-450 mt-1">Logs will appear as team members record project progress.</span>
+                    <span className="text-[10px] text-slate-455 mt-1">Logs will appear as team members record project progress.</span>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto border border-border/40 rounded-xl bg-white/30 dark:bg-slate-950/20">
-                    <table className="w-full text-sm text-left table-fixed">
-                      <thead className="text-[10px] text-slate-450 uppercase bg-slate-50/75 dark:bg-slate-950/30 border-b border-border/40 sticky top-0 backdrop-blur-md z-10">
+                  <div className="overflow-x-auto border border-border/40 rounded-xl bg-white/30 dark:bg-slate-950/20 w-full">
+                    <table className="w-full text-sm text-left table-fixed min-w-[600px]">
+                      <thead className="text-[10px] text-slate-455 uppercase bg-slate-50/75 dark:bg-slate-950/30 border-b border-border/40 sticky top-0 backdrop-blur-md z-10">
                         <tr>
                           <th className="px-4 py-3 font-black tracking-wider w-[20%]">Date</th>
                           <th className="px-4 py-3 font-black tracking-wider w-[28%]">Project Name</th>

@@ -75,66 +75,6 @@ export default function SecurityAudit() {
       }
 
       // Auto-seed sample logs if DB is completely empty and user is logged in
-      if (logsData.length === 0 && !localStorage.getItem('security_audit_seeded')) {
-        const { data: activeUser } = await supabase.auth.getUser();
-        if (activeUser?.user) {
-          const sampleLogs = [
-            {
-              user_id: activeUser.user.id,
-              action_type: 'LOGIN',
-              entity_name: 'USER_SESSION',
-              description: `User ${activeUser.user.email} successfully logged in from IP 127.0.0.1`,
-              metadata: { email: activeUser.user.email, user_name: activeUser.user.email.split('@')[0] },
-              created_at: new Date(Date.now() - 3600000 * 2).toISOString()
-            },
-            {
-              user_id: activeUser.user.id,
-              action_type: 'UPDATE',
-              entity_name: 'USER_MANAGEMENT',
-              description: `Updated permissions for employee roles inside User Management panel`,
-              metadata: { action: 'update_roles', user_name: activeUser.user.email.split('@')[0] },
-              created_at: new Date(Date.now() - 3600000 * 5).toISOString()
-            },
-            {
-              user_id: activeUser.user.id,
-              action_type: 'EXPORT',
-              entity_name: 'CLIENT_LIST',
-              description: `Exported full leads/clients CRM pipeline list to CSV format`,
-              metadata: { count: 12, user_name: activeUser.user.email.split('@')[0] },
-              created_at: new Date(Date.now() - 3600000 * 24).toISOString()
-            }
-          ];
-          await supabase.from('audit_logs' as any).insert(sampleLogs);
-          localStorage.setItem('security_audit_seeded', 'true');
-          
-          // Fetch once again
-          const { data: reFetched } = await supabase
-            .from('audit_logs' as any)
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(1000);
-          if (reFetched) {
-            const reLogsData = reFetched as any[] || [];
-            const reUserIds = [...new Set(reLogsData.map(log => log.user_id).filter(Boolean))];
-            if (reUserIds.length > 0) {
-              const { data: reProfiles } = await supabase
-                .from('profiles')
-                .select('user_id, id, full_name, email')
-                .in('id', reUserIds);
-              if (reProfiles) {
-                reProfiles.forEach(p => {
-                  profilesMap[p.id] = p;
-                  if (p.user_id) profilesMap[p.user_id] = p;
-                });
-              }
-            }
-            return reLogsData.map(log => ({
-              ...log,
-              profile: profilesMap[log.user_id] || null
-            }));
-          }
-        }
-      }
 
       return logsData.map(log => ({
         ...log,
@@ -223,17 +163,17 @@ export default function SecurityAudit() {
         {/* TOP BANNER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/60 dark:bg-slate-900/60 border border-border/60 backdrop-blur-xl p-6 rounded-2xl shadow-xl shadow-slate-100/40 dark:shadow-none">
           <div>
-            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
-              <ShieldAlert className="h-8 w-8 text-destructive animate-pulse" />
+            <h1 className="text-xl sm:text-3xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+              <ShieldAlert className="h-7 w-7 sm:h-8 sm:w-8 text-destructive animate-pulse" />
               Comprehensive Security & Activity Audit
             </h1>
-            <p className="text-sm text-slate-500 font-semibold mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
               Real-time enterprise event stream: Watch every single write, update, and action taken by anyone.
             </p>
           </div>
           <Button 
             onClick={handleExport} 
-            className="gradient-primary text-white font-bold h-11 px-5 rounded-xl shadow-lg hover:shadow-primary/20 hover:opacity-95 transition-all active:scale-[0.98] flex items-center gap-2"
+            className="gradient-primary text-white font-bold h-11 px-5 rounded-xl shadow-lg hover:shadow-primary/20 hover:opacity-95 transition-all active:scale-[0.98] flex items-center gap-2 w-full md:w-auto justify-center"
           >
             <Download className="h-4.5 w-4.5" /> Export Selected Logs
           </Button>
@@ -242,56 +182,56 @@ export default function SecurityAudit() {
         {/* METRICS OVERVIEW */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border-border/60 shadow-lg rounded-2xl">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-500 rounded-xl">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-500 rounded-xl">
                 <Activity className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Events</p>
-                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">{totalActions}</h3>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Total Events</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100">{totalActions}</h3>
               </div>
             </CardContent>
           </Card>
 
           <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border-border/60 shadow-lg rounded-2xl">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-500 rounded-xl">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-500 rounded-xl">
                 <ShieldAlert className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Deletes / Alerts</p>
-                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">{securityAlerts}</h3>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Deletes / Alerts</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100">{securityAlerts}</h3>
               </div>
             </CardContent>
           </Card>
 
           <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border-border/60 shadow-lg rounded-2xl">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500 rounded-xl">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500 rounded-xl">
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Active Actors</p>
-                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">{activeUsers}</h3>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Active Actors</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100">{activeUsers}</h3>
               </div>
             </CardContent>
           </Card>
 
           <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border-border/60 shadow-lg rounded-2xl">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 text-amber-500 rounded-xl">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 bg-amber-50 dark:bg-amber-950/20 text-amber-500 rounded-xl">
                 <Layers className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Most Active Area</p>
-                <h3 className="text-sm font-black text-amber-600 dark:text-amber-400 truncate max-w-[140px] uppercase font-mono">{mostActiveModule}</h3>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Most Active Area</p>
+                <h3 className="text-xs sm:text-sm font-black text-amber-600 dark:text-amber-400 truncate max-w-[90px] sm:max-w-[140px] uppercase font-mono">{mostActiveModule}</h3>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* CONTROLS & FILTERING BAR */}
-        <div className="bg-white/60 dark:bg-slate-900/60 border border-border/60 backdrop-blur-xl p-4.5 rounded-2xl shadow-xl flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+        <div className="bg-white/60 dark:bg-slate-900/60 border border-border/60 backdrop-blur-xl p-4.5 rounded-2xl shadow-xl flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
             <Input
@@ -302,8 +242,8 @@ export default function SecurityAudit() {
             />
           </div>
 
-          <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full lg:w-auto">
+            <div className="flex items-center gap-2 shrink-0">
               <SlidersHorizontal className="h-4 w-4 text-slate-400 shrink-0" />
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Filters:</span>
             </div>
@@ -312,7 +252,7 @@ export default function SecurityAudit() {
             <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
-              className="h-11 px-3 text-xs font-bold rounded-xl border border-border/60 bg-white/50 dark:bg-slate-950/20 text-slate-700 dark:text-slate-200 focus:outline-none"
+              className="h-11 px-3 text-xs font-bold rounded-xl border border-border/60 bg-white/50 dark:bg-slate-950/20 text-slate-700 dark:text-slate-200 focus:outline-none w-full sm:w-auto"
             >
               {uniqueActionTypes.map(act => (
                 <option key={act} value={act} className="font-semibold text-slate-700 dark:text-slate-200">
@@ -325,7 +265,7 @@ export default function SecurityAudit() {
             <select
               value={entityFilter}
               onChange={(e) => setEntityFilter(e.target.value)}
-              className="h-11 px-3 text-xs font-bold rounded-xl border border-border/60 bg-white/50 dark:bg-slate-950/20 text-slate-700 dark:text-slate-200 focus:outline-none"
+              className="h-11 px-3 text-xs font-bold rounded-xl border border-border/60 bg-white/50 dark:bg-slate-950/20 text-slate-700 dark:text-slate-200 focus:outline-none w-full sm:w-auto"
             >
               {uniqueEntities.map(ent => (
                 <option key={ent} value={ent} className="font-semibold text-slate-700 dark:text-slate-200">
@@ -353,9 +293,9 @@ export default function SecurityAudit() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-335px)] min-h-0">
-            <div className="overflow-y-auto flex-1 min-h-0 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <table className="w-full text-sm text-left table-fixed">
+          <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl overflow-hidden flex flex-col h-[calc(100vh-335px)] min-h-0 w-full">
+            <div className="overflow-auto flex-1 min-h-0 w-full scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <table className="w-full text-sm text-left table-fixed min-w-[900px]">
                 <thead className="text-xs text-slate-455 uppercase bg-slate-50/75 dark:bg-slate-950/30 border-b border-border/50 sticky top-0 backdrop-blur-md z-10">
                   <tr>
                     <th className="px-4 py-4 font-black tracking-wider w-[14%]">Timestamp</th>

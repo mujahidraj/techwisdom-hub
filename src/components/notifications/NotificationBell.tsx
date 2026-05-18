@@ -144,7 +144,7 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-85 p-0 shadow-2xl border-primary/10 rounded-xl overflow-hidden">
+      <PopoverContent align="end" className="w-[calc(100vw-32px)] sm:w-85 p-0 shadow-2xl border-primary/10 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#C00707] to-[#FF4400] text-white">
           <div className="flex items-center gap-2">
             <h4 className="font-bold text-sm uppercase tracking-wider">Notifications</h4>

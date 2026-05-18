@@ -171,44 +171,44 @@ export default function OKRDashboard() {
     const ownerName = team.find((t: any) => t.id === obj.owner_id)?.full_name || 'Unassigned';
     return (
       <Card key={obj.id} className={`mb-6 overflow-hidden glass-card border border-border/40 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 transform hover:-translate-y-0.5 rounded-2xl ${getStatusColorClass(obj.status)}`}>
-        <div className="bg-card/30 dark:bg-slate-900/30 p-5 border-b border-border/40 flex justify-between items-start">
-          <div className="flex-1 space-y-2">
+        <div className="bg-card/30 dark:bg-slate-900/30 p-4 sm:p-5 border-b border-border/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex-1 space-y-2 w-full">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary/10 px-2.5 py-0.5 text-xs font-semibold capitalize tracking-wide shadow-none">
                 {obj.level}
               </Badge>
               {getStatusBadge(obj.status)}
             </div>
-            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight tracking-tight">{obj.title}</h3>
-            {obj.description && <p className="text-sm text-muted-foreground">{obj.description}</p>}
+            <h3 className="font-bold text-base sm:text-lg text-slate-800 dark:text-slate-100 leading-tight tracking-tight">{obj.title}</h3>
+            {obj.description && <p className="text-xs sm:text-sm text-muted-foreground">{obj.description}</p>}
             
-            <div className="flex items-center gap-2 mt-3">
-              <div className="flex items-center gap-1.5 bg-muted/65 dark:bg-slate-800/65 px-3 py-1 rounded-full text-xs font-medium border border-border/30 shadow-sm text-slate-600 dark:text-slate-300">
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <div className="flex items-center gap-1.5 bg-muted/65 dark:bg-slate-800/65 px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium border border-border/30 shadow-sm text-slate-600 dark:text-slate-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Owner: <span className="font-bold text-slate-700 dark:text-slate-200">{ownerName}</span>
               </div>
               {obj.department && (
-                <div className="bg-muted/40 dark:bg-slate-800/40 px-2.5 py-1 rounded-full text-xs font-medium border border-border/20 text-slate-500">
+                <div className="bg-muted/40 dark:bg-slate-800/40 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-medium border border-border/20 text-slate-500">
                   Dept: {obj.department}
                 </div>
               )}
             </div>
           </div>
           
-          <div className="text-right ml-4 w-32 shrink-0 flex flex-col justify-center items-end">
-            <div className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 flex items-baseline">
-              {obj.progress || 0}<span className="text-sm font-semibold text-muted-foreground ml-0.5">%</span>
+          <div className="text-left md:text-right w-full md:w-32 shrink-0 flex flex-col justify-start md:justify-center items-start md:items-end">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 flex items-baseline">
+              {obj.progress || 0}<span className="text-xs sm:text-sm font-semibold text-muted-foreground ml-0.5">%</span>
             </div>
             <Progress value={obj.progress || 0} className="h-2 w-full mt-2 bg-slate-100 dark:bg-slate-800 overflow-hidden" />
           </div>
         </div>
         
-        <div className="bg-muted/10 dark:bg-slate-900/10 p-5 space-y-4">
-          <div className="flex justify-between items-center">
+        <div className="bg-muted/10 dark:bg-slate-900/10 p-4 sm:p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <h4 className="text-sm font-bold flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
               <Key className="h-4 w-4 text-primary/80" /> Key Results
             </h4>
-            <Button variant="outline" size="sm" className="h-8 text-xs px-3 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all duration-200 rounded-lg shadow-sm" onClick={() => openNewKr(obj.id)}>
+            <Button variant="outline" size="sm" className="h-8 text-xs px-3 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all duration-200 rounded-lg shadow-sm w-full sm:w-auto justify-center" onClick={() => openNewKr(obj.id)}>
               <Plus className="h-3 w-3 mr-1" /> Add Key Result
             </Button>
           </div>
@@ -222,17 +222,17 @@ export default function OKRDashboard() {
             {obj.okr_key_results?.map((kr: any) => {
               const krProgress = Math.min(100, Math.round((kr.current_value / kr.target_value) * 100));
               return (
-                <div key={kr.id} className="bg-card/40 dark:bg-slate-900/40 backdrop-blur-sm border border-border/40 hover:border-primary/20 rounded-xl p-4 flex justify-between items-center group transition-all duration-200 shadow-sm">
-                  <div className="flex-1 mr-4">
+                <div key={kr.id} className="bg-card/40 dark:bg-slate-900/40 backdrop-blur-sm border border-border/40 hover:border-primary/20 rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between sm:items-center group transition-all duration-200 shadow-sm">
+                  <div className="flex-1 w-full">
                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{kr.title}</p>
-                    <div className="flex items-center gap-4 mt-2">
+                    <div className="flex items-center gap-4 mt-2 flex-wrap sm:flex-nowrap">
                       <div className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-muted px-2 py-0.5 rounded border border-border/20">
                         {kr.current_value} / {kr.target_value} {kr.unit}
                       </div>
-                      <Progress value={krProgress} className="h-1.5 flex-1 max-w-[200px]" />
+                      <Progress value={krProgress} className="h-1.5 flex-1 w-full sm:max-w-[200px]" />
                     </div>
                   </div>
-                  <Button variant="secondary" size="sm" className="opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:bg-primary hover:text-white rounded-lg h-8 px-3" onClick={() => openCheckIn(obj.id, kr)}>
+                  <Button variant="secondary" size="sm" className="opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:bg-primary hover:text-white rounded-lg h-8 px-3 w-full sm:w-auto justify-center" onClick={() => openCheckIn(obj.id, kr)}>
                     <TrendingUp className="h-3 w-3 mr-1" /> Check-in
                   </Button>
                 </div>
@@ -253,7 +253,7 @@ export default function OKRDashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-5xl mx-auto pb-10">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2"><Target className="h-8 w-8 text-primary" /> OKRs & Goals</h1>
             <p className="text-muted-foreground">Align objectives and track measurable outcomes</p>

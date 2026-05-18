@@ -6,7 +6,6 @@ import { AppSidebar } from './AppSidebar';
 import { TopBar } from './TopBar';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AIChatButton } from '@/components/AIChatButton';
 import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
 
 interface DashboardLayoutProps {
@@ -70,7 +69,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden relative">
             {children}
           </main>
-          {role === 'admin' && <AIChatButton />}
         </div>
       </div>
     </SidebarProvider>

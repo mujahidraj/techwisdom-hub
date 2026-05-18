@@ -192,7 +192,7 @@ export default function DocumentManagement() {
           <div className="text-center py-12 text-muted-foreground">Loading documents...</div>
         ) : (
           <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-            <div className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 border-b bg-muted/50 font-medium text-sm text-muted-foreground">
+            <div className="hidden md:grid md:grid-cols-12 gap-4 p-4 border-b bg-muted/50 font-medium text-sm text-muted-foreground">
               <div className="col-span-6">Name</div>
               <div className="col-span-3">Status / Version</div>
               <div className="col-span-3 text-right">Actions</div>
@@ -200,15 +200,15 @@ export default function DocumentManagement() {
 
             <div className="divide-y">
               {folders.map((folder: any) => (
-                <div key={folder.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 items-center hover:bg-muted/50 cursor-pointer" onClick={() => setCurrentFolderId(folder.id)}>
-                  <div className="col-span-6 flex items-center gap-3">
-                    <Folder className="h-5 w-5 text-primary fill-primary/20" />
-                    <span className="font-medium">{folder.name}</span>
+                <div key={folder.id} className="flex flex-row md:grid md:grid-cols-12 justify-between items-center p-4 hover:bg-muted/50 cursor-pointer" onClick={() => setCurrentFolderId(folder.id)}>
+                  <div className="flex-1 md:col-span-6 flex items-center gap-3">
+                    <Folder className="h-5 w-5 text-primary fill-primary/20 shrink-0" />
+                    <span className="font-medium text-sm sm:text-base truncate">{folder.name}</span>
                   </div>
-                  <div className="col-span-3">
+                  <div className="hidden md:block md:col-span-3">
                     <span className="text-xs text-muted-foreground">Folder</span>
                   </div>
-                  <div className="col-span-3 text-right">
+                  <div className="shrink-0 md:col-span-3 text-right ml-2">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -227,27 +227,27 @@ export default function DocumentManagement() {
               ))}
 
               {files.map((file: any) => (
-                <div key={file.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 items-center hover:bg-muted/50">
-                  <div className="col-span-6 flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <span className="font-medium">{file.name}</span>
+                <div key={file.id} className="flex flex-col md:grid md:grid-cols-12 gap-3 p-4 hover:bg-muted/50 w-full">
+                  <div className="md:col-span-6 flex items-center gap-3 w-full">
+                    <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <span className="font-medium text-sm sm:text-base break-all">{file.name}</span>
                   </div>
-                  <div className="col-span-3 flex items-center gap-2">
-                    <Badge variant="outline">v{file.current_version}</Badge>
+                  <div className="md:col-span-3 flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-semibold">v{file.current_version}</Badge>
                     {file.requires_signature && (
-                      <Badge variant="secondary" className="bg-warning/20 text-warning">
-                        <Clock className="h-3 w-3 mr-1" /> Pending Sign
+                      <Badge variant="secondary" className="bg-warning/20 text-warning text-[10px] py-0 px-1.5 font-semibold">
+                        <Clock className="h-3 w-3 mr-1 shrink-0" /> Pending Sign
                       </Badge>
                     )}
                   </div>
-                  <div className="col-span-3 flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => window.open(supabase.storage.from('dms_documents').getPublicUrl(file.file_path).data.publicUrl, '_blank')}>
+                  <div className="md:col-span-3 flex justify-start md:justify-end gap-2 w-full md:w-auto border-t md:border-t-0 pt-2 md:pt-0">
+                    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => window.open(supabase.storage.from('dms_documents').getPublicUrl(file.file_path).data.publicUrl, '_blank')}>
                       <Download className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-destructive hover:bg-destructive/10"
+                      className="text-destructive hover:bg-destructive/10 h-9 w-9"
                       onClick={() => {
                         if (confirm('Are you sure you want to delete this file?')) {
                           deleteFileMutation.mutate(file);
