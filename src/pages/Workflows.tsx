@@ -342,6 +342,18 @@ export default function Workflows() {
                     {s.action_type === 'log_activity' && (
                       <Input value={s.action_config.message || ''} onChange={e => updateStep(i, 'message', e.target.value)} placeholder="Log message" />
                     )}
+                    {s.action_type === 'create_task' && (
+                      <>
+                        <Input value={s.action_config.title || ''} onChange={e => updateStep(i, 'title', e.target.value)} placeholder="Task Title" />
+                        <Input value={s.action_config.assignee_role || ''} onChange={e => updateStep(i, 'assignee_role', e.target.value)} placeholder="Assignee Role (e.g. admin, employee)" />
+                      </>
+                    )}
+                    {s.action_type === 'slack_webhook' && (
+                      <>
+                        <Input value={s.action_config.slack_url || ''} onChange={e => updateStep(i, 'slack_url', e.target.value)} placeholder="https://hooks.slack.com/services/..." />
+                        <Input value={s.action_config.payload || ''} onChange={e => updateStep(i, 'payload', e.target.value)} placeholder="Slack payload message text" />
+                      </>
+                    )}
                   </div>
                 </Card>
               ))}

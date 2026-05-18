@@ -354,138 +354,213 @@ export default function Reports() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-8 animate-fade-in pb-12">
+        
+        {/* Header Title Grid */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-200/50 dark:border-slate-800/30 pb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Reports</h1>
-            <p className="text-muted-foreground mt-1">Generate and export comprehensive reports.</p>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 dark:from-white dark:via-indigo-200 dark:to-white bg-clip-text text-transparent">
+              Reports Hub
+            </h1>
+            <p className="text-sm text-slate-400 mt-1.5 leading-relaxed max-w-xl">
+              Extract, aggregate, and analyze performance statistics, operational costs, and client pipelines across your enterprise workspace.
+            </p>
           </div>
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-[180px]">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="3">Last 3 Months</SelectItem>
-              <SelectItem value="6">Last 6 Months</SelectItem>
-              <SelectItem value="12">Last 12 Months</SelectItem>
-            </SelectContent>
-          </Select>
+          
+          <div className="shrink-0">
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger className="w-[190px] rounded-xl border-slate-200/80 dark:border-slate-800/60 bg-white/70 dark:bg-slate-950/40 backdrop-blur-md shadow-sm font-semibold text-xs">
+                <Calendar className="h-3.5 w-3.5 mr-2 text-indigo-500" />
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-200/80 dark:border-slate-800/80">
+                <SelectItem value="3" className="text-xs font-medium">Last 3 Months</SelectItem>
+                <SelectItem value="6" className="text-xs font-medium">Last 6 Months</SelectItem>
+                <SelectItem value="12" className="text-xs font-medium">Last 12 Months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <Tabs defaultValue="projects" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="projects" className="flex items-center gap-2">
-              <FolderKanban className="h-4 w-4" />
-              Projects
-            </TabsTrigger>
-            <TabsTrigger value="financial" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Financial
-            </TabsTrigger>
-            <TabsTrigger value="team" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Team
-            </TabsTrigger>
-          </TabsList>
+        {/* Premium Tab Navigation */}
+        <Tabs defaultValue="projects" className="space-y-8">
+          <div className="flex justify-center md:justify-start">
+            <TabsList className="flex w-full overflow-x-auto p-1 bg-slate-100/70 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-200/50 dark:border-slate-800/30 gap-1.5 h-auto max-w-md md:max-w-xl">
+              <TabsTrigger 
+                value="projects" 
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md data-[state=active]:border-indigo-100/50 dark:data-[state=active]:border-indigo-900/20 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+              >
+                <FolderKanban className="h-4 w-4" />
+                Projects
+              </TabsTrigger>
+              <TabsTrigger 
+                value="financial" 
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md data-[state=active]:border-indigo-100/50 dark:data-[state=active]:border-indigo-900/20 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+              >
+                <DollarSign className="h-4 w-4" />
+                Financial
+              </TabsTrigger>
+              <TabsTrigger 
+                value="team" 
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md data-[state=active]:border-indigo-100/50 dark:data-[state=active]:border-indigo-900/20 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+              >
+                <Users className="h-4 w-4" />
+                Team
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Projects Report */}
-          <TabsContent value="projects" className="space-y-6">
+          {/* ==================================================================== */}
+          {/* PROJECTS TAB REPORT */}
+          {/* ==================================================================== */}
+          <TabsContent value="projects" className="space-y-8 outline-none">
             <div className="flex justify-end">
-              <Button onClick={exportProjectReport}>
+              <Button onClick={exportProjectReport} className="rounded-xl gradient-primary text-xs font-semibold px-4 py-2 shadow-sm transition-all duration-300 hover:scale-[1.02]">
                 <Download className="h-4 w-4 mr-2" />
-                Export Report
+                Export Project Report
               </Button>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Projects</p>
-                      <p className="text-2xl font-bold">{totalProjects}</p>
-                    </div>
-                    <FolderKanban className="h-8 w-8 text-primary" />
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Card 1 */}
+              <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent dark:from-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <CardContent className="p-6 flex items-center justify-between">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Projects</p>
+                    <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">{totalProjects}</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                    <FolderKanban className="h-6 w-6" />
                   </div>
                 </CardContent>
               </Card>
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Active</p>
-                      <p className="text-2xl font-bold text-success">{activeProjects}</p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-success" />
+
+              {/* Card 2 */}
+              <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-emerald-500/60 dark:border-l-emerald-500/40 border-l-[3px]">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent dark:from-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <CardContent className="p-6 flex items-center justify-between">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Active Workspaces</p>
+                    <p className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">{activeProjects}</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                    <TrendingUp className="h-6 w-6" />
                   </div>
                 </CardContent>
               </Card>
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Budget</p>
-                      <p className="text-2xl font-bold">{formatCurrency(totalBudget)}</p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-primary" />
+
+              {/* Card 3 */}
+              <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent dark:from-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <CardContent className="p-6 flex items-center justify-between">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Cumulative Value</p>
+                    <p className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50">{formatCurrency(totalBudget)}</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                    <DollarSign className="h-6 w-6" />
                   </div>
                 </CardContent>
               </Card>
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Collected</p>
-                      <p className="text-2xl font-bold text-success">{formatCurrency(totalPaid)}</p>
-                    </div>
-                    <BarChart3 className="h-8 w-8 text-success" />
+
+              {/* Card 4 */}
+              <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-amber-500/60 dark:border-l-amber-500/40 border-l-[3px]">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent dark:from-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <CardContent className="p-6 flex items-center justify-between">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Collected Income</p>
+                    <p className="text-xl font-black tracking-tight text-emerald-600 dark:text-emerald-400">{formatCurrency(totalPaid)}</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                    <BarChart3 className="h-6 w-6" />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Charts */}
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle>Projects by Type</CardTitle>
+            {/* Charts Section */}
+            <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+              
+              {/* Projects by Type */}
+              <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Projects by Scope</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="h-[300px]">
                     {projectTypeData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <RePieChart>
-                          <Pie data={projectTypeData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                          <Pie 
+                            data={projectTypeData} 
+                            cx="50%" 
+                            cy="50%" 
+                            innerRadius={70} 
+                            outerRadius={105} 
+                            paddingAngle={4} 
+                            dataKey="value"
+                            animationDuration={1000}
+                          >
                             {projectTypeData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                              <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                             ))}
                           </Pie>
-                          <Tooltip />
-                          <Legend />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                              borderRadius: '12px',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                              color: '#fff',
+                              fontSize: '11px',
+                              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                              backdropFilter: 'blur(8px)'
+                            }}
+                            itemStyle={{ color: '#fff' }}
+                          />
+                          <Legend verticalAlign="bottom" height={36} iconType="circle" className="text-xs" />
                         </RePieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">No data</div>
+                      <div className="flex items-center justify-center h-full text-slate-400 italic text-xs">No active data points listed</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle>Projects by Stage</CardTitle>
+              {/* Projects by Stage */}
+              <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Pipeline Stages</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={projectStageData}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="name" className="text-xs" />
-                        <YAxis className="text-xs" />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                      <BarChart data={projectStageData} barSize={32}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-slate-100 dark:stroke-slate-800/40" />
+                        <XAxis dataKey="name" className="text-[10px] text-slate-400 font-semibold" tickLine={false} />
+                        <YAxis className="text-[10px] text-slate-400 font-semibold" tickLine={false} axisLine={false} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            borderRadius: '12px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            color: '#fff',
+                            fontSize: '11px',
+                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                            backdropFilter: 'blur(8px)'
+                          }}
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <Bar dataKey="count" fill="url(#indigoGrad)" radius={[6, 6, 0, 0]}>
+                          <defs>
+                            <linearGradient id="indigoGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#6366f1" />
+                              <stop offset="100%" stopColor="#4f46e5" stopOpacity={0.8} />
+                            </linearGradient>
+                          </defs>
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -493,21 +568,38 @@ export default function Reports() {
               </Card>
             </div>
 
-            {/* Lead Conversion */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle>Lead Pipeline</CardTitle>
-                <CardDescription>Leads by status</CardDescription>
+            {/* Lead Pipeline */}
+            <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Lead Funnel Distribution</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="h-[250px]">
+              <CardContent className="pt-6">
+                <div className="h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={leadStatusData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={100} className="text-xs" />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="hsl(271, 81%, 56%)" radius={[0, 4, 4, 0]} />
+                    <BarChart data={leadStatusData} layout="vertical" barSize={16}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-slate-100 dark:stroke-slate-800/40" />
+                      <XAxis type="number" className="text-[10px] text-slate-400 font-semibold" tickLine={false} />
+                      <YAxis dataKey="name" type="category" width={120} className="text-[10px] text-slate-400 font-semibold" tickLine={false} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          color: '#fff',
+                          fontSize: '11px',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        itemStyle={{ color: '#fff' }}
+                      />
+                      <Bar dataKey="count" fill="url(#violetGrad)" radius={[0, 6, 6, 0]}>
+                        <defs>
+                          <linearGradient id="violetGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#8b5cf6" />
+                            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.8} />
+                          </linearGradient>
+                        </defs>
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -515,72 +607,119 @@ export default function Reports() {
             </Card>
           </TabsContent>
 
-          {/* Financial Report */}
-          <TabsContent value="financial" className="space-y-6">
+          {/* ==================================================================== */}
+          {/* FINANCIAL TAB REPORT */}
+          {/* ==================================================================== */}
+          <TabsContent value="financial" className="space-y-8 outline-none">
             {role !== 'admin' ? (
-              <Card className="glass-card">
-                <CardContent className="py-12 text-center">
-                  <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Financial reports are only available to admins.</p>
+              <Card className="border-slate-200/60 dark:border-slate-800/40 bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl shadow-sm">
+                <CardContent className="py-16 text-center space-y-3">
+                  <div className="inline-block p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/20 text-rose-500">
+                    <DollarSign className="h-10 w-10 animate-pulse" />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Restricted Directory</h3>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    Financial records are strictly classified and only accessible to verified accounts with Administrative access tokens.
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               <>
                 <div className="flex justify-end">
-                  <Button onClick={exportFinancialReport}>
+                  <Button onClick={exportFinancialReport} className="rounded-xl gradient-primary text-xs font-semibold px-4 py-2 shadow-sm transition-all duration-300 hover:scale-[1.02]">
                     <Download className="h-4 w-4 mr-2" />
-                    Export Report
+                    Export Financial Report
                   </Button>
                 </div>
 
                 {/* Financial Summary */}
-                <div className="grid gap-4 md:grid-cols-4">
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Total Revenue</p>
-                      <p className="text-2xl font-bold">{formatCurrency(totalBudget)}</p>
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* Card 1 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent dark:from-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Revenue</p>
+                        <p className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50">{formatCurrency(totalBudget)}</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                        <DollarSign className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Total Expenses</p>
-                      <p className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</p>
+
+                  {/* Card 2 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-rose-500/60 dark:border-l-rose-500/40 border-l-[3px]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent dark:from-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Expenses</p>
+                        <p className="text-xl font-black tracking-tight text-rose-600 dark:text-rose-400">{formatCurrency(totalExpenses)}</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                        <DollarSign className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Payroll Costs</p>
-                      <p className="text-2xl font-bold text-warning">{formatCurrency(totalPayroll)}</p>
+
+                  {/* Card 3 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-amber-500/60 dark:border-l-amber-500/40 border-l-[3px]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent dark:from-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Payroll Costs</p>
+                        <p className="text-xl font-black tracking-tight text-amber-600 dark:text-amber-400">{formatCurrency(totalPayroll)}</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                        <DollarSign className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Net Profit</p>
-                      <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {formatCurrency(netProfit)}
-                      </p>
+
+                  {/* Card 4 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-emerald-500/60 dark:border-l-emerald-500/40 border-l-[3px]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent dark:from-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Net Profit</p>
+                        <p className={`text-xl font-black tracking-tight ${netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}`}>{formatCurrency(netProfit)}</p>
+                      </div>
+                      <div className={`p-3.5 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm ${netProfit >= 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 text-rose-600'}`}>
+                        <DollarSign className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Financial Trend Chart */}
-                <Card className="glass-card">
-                  <CardHeader>
-                    <CardTitle>Financial Trend</CardTitle>
-                    <CardDescription>Revenue, expenses, and profit over time</CardDescription>
+                {/* Financial Trend */}
+                <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+                  <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Revenue, Expenses, and Profit Trends</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-6">
                     <div className="h-[350px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={monthlyFinancialData}>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                          <XAxis dataKey="month" className="text-xs" />
-                          <YAxis className="text-xs" tickFormatter={(v) => `৳${(v / 1000).toFixed(0)}K`} />
-                          <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                          <Legend />
-                          <Line type="monotone" dataKey="revenue" name="Revenue" stroke="hsl(217, 91%, 60%)" strokeWidth={2} />
-                          <Line type="monotone" dataKey="expenses" name="Expenses" stroke="hsl(0, 84%, 60%)" strokeWidth={2} />
-                          <Line type="monotone" dataKey="profit" name="Profit" stroke="hsl(142, 71%, 45%)" strokeWidth={2} />
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-slate-100 dark:stroke-slate-800/40" />
+                          <XAxis dataKey="month" className="text-[10px] text-slate-400 font-semibold" tickLine={false} />
+                          <YAxis className="text-[10px] text-slate-400 font-semibold" tickLine={false} axisLine={false} tickFormatter={(v) => `৳${(v / 1000).toFixed(0)}K`} />
+                          <Tooltip 
+                            formatter={(value: number) => formatCurrency(value)}
+                            contentStyle={{
+                              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                              borderRadius: '12px',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                              color: '#fff',
+                              fontSize: '11px',
+                              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                              backdropFilter: 'blur(8px)'
+                            }}
+                            itemStyle={{ color: '#fff' }}
+                          />
+                          <Legend verticalAlign="top" height={36} iconType="circle" className="text-xs" />
+                          <Line type="monotone" dataKey="revenue" name="Revenue" stroke="#6366f1" strokeWidth={3} activeDot={{ r: 6 }} />
+                          <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#ef4444" strokeWidth={3} activeDot={{ r: 6 }} />
+                          <Line type="monotone" dataKey="profit" name="Profit" stroke="#10b981" strokeWidth={3} activeDot={{ r: 6 }} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -588,26 +727,47 @@ export default function Reports() {
                 </Card>
 
                 {/* Expenses by Category */}
-                <Card className="glass-card">
-                  <CardHeader>
-                    <CardTitle>Expenses by Category</CardTitle>
+                <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+                  <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Expenses by Category</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-6">
                     <div className="h-[300px]">
                       {expenseCategoryData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <RePieChart>
-                            <Pie data={expenseCategoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                            <Pie 
+                              data={expenseCategoryData} 
+                              cx="50%" 
+                              cy="50%" 
+                              innerRadius={70} 
+                              outerRadius={105} 
+                              paddingAngle={4} 
+                              dataKey="value"
+                              animationDuration={1000}
+                            >
                               {expenseCategoryData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                               ))}
                             </Pie>
-                            <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                            <Legend />
+                            <Tooltip 
+                              formatter={(value: number) => formatCurrency(value)}
+                              contentStyle={{
+                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                color: '#fff',
+                                fontSize: '11px',
+                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                                backdropFilter: 'blur(8px)'
+                              }}
+                              itemStyle={{ color: '#fff' }}
+                            />
+                            <Legend verticalAlign="bottom" height={36} iconType="circle" className="text-xs" />
                           </RePieChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex items-center justify-center h-full text-muted-foreground">No expense data</div>
+                        <div className="flex items-center justify-center h-full text-slate-400 italic text-xs">No active expense data recorded</div>
                       )}
                     </div>
                   </CardContent>
@@ -616,129 +776,191 @@ export default function Reports() {
             )}
           </TabsContent>
 
-          {/* Team Report */}
-          <TabsContent value="team" className="space-y-6">
+          {/* ==================================================================== */}
+          {/* TEAM TAB REPORT */}
+          {/* ==================================================================== */}
+          <TabsContent value="team" className="space-y-8 outline-none">
             {role !== 'admin' ? (
-              <Card className="glass-card">
-                <CardContent className="py-12 text-center">
-                  <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Team reports are only available to admins.</p>
+              <Card className="border-slate-200/60 dark:border-slate-800/40 bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl shadow-sm">
+                <CardContent className="py-16 text-center space-y-3">
+                  <div className="inline-block p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/20 text-rose-500">
+                    <Users className="h-10 w-10 animate-pulse" />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Restricted Directory</h3>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    Team structure and payroll audits are strictly classified and only accessible to verified accounts with Administrative access tokens.
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               <>
                 <div className="flex justify-end">
-                  <Button onClick={exportTeamReport}>
+                  <Button onClick={exportTeamReport} className="rounded-xl gradient-primary text-xs font-semibold px-4 py-2 shadow-sm transition-all duration-300 hover:scale-[1.02]">
                     <Download className="h-4 w-4 mr-2" />
-                    Export Report
+                    Export Team Report
                   </Button>
                 </div>
 
                 {/* Team Summary */}
-                <div className="grid gap-4 md:grid-cols-4">
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Total Employees</p>
-                      <p className="text-2xl font-bold">{employees.length}</p>
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* Card 1 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent dark:from-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Active Directory</p>
+                        <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">{employees.length}</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                        <Users className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Active</p>
-                      <p className="text-2xl font-bold text-success">{activeEmployees}</p>
+
+                  {/* Card 2 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-emerald-500/60 dark:border-l-emerald-500/40 border-l-[3px]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent dark:from-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Active Status</p>
+                        <p className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">{activeEmployees}</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                        <Users className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Monthly Salaries</p>
-                      <p className="text-2xl font-bold">{formatCurrency(totalSalaries)}</p>
+
+                  {/* Card 3 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-violet-500/60 dark:border-l-violet-500/40 border-l-[3px]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent dark:from-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Monthly Payroll Liability</p>
+                        <p className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50">{formatCurrency(totalSalaries)}</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                        <DollarSign className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
-                  <Card className="glass-card">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">Pending Leave</p>
-                      <p className="text-2xl font-bold text-warning">{pendingLeave}</p>
+
+                  {/* Card 4 */}
+                  <Card className="relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 group border-l-amber-500/60 dark:border-l-amber-500/40 border-l-[3px]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent dark:from-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pending Leaves</p>
+                        <p className="text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">{pendingLeave}</p>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                        <Users className="h-6 w-6" />
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Department Distribution */}
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <Card className="glass-card">
-                    <CardHeader>
-                      <CardTitle>Employees by Department</CardTitle>
+                {/* Charts Distribution */}
+                <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+                  {/* Department Distribution */}
+                  <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                      <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Department Distribution</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-6">
                       <div className="h-[300px]">
                         {deptData.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <RePieChart>
-                              <Pie data={deptData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                              <Pie 
+                                data={deptData} 
+                                cx="50%" 
+                                cy="50%" 
+                                innerRadius={70} 
+                                outerRadius={105} 
+                                paddingAngle={4} 
+                                dataKey="value"
+                                animationDuration={1000}
+                              >
                                 {deptData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                  <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                                 ))}
                               </Pie>
-                              <Tooltip />
-                              <Legend />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                  borderRadius: '12px',
+                                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                                  color: '#fff',
+                                  fontSize: '11px',
+                                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                                  backdropFilter: 'blur(8px)'
+                                }}
+                                itemStyle={{ color: '#fff' }}
+                              />
+                              <Legend verticalAlign="bottom" height={36} iconType="circle" className="text-xs" />
                             </RePieChart>
                           </ResponsiveContainer>
                         ) : (
-                          <div className="flex items-center justify-center h-full text-muted-foreground">No data</div>
+                          <div className="flex items-center justify-center h-full text-slate-400 italic text-xs">No active department datasets</div>
                         )}
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
-                    <CardHeader>
-                      <CardTitle>Leave Statistics</CardTitle>
+                  {/* Leave Statistics */}
+                  <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                      <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Leave Statistics Overview</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-6">
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                          <span>Pending Approvals</span>
-                          <Badge variant="outline" className="text-warning border-warning">{pendingLeave}</Badge>
+                        <div className="flex justify-between items-center p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/30 rounded-2xl shadow-sm transition-all hover:scale-[1.01]">
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Pending Approvals</span>
+                          <Badge variant="outline" className="text-xs text-amber-600 border-amber-200/50 bg-amber-50/50 px-3 py-1 rounded-xl">{pendingLeave}</Badge>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                          <span>Approved This Month</span>
-                          <Badge variant="outline" className="text-success border-success">{approvedLeave}</Badge>
+                        <div className="flex justify-between items-center p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/30 rounded-2xl shadow-sm transition-all hover:scale-[1.01]">
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Approved This Month</span>
+                          <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200/50 bg-emerald-50/50 px-3 py-1 rounded-xl">{approvedLeave}</Badge>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                          <span>Total Applications</span>
-                          <Badge variant="secondary">{leaveApplications.length}</Badge>
+                        <div className="flex justify-between items-center p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/30 rounded-2xl shadow-sm transition-all hover:scale-[1.01]">
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Total Applications Received</span>
+                          <Badge variant="secondary" className="text-xs px-3 py-1 rounded-xl bg-slate-100 text-slate-600">{leaveApplications.length}</Badge>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Employee Table */}
-                <Card className="glass-card">
-                  <CardHeader>
-                    <CardTitle>Employee Directory</CardTitle>
+                {/* Employee Directory */}
+                <Card className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/40 shadow-sm rounded-2xl overflow-hidden">
+                  <CardHeader className="border-b border-slate-100 dark:border-slate-800/30 pb-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Employee Directory Overview</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Designation</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Salary</TableHead>
+                        <TableHeader className="bg-slate-50/50 dark:bg-slate-950/20">
+                          <TableRow className="border-b border-slate-100 dark:border-slate-800/30">
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 py-4 px-6">Name</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 py-4 px-6">Designation</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 py-4 px-6">Department</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 py-4 px-6">Status</TableHead>
+                            <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 py-4 px-6 text-right">Salary</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {employees.map((emp) => (
-                            <TableRow key={emp.id}>
-                              <TableCell className="font-medium">{emp.profile?.full_name || 'Unknown'}</TableCell>
-                              <TableCell>{emp.designation}</TableCell>
-                              <TableCell>{emp.department || 'N/A'}</TableCell>
-                              <TableCell>
-                                <Badge variant={emp.status === 'active' ? 'default' : 'secondary'}>{emp.status}</Badge>
+                            <TableRow key={emp.id} className="border-b border-slate-100 dark:border-slate-800/20 hover:bg-slate-50/50 dark:hover:bg-slate-950/20 transition-colors">
+                              <TableCell className="font-semibold text-slate-800 dark:text-slate-200 py-4 px-6">{emp.profile?.full_name || 'Unknown'}</TableCell>
+                              <TableCell className="text-xs text-slate-500 py-4 px-6">{emp.designation}</TableCell>
+                              <TableCell className="text-xs text-slate-500 py-4 px-6">{emp.department || 'N/A'}</TableCell>
+                              <TableCell className="py-4 px-6">
+                                <span className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-xl ${emp.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-600'}`}>
+                                  {emp.status}
+                                </span>
                               </TableCell>
-                              <TableCell className="text-right">{formatCurrency(emp.base_salary)}</TableCell>
+                              <TableCell className="text-right font-bold text-slate-800 dark:text-slate-200 py-4 px-6">{formatCurrency(emp.base_salary)}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>

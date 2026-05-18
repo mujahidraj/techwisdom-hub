@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { FileText, Upload, Trash2, Download, Loader2, File } from 'lucide-react';
 import { toast } from 'sonner';
+import { sendNotificationDirect } from '@/hooks/useNotifications';
 import { format } from 'date-fns';
 
 interface ProjectDocumentsProps {
@@ -121,6 +122,36 @@ export function ProjectDocuments({ projectId, isAdmin }: ProjectDocumentsProps) 
         });
 
       if (dbError) throw dbError;
+
+      // Notify client and assigned employees about new document
+      try {
+        // Fetch project client
+        const { data: proj } = await supabase.from('active_projects').select('client_id, project_name').eq('id', projectId).single();
+
+        // Fetch assigned employee ids
+        const { data: assignments } = await supabase.from('project_assignments' as any).select('employee_id').eq('project_id', projectId);
+        const empIds = (assignments || []).map((a: any) => a.employee_id);
+
+        let userIds: string[] = [];
+        if (empIds.length > 0) {
+          const { data: emps } = await supabase.from('employees').select('user_id').in('id', empIds);
+          userIds = (emps || []).map((e: any) => e.user_id).filter(Boolean);
+        }
+
+        if (proj?.client_id) userIds.push(proj.client_id);
+
+        if (userIds.length > 0) {
+          await sendNotificationDirect({
+            userIds: Array.from(new Set(userIds)),
+            title: '📄 New Project Document',
+            message: `A new document "${file.name}" was uploaded to project "${proj?.project_name || projectId}".`,
+            type: 'info',
+            actionLink: `/projects/${projectId}`
+          });
+        }
+      } catch (e) {
+        console.error('Document upload notification failed:', e);
+      }
 
       queryClient.invalidateQueries({ queryKey: ['project-documents', projectId] });
       toast.success('Document uploaded successfully');

@@ -233,65 +233,85 @@ export function LeaveManagement() {
       </Card>
 
       {/* Review Dialog */}
-      <Dialog open={!!reviewingLeave} onOpenChange={(open) => !open && setReviewingLeave(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Review Leave Application</DialogTitle>
-            <DialogDescription>
-              {reviewingLeave?.profile?.full_name} has requested{' '}
-              {LEAVE_TYPE_LABELS[reviewingLeave?.leave_type] || reviewingLeave?.leave_type}.
+      <Dialog open={!!reviewingLeave} onOpenChange={(open) => { if (!open) setReviewingLeave(null); }}>
+        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/60 dark:border-slate-800/40 rounded-2xl shadow-2xl">
+          <DialogHeader className="p-6 pb-0 relative">
+            <div className="absolute top-0 left-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 rounded-xl">
+                <Clock className="h-5 w-5 animate-pulse" />
+              </div>
+              <DialogTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                Review Leave Application
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1 pl-1">
+              Applicant: <span className="text-indigo-600 dark:text-indigo-400 font-extrabold">{reviewingLeave?.profile?.full_name || 'Employee'}</span> is requesting <span className="underline decoration-indigo-500/30">{LEAVE_TYPE_LABELS[reviewingLeave?.leave_type] || reviewingLeave?.leave_type}</span>.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Duration:</span>
-                <span>
+
+          <div className="p-6 space-y-5">
+            {/* Meta Data Box */}
+            <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-150 dark:border-slate-800/40 space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold text-slate-400 uppercase tracking-wider">Duration:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
                   {reviewingLeave?.start_date && format(new Date(reviewingLeave.start_date), 'MMM d, yyyy')} -{' '}
                   {reviewingLeave?.end_date && format(new Date(reviewingLeave.end_date), 'MMM d, yyyy')}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Days:</span>
-                <span>
-                  {reviewingLeave && differenceInDays(new Date(reviewingLeave.end_date), new Date(reviewingLeave.start_date)) + 1}
-                </span>
+              
+              <div className="flex justify-between items-center text-xs border-t border-slate-100 dark:border-slate-800/20 pt-2.5">
+                <span className="font-bold text-slate-400 uppercase tracking-wider">Total Leave Days:</span>
+                <Badge className="bg-indigo-50 text-indigo-650 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-100 font-bold px-2 py-0.5 rounded-lg text-xs shadow-none">
+                  {reviewingLeave && differenceInDays(new Date(reviewingLeave.end_date), new Date(reviewingLeave.start_date)) + 1} Days
+                </Badge>
               </div>
+
               {reviewingLeave?.reason && (
-                <div className="pt-2 border-t">
-                  <p className="text-sm text-muted-foreground mb-1">Reason:</p>
-                  <p className="text-sm">{reviewingLeave.reason}</p>
+                <div className="border-t border-slate-100 dark:border-slate-800/20 pt-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Applicant's Reason:</p>
+                  <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-slate-800/30 text-xs font-semibold text-slate-650 dark:text-slate-350 italic">
+                    "{reviewingLeave.reason}"
+                  </div>
                 </div>
               )}
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Review Notes (Optional)</label>
+
+            {/* Note Area */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Review Notes (Optional)</label>
               <Textarea
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                placeholder="Add any notes for this decision..."
+                placeholder="Include a brief comment regarding your decision..."
                 rows={2}
+                className="rounded-xl border-slate-250 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/15 text-xs font-semibold resize-none"
               />
             </div>
+
+            {/* Actions Grid */}
+            <DialogFooter className="pt-2 flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-0 border-t border-slate-100 dark:border-slate-800/30">
+              <Button
+                variant="destructive"
+                onClick={() => handleReview('rejected')}
+                disabled={reviewMutation.isPending}
+                className="rounded-xl text-xs font-bold h-11 px-5 flex items-center justify-center gap-1.5"
+              >
+                <XCircle className="h-4 w-4" />
+                Reject
+              </Button>
+              <Button
+                onClick={() => handleReview('approved')}
+                disabled={reviewMutation.isPending}
+                className="rounded-xl text-xs font-bold h-11 px-5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-500/10 flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Approve
+              </Button>
+            </DialogFooter>
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="destructive"
-              onClick={() => handleReview('rejected')}
-              disabled={reviewMutation.isPending}
-            >
-              <XCircle className="h-4 w-4 mr-2" />
-              Reject
-            </Button>
-            <Button
-              onClick={() => handleReview('approved')}
-              disabled={reviewMutation.isPending}
-              className="bg-success hover:bg-success/90"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Approve
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

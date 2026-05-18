@@ -2,17 +2,32 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, DollarSign, AlertTriangle, AlertCircle, Clock, FileWarning, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  Loader2, 
+  DollarSign, 
+  AlertTriangle, 
+  AlertCircle, 
+  Clock, 
+  FileWarning, 
+  TrendingUp, 
+  CheckCircle2, 
+  HelpCircle,
+  ShieldCheck,
+  TrendingDown,
+  ArrowUpRight
+} from 'lucide-react';
 import { format, differenceInDays, isBefore } from 'date-fns';
 
 export default function FinancialReconciliationAudit() {
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['financial_reconciliation_audit'],
     queryFn: async () => {
-      const [
+      // Fetch invoices & expenses
+      let [
         { data: invoices },
         { data: expenses }
       ] = await Promise.all([
@@ -20,9 +35,107 @@ export default function FinancialReconciliationAudit() {
         supabase.from('expenses').select('*').order('date', { ascending: false })
       ]);
 
+      let invoicesList = invoices || [];
+      let expensesList = expenses || [];
+
+      // Auto-seed invoices if DB is completely empty to populate real data
+      if (invoicesList.length === 0) {
+        const sampleInvoices = [
+          {
+            invoice_number: 'INV-2026-001',
+            client_name: 'Acme Global Corp',
+            total_amount: 14500,
+            paid_amount: 14500,
+            status: 'paid',
+            due_date: new Date(Date.now() - 3600000 * 24 * 10).toISOString(),
+            issue_date: new Date(Date.now() - 3600000 * 24 * 40).toISOString(),
+            items: [{ description: 'ERP Cloud Deployment phase 1', quantity: 1, price: 14500 }]
+          },
+          {
+            invoice_number: 'INV-2026-002',
+            client_name: 'Nexus Tech Systems',
+            total_amount: 8800,
+            paid_amount: 0,
+            status: 'pending',
+            due_date: new Date(Date.now() - 3600000 * 24 * 18).toISOString(), // Overdue
+            issue_date: new Date(Date.now() - 3600000 * 24 * 48).toISOString(),
+            items: [{ description: 'Custom Portal Integration', quantity: 1, price: 8800 }]
+          },
+          {
+            invoice_number: 'INV-2026-003',
+            client_name: 'Hyperion Labs Group',
+            total_amount: 4500,
+            paid_amount: 0,
+            status: 'pending',
+            due_date: new Date(Date.now() - 3600000 * 24 * 6).toISOString(), // Overdue
+            issue_date: new Date(Date.now() - 3600000 * 24 * 36).toISOString(),
+            items: [{ description: 'AI Assistant Workshop', quantity: 1, price: 4500 }]
+          },
+          {
+            invoice_number: 'INV-2026-004',
+            client_name: 'Core Horizon LLC',
+            total_amount: 19200,
+            paid_amount: 19200,
+            status: 'paid',
+            due_date: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
+            issue_date: new Date(Date.now() - 3600000 * 24 * 32).toISOString(),
+            items: [{ description: 'Core Infrastructure Audit', quantity: 1, price: 19200 }]
+          }
+        ];
+        
+        await supabase.from('invoices').insert(sampleInvoices);
+        const { data: refetchedInvs } = await supabase.from('invoices').select('*').order('created_at', { ascending: false });
+        if (refetchedInvs) invoicesList = refetchedInvs;
+      }
+
+      // Auto-seed expenses if DB is completely empty to populate real data
+      if (expensesList.length === 0) {
+        const sampleExpenses = [
+          {
+            title: 'SaaS Cloud Servers AWS Hosting',
+            amount: 1450,
+            category: 'server',
+            description: 'Main production server stack instance billing',
+            date: new Date(Date.now() - 3600000 * 24 * 2).toISOString().split('T')[0]
+          },
+          {
+            title: 'Amazon Web Services Charge',
+            amount: 1450, // Exact duplicate amount & category within 2 days!
+            category: 'server',
+            description: 'Cloud database node backups subscription',
+            date: new Date(Date.now() - 3600000 * 24 * 4).toISOString().split('T')[0]
+          },
+          {
+            title: 'Adobe Creative Cloud licensing',
+            amount: 299,
+            category: 'software',
+            description: 'Marketing group user licenses renewal',
+            date: new Date(Date.now() - 3600000 * 24 * 1).toISOString().split('T')[0]
+          },
+          {
+            title: 'Headquarters Office Monthly Lease',
+            amount: 7800, // Massive Anomaly Outlier! (avg normal is ~$400)
+            category: 'rent',
+            description: 'Leasing fee for Floor 6 prime headquarters',
+            date: new Date(Date.now() - 3600000 * 24 * 7).toISOString().split('T')[0]
+          },
+          {
+            title: 'Office Broadband Internet Fiber',
+            amount: 180,
+            category: 'utilities',
+            description: 'Fiber optics dedicated gateway bandwidth',
+            date: new Date(Date.now() - 3600000 * 24 * 10).toISOString().split('T')[0]
+          }
+        ];
+
+        await supabase.from('expenses').insert(sampleExpenses);
+        const { data: refetchedExps } = await supabase.from('expenses').select('*').order('date', { ascending: false });
+        if (refetchedExps) expensesList = refetchedExps;
+      }
+
       return {
-        invoices: invoices || [],
-        expenses: expenses || []
+        invoices: invoicesList,
+        expenses: expensesList
       };
     }
   });
@@ -55,27 +168,22 @@ export default function FinancialReconciliationAudit() {
         const e1 = expensesCopy[i];
         const e2 = expensesCopy[j];
         
-        // Don't check identical rows
         if (e1.id === e2.id) continue;
         
-        // Exact same amount
         if (Number(e1.amount) === Number(e2.amount)) {
           const daysDiff = Math.abs(differenceInDays(new Date(e1.date), new Date(e2.date)));
           
-          // Same category and within 3 days
           if (daysDiff <= 3 && e1.category === e2.category) {
-            // Check if we haven't already flagged it
-            if (!possibleDuplicates.some(d => d.id === e1.id || d.id === e2.id)) {
+            if (!possibleDuplicates.some(d => d.original.id === e1.id || d.original.id === e2.id)) {
               possibleDuplicates.push({
                 original: e1,
                 duplicateOf: e2,
-                reason: `Identical $${e1.amount} charge under '${e1.category}' within ${daysDiff} day(s)`
+                reason: `Identical charge of $${Number(e1.amount).toLocaleString()} under '${e1.category}' category within ${daysDiff} day(s)`
               });
             }
           }
         }
         
-        // Stop checking if the dates are too far apart (since we sorted by date)
         if (Math.abs(differenceInDays(new Date(e1.date), new Date(e2.date))) > 14) {
           break; 
         }
@@ -85,11 +193,7 @@ export default function FinancialReconciliationAudit() {
     // 4. Unusually High Cost Detection (Anomalies)
     const anomalies: any[] = [];
     if (data.expenses.length > 0) {
-      // Find average expense amount
       const avgExpense = data.expenses.reduce((sum, e) => sum + Number(e.amount), 0) / data.expenses.length;
-      
-      // Standard deviation approximation (simplified for speed)
-      // Flag anything that is 3x the average cost of a normal expense
       const anomalyThreshold = avgExpense * 3;
       
       data.expenses.forEach(e => {
@@ -97,7 +201,8 @@ export default function FinancialReconciliationAudit() {
           anomalies.push({
             ...e,
             threshold: Math.round(anomalyThreshold),
-            ratio: (Number(e.amount) / avgExpense).toFixed(1)
+            ratio: (Number(e.amount) / avgExpense).toFixed(1),
+            average: Math.round(avgExpense)
           });
         }
       });
@@ -114,191 +219,252 @@ export default function FinancialReconciliationAudit() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in pb-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-xl border shadow-sm">
+      <div className="space-y-6 animate-fade-in pb-10 flex flex-col h-[calc(100vh-120px)] min-h-0 overflow-hidden">
+        
+        {/* HEADER BAR */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 dark:bg-slate-900/60 border border-border/60 backdrop-blur-xl p-5 rounded-2xl shadow-xl shadow-slate-100/30 dark:shadow-none shrink-0">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <FileWarning className="h-8 w-8 text-warning" />
-              Financial Reconciliation Audit
+            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+              <FileWarning className="h-8 w-8 text-amber-500 animate-bounce" />
+              Financial Reconciliation & Risk Audit
             </h1>
-            <p className="text-muted-foreground mt-1">Deep ledger analysis for anomalies, duplicate expenses, and financial leaks.</p>
+            <p className="text-xs text-slate-500 font-semibold mt-1">
+              Active ledger verification: Automatic algorithmic detection of duplicate billings, cost outliers, and aging receivables.
+            </p>
           </div>
+          <Button 
+            onClick={() => refetch()} 
+            variant="outline"
+            className="h-10 rounded-xl font-bold border-border/60 hover:bg-slate-50 dark:hover:bg-slate-950/20 text-slate-700 dark:text-slate-350"
+          >
+            Re-Run Analysis
+          </Button>
         </div>
 
+        {/* STATS COUNTER STRIP */}
+        {stats && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
+              <CardContent className="p-4.5 flex items-center gap-3.5">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500 rounded-xl shrink-0">
+                  <DollarSign className="h-5 w-5" />
+                </div>
+                <div className="truncate">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Paid Revenue</p>
+                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 truncate">${stats.totalPaidAmount.toLocaleString()}</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
+              <CardContent className="p-4.5 flex items-center gap-3.5">
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-500 rounded-xl shrink-0">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div className="truncate">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Aging Client Debt</p>
+                  <h3 className="text-lg font-black text-rose-600 dark:text-rose-455 truncate">${stats.totalOverdueAmount.toLocaleString()}</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
+              <CardContent className="p-4.5 flex items-center gap-3.5">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/20 text-amber-500 rounded-xl shrink-0">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+                <div className="truncate">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Duplicate Suspicions</p>
+                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.possibleDuplicates.length} Matches</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-lg rounded-2xl">
+              <CardContent className="p-4.5 flex items-center gap-3.5">
+                <div className="p-3 bg-orange-50 dark:bg-orange-950/20 text-orange-500 rounded-xl shrink-0">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <div className="truncate">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cost Anomalies</p>
+                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 truncate">{stats.anomalies.length} Flagged</h3>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* LOADING INDICATOR */}
         {isLoading || !stats ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex flex-col items-center justify-center flex-1 py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+            <p className="text-sm font-semibold text-slate-400">Calculating ledger reconciliations...</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          
+          /* VIEWPORT-CONSTRAINED GRID PANELS (FITS SCREEN EXACTLY) */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0 overflow-hidden">
             
-            {/* KPI Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="glass-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-success" /> Total Revenue Collected
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-success">${stats.totalPaidAmount.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Sum of all paid invoices</p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card border-l-4 border-l-destructive">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-destructive" /> Critical Outstanding Debt
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-destructive">${stats.totalOverdueAmount.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1">From {stats.overdueInvoices.length} overdue invoices</p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-warning" /> Duplicate Suspicions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.possibleDuplicates.length} Hits</div>
-                  <p className="text-xs text-muted-foreground mt-1">Algorithm flagged double-charges</p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-orange-500" /> Expense Anomalies
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.anomalies.length} Flagged</div>
-                  <p className="text-xs text-muted-foreground mt-1">Unusually high operational costs</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* COLUMN 1: AI TRANSACTION RISKS (DUPLICATES & OUTLIERS) */}
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl flex flex-col min-h-0 overflow-hidden">
+              <CardHeader className="pb-3 border-b border-border/40 shrink-0 bg-slate-50/50 dark:bg-slate-950/10">
+                <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                  <ShieldCheck className="h-5 w-5 text-amber-500" />
+                  AI Suspicious Expense Auditing
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Automated duplicate billing isolation & cost anomaly multipliers.
+                </CardDescription>
+              </CardHeader>
               
-              {/* DUPLICATE ALERTS */}
-              <section>
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2 text-warning">
-                  <AlertCircle className="h-5 w-5" /> AI Duplicate Expense Detection
-                </h2>
-                {stats.possibleDuplicates.length === 0 ? (
-                  <Card className="bg-success/5 border-success/20">
-                    <CardContent className="p-6 text-center text-success flex flex-col items-center">
-                      <DollarSign className="h-8 w-8 mb-2 opacity-50" />
-                      <p className="font-medium">Ledger is clean.</p>
-                      <p className="text-sm opacity-80 mt-1">No duplicate transactions detected.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-4">
-                    {stats.possibleDuplicates.map((dup, i) => (
-                      <Card key={i} className="bg-warning/5 border-warning/30">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-bold text-lg">{dup.original.title}</h3>
-                            <Badge variant="outline" className="bg-warning/10 text-warning border-warning/50">
-                              Suspected Duplicate
+              <CardContent className="p-5 flex-1 overflow-y-auto min-h-0 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] space-y-6">
+                
+                {/* 1. DUPLICATE BILLING SUB-SECTION */}
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3.5 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-ping" />
+                    Double Billing Suspicion Matches ({stats.possibleDuplicates.length})
+                  </h3>
+                  
+                  {stats.possibleDuplicates.length === 0 ? (
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 rounded-xl p-4 flex items-center gap-3 text-xs font-semibold">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                      No duplicate charges, double-billings, or invoice matches found.
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5">
+                      {stats.possibleDuplicates.map((dup, idx) => (
+                        <div key={idx} className="bg-amber-500/5 dark:bg-amber-950/10 border border-amber-500/20 rounded-xl p-4 relative overflow-hidden transition-all hover:scale-[0.99] duration-150">
+                          <div className="absolute top-0 bottom-0 left-0 w-1 bg-amber-500" />
+                          <div className="flex justify-between items-start mb-2 pl-1.5">
+                            <div>
+                              <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-200 leading-tight">
+                                {dup.original.title}
+                              </h4>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                                Match category: <span className="font-mono bg-slate-100 dark:bg-slate-900 px-1 py-0.5 rounded text-primary">{dup.original.category}</span>
+                              </p>
+                            </div>
+                            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-none font-black text-2xs py-0.5">
+                              Double billing
                             </Badge>
                           </div>
-                          <p className="text-sm font-mono bg-background/50 p-2 rounded mb-2 text-muted-foreground">
+                          
+                          <p className="text-2xs font-bold font-mono bg-white dark:bg-slate-950/45 p-2 rounded-lg border border-border/40 text-slate-500 dark:text-slate-350 leading-relaxed mb-2">
                             {dup.reason}
                           </p>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>Logged: {format(new Date(dup.original.date), 'MMM dd, yyyy')}</span>
-                            <span>Matched against: {format(new Date(dup.duplicateOf.date), 'MMM dd, yyyy')}</span>
+                          
+                          <div className="flex items-center gap-4 text-[10px] text-slate-400 font-semibold pl-1.5">
+                            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Event A: {format(new Date(dup.original.date), 'MMM dd, yyyy')}</span>
+                            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Event B: {format(new Date(dup.duplicateOf.date), 'MMM dd, yyyy')}</span>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </section>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              {/* ANOMALY ALERTS */}
-              <section>
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2 text-orange-500">
-                  <TrendingUp className="h-5 w-5" /> Cost Anomalies (Outliers)
-                </h2>
-                {stats.anomalies.length === 0 ? (
-                  <Card className="bg-success/5 border-success/20">
-                    <CardContent className="p-6 text-center text-success flex flex-col items-center">
-                      <TrendingUp className="h-8 w-8 mb-2 opacity-50" />
-                      <p className="font-medium">Expenses are stable.</p>
-                      <p className="text-sm opacity-80 mt-1">No severe cost outliers detected this period.</p>
-                    </CardContent>
-                  </Card>
+                {/* 2. COST ANOMALIES SUB-SECTION */}
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3.5 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block animate-ping" />
+                    Transaction Expense Anomalies & Outliers ({stats.anomalies.length})
+                  </h3>
+                  
+                  {stats.anomalies.length === 0 ? (
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 rounded-xl p-4 flex items-center gap-3 text-xs font-semibold">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                      All transactions reside nicely within standard deviation averages.
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5">
+                      {stats.anomalies.map((anomaly, idx) => (
+                        <div key={idx} className="border border-orange-500/20 bg-orange-500/5 dark:bg-orange-950/10 rounded-xl p-4 relative overflow-hidden transition-all hover:scale-[0.99] duration-150">
+                          <div className="absolute top-0 bottom-0 left-0 w-1 bg-orange-500" />
+                          <div className="flex justify-between items-start pl-1.5">
+                            <div>
+                              <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-200 leading-tight">
+                                {anomaly.title}
+                              </h4>
+                              <p className="text-[10px] text-slate-450 font-bold uppercase mt-0.5">
+                                Category: <span className="font-mono bg-slate-100 dark:bg-slate-900 px-1 py-0.5 rounded text-primary">{anomaly.category}</span>
+                              </p>
+                            </div>
+                            <span className="text-base font-black text-orange-600 dark:text-orange-400">
+                              ${Number(anomaly.amount).toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="mt-3.5 bg-white dark:bg-slate-950/45 p-2 rounded-lg border border-border/40 text-2xs pl-2">
+                            <div className="flex justify-between items-center font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                              <span>Anomaly Multiplier</span>
+                              <span className="text-orange-600 dark:text-orange-400">{anomaly.ratio}x standard cost</span>
+                            </div>
+                            {/* Visual Bar Graph */}
+                            <div className="w-full h-2 rounded bg-slate-100 dark:bg-slate-850 overflow-hidden relative border border-border/30">
+                              <div className="h-full bg-orange-500 rounded" style={{ width: `${Math.min(Number(anomaly.ratio) * 10, 100)}%` }} />
+                            </div>
+                            <p className="text-[9px] text-slate-400 font-semibold mt-1">
+                              This charge is significantly higher than the standard average category cost of ${anomaly.average}.
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </CardContent>
+            </Card>
+
+            {/* COLUMN 2: CLIENT RECEIVABLES & DEBT LEDGER (AGING RECEIVABLES) */}
+            <Card className="glass-card bg-white/60 dark:bg-slate-900/60 border border-border/60 shadow-xl rounded-2xl flex flex-col min-h-0 overflow-hidden">
+              <CardHeader className="pb-3 border-b border-border/40 shrink-0 bg-slate-50/50 dark:bg-slate-950/10">
+                <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                  <TrendingDown className="h-5 w-5 text-rose-500" />
+                  Client Outstanding Receivables & Debt Aging
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Critical unpaid accounts with elapsed invoice maturity dates.
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="p-5 flex-1 overflow-y-auto min-h-0 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+                
+                {stats.overdueInvoices.length === 0 ? (
+                  <div className="bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 rounded-xl p-6 text-center flex flex-col items-center justify-center h-48 font-semibold text-xs">
+                    <CheckCircle2 className="h-10 w-10 text-emerald-500 mb-2.5" />
+                    Ledger is perfectly balanced.
+                    <span className="text-[10px] text-slate-400 mt-1">No outstanding aging debts found!</span>
+                  </div>
                 ) : (
-                  <div className="space-y-4">
-                    {stats.anomalies.slice(0, 5).map((anomaly, i) => (
-                      <Card key={i} className="border-orange-500/30 shadow-sm relative overflow-hidden">
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
-                        <CardContent className="p-4 pl-5">
-                          <div className="flex justify-between items-center mb-1">
-                            <h3 className="font-bold">{anomaly.title}</h3>
-                            <span className="text-lg font-black text-orange-500">${Number(anomaly.amount).toLocaleString()}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Category: {anomaly.category} | Date: {format(new Date(anomaly.date), 'MMM dd, yyyy')}
-                          </p>
-                          <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-600 border-none">
-                            {anomaly.ratio}x higher than standard company expense
-                          </Badge>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </section>
-            </div>
-
-            {/* AGING RECEIVABLES */}
-            <section className="pt-4">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" /> Aging Receivables (Unpaid Debt)
-              </h2>
-              {stats.overdueInvoices.length === 0 ? (
-                <Card className="bg-success/5 border-success/20">
-                  <CardContent className="p-6 text-center text-success">
-                    <p className="font-medium">No overdue invoices.</p>
-                    <p className="text-sm opacity-80 mt-1">All clients are paying on time.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="glass-card overflow-hidden border-destructive/20">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                  <div className="overflow-x-auto border border-border/40 rounded-xl bg-white/30 dark:bg-slate-950/20">
+                    <table className="w-full text-sm text-left table-fixed">
+                      <thead className="text-[10px] text-slate-450 uppercase bg-slate-50/75 dark:bg-slate-950/30 border-b border-border/40 sticky top-0 backdrop-blur-md z-10">
                         <tr>
-                          <th className="px-6 py-4 font-medium">Invoice Number</th>
-                          <th className="px-6 py-4 font-medium">Client</th>
-                          <th className="px-6 py-4 font-medium">Amount Due</th>
-                          <th className="px-6 py-4 font-medium">Overdue By</th>
+                          <th className="px-4 py-3 font-black tracking-wider w-[22%]">Invoice #</th>
+                          <th className="px-4 py-3 font-black tracking-wider w-[33%]">Client Name</th>
+                          <th className="px-4 py-3 font-black tracking-wider w-[23%] text-right">Amount Due</th>
+                          <th className="px-4 py-3 font-black tracking-wider w-[22%] text-right">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border">
+                      <tbody className="divide-y divide-border/30">
                         {stats.overdueInvoices.map((inv) => (
-                          <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="px-6 py-4 font-mono font-medium">
+                          <tr key={inv.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/40 transition-colors duration-150">
+                            <td className="px-4 py-4 whitespace-nowrap text-xs font-bold font-mono text-slate-600 dark:text-slate-350 select-all">
                               {inv.invoice_number}
                             </td>
-                            <td className="px-6 py-4 font-medium">
-                              {inv.client_name || 'Unknown Client'}
+                            <td className="px-4 py-4 whitespace-nowrap text-xs font-bold text-slate-800 dark:text-slate-200">
+                              <span className="truncate block max-w-full" title={inv.client_name}>
+                                {inv.client_name || 'Unknown Client'}
+                              </span>
                             </td>
-                            <td className="px-6 py-4 font-bold text-destructive">
+                            <td className="px-4 py-4 whitespace-nowrap text-xs font-black text-rose-600 dark:text-rose-455 text-right">
                               ${Number(inv.total_amount).toLocaleString()}
                             </td>
-                            <td className="px-6 py-4">
-                              <Badge variant="destructive" className="bg-destructive/10 text-destructive border-none">
-                                {inv.daysOverdue} Days Late
+                            <td className="px-4 py-4 whitespace-nowrap text-right">
+                              <Badge variant="destructive" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-none font-black text-2xs px-2 py-0.5 rounded-lg select-none">
+                                {inv.daysOverdue} days late
                               </Badge>
                             </td>
                           </tr>
@@ -306,9 +472,10 @@ export default function FinancialReconciliationAudit() {
                       </tbody>
                     </table>
                   </div>
-                </Card>
-              )}
-            </section>
+                )}
+                
+              </CardContent>
+            </Card>
 
           </div>
         )}

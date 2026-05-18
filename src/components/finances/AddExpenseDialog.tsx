@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const EXPENSE_CATEGORIES = [
   { value: 'rent', label: 'Rent' },
@@ -40,6 +41,7 @@ export function AddExpenseDialog() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { sendNotification } = useNotifications();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -65,6 +67,17 @@ export function AddExpenseDialog() {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-expenses'] });
       toast.success('Expense added successfully');
+      try {
+        sendNotification({
+          targetRoles: ['admin'],
+          title: 'New Expense Logged',
+          message: `A new expense "${formData.title}" of amount ${formData.amount} was added.`,
+          type: 'info',
+          actionLink: '/expenses'
+        });
+      } catch (e) {
+        console.error('Expense notification failed:', e);
+      }
       setOpen(false);
       setFormData({
         title: '',

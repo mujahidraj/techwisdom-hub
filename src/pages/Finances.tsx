@@ -206,173 +206,183 @@ export default function Finances() {
 
   const getCategoryBadgeColor = (category: string) => {
     switch (category) {
-      case 'salary': return 'bg-red-100 text-red-800';
-      case 'rent': return 'bg-blue-100 text-blue-800';
-      case 'software': return 'bg-green-100 text-green-800';
-      case 'server': return 'bg-purple-100 text-purple-800';
-      case 'marketing': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'salary': return 'bg-rose-500/10 text-rose-600 border-rose-500/20';
+      case 'rent': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+      case 'software': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+      case 'server': return 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20';
+      case 'marketing': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+      default: return 'bg-slate-500/10 text-slate-600 border-slate-500/20';
     }
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-10">
+        {/* --- HEADER --- */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-border/40">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Financial Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Track revenue, expenses, and profitability.</p>
-          </div>
-          <AddExpenseDialog />
-        </div>
-
-        {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="glass-card">
-            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-              <p className="text-xs text-success flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3" /> {formatCurrency(totalPaid)} collected
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-              <Receipt className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalExpenses)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {expenses.length} transactions
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Payroll Costs</CardTitle>
-              <TrendingDown className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalPayroll)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {payroll.length} payments
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-col md:flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-              <PiggyBank className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {formatCurrency(netProfit)}
+            <h1 className="text-3xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <PiggyBank className="h-6 w-6" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{profitMargin}% profit margin</p>
+              Financial Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-1.5 text-sm">Track revenue, expenses, payroll costs, and platform profitability securely.</p>
+          </div>
+          <div className="shrink-0">
+            <AddExpenseDialog />
+          </div>
+        </div>
+
+        {/* --- KPI CARDS ROW --- */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <Card className="relative overflow-hidden bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 hover:border-primary/25 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1">
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Revenue</p>
+                <div className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{formatCurrency(totalRevenue)}</div>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5 pt-0.5">
+                  <TrendingUp className="h-3 w-3 inline" /> {formatCurrency(totalPaid)} collected
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary shrink-0 ml-2">
+                <DollarSign className="h-5 w-5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 hover:border-primary/25 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1">
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Expenses</p>
+                <div className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{formatCurrency(totalExpenses)}</div>
+                <p className="text-[10px] text-muted-foreground font-medium pt-0.5">{expenses.length} transactions</p>
+              </div>
+              <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-600 shrink-0 ml-2">
+                <Receipt className="h-5 w-5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 hover:border-primary/25 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1">
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Payroll Costs</p>
+                <div className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{formatCurrency(totalPayroll)}</div>
+                <p className="text-[10px] text-muted-foreground font-medium pt-0.5">{payroll.length} payments log</p>
+              </div>
+              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 shrink-0 ml-2">
+                <TrendingDown className="h-5 w-5" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`relative overflow-hidden bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border rounded-2xl hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1 ${netProfit >= 0 ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/20 bg-rose-500/5'}`}>
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Net Profit</p>
+                <div className={`text-xl md:text-2xl font-extrabold ${netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  {formatCurrency(netProfit)}
+                </div>
+                <p className="text-[10px] text-slate-500 font-bold pt-0.5">{profitMargin}% margin</p>
+              </div>
+              <div className={`p-3 rounded-2xl shrink-0 ml-2 ${netProfit >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
+                <PiggyBank className="h-5 w-5" />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Charts */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle>Revenue vs Expenses</CardTitle>
-              <CardDescription>Last 6 months comparison</CardDescription>
+        {/* --- ROW 1: CHARTS (Bar Chart & Project Type Pie Chart) --- */}
+        <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+          <Card className="glass-card bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm overflow-hidden">
+            <CardHeader className="pb-3 border-b border-border/45">
+              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100">Revenue vs Expenses</CardTitle>
+              <CardDescription className="text-xs">Last 6 months comparison overview.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
+            <CardContent className="h-[280px] pt-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                  <XAxis dataKey="month" fontSize={11} stroke="rgba(156, 163, 175, 0.8)" />
+                  <YAxis fontSize={11} stroke="rgba(156, 163, 175, 0.8)" tickFormatter={(val) => `৳${(val / 1000).toFixed(0)}k`} />
+                  <Tooltip 
+                    formatter={(value: number) => [formatCurrency(value), 'Value']}
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                      border: '1px solid rgba(0, 0, 0, 0.05)',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+                    }} 
+                  />
+                  <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Revenue" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="expenses" fill="hsl(var(--destructive))" name="Expenses" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm overflow-hidden">
+            <CardHeader className="pb-3 border-b border-border/45">
+              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100">Revenue by Project Type</CardTitle>
+              <CardDescription className="text-xs">Distribution of all active client projects income.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[280px] pt-4 flex items-center justify-center">
+              {pieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="month" className="text-xs" />
-                    <YAxis className="text-xs" tickFormatter={(val) => `৳${(val / 1000).toFixed(0)}k`} />
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="48%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
                     <Tooltip 
-                      formatter={(value: number) => formatCurrency(value)}
+                      formatter={(value: number) => [formatCurrency(value), 'Budget']}
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                        border: '1px solid rgba(0, 0, 0, 0.05)',
+                        borderRadius: '12px'
                       }} 
                     />
-                    <Bar dataKey="revenue" fill="hsl(217, 91%, 60%)" name="Revenue" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" fill="hsl(0, 84%, 60%)" name="Expenses" radius={[4, 4, 0, 0]} />
-                  </BarChart>
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  </PieChart>
                 </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle>Revenue by Project Type</CardTitle>
-              <CardDescription>Distribution of income sources</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                {pieData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value: number) => formatCurrency(value)}
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }} 
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No project data available
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
+                  No project budget distributions loaded
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Expenses by Category Chart */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle>Expenses by Category</CardTitle>
-            <CardDescription>Breakdown of your spending</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
+        {/* --- ROW 2: EXPENSES DISTRIBUTION & TRANSACTIONS TABLE --- */}
+        <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+          {/* CATEGORY SPENDING PIE CHART */}
+          <Card className="glass-card bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm overflow-hidden lg:col-span-1">
+            <CardHeader className="pb-3 border-b border-border/45">
+              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100">Expenses by Category</CardTitle>
+              <CardDescription className="text-xs">Breakdown of operational spend.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[290px] pt-4 flex items-center justify-center">
               {expensePieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={expensePieData}
                       cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
+                      cy="48%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={4}
                       dataKey="value"
                     >
                       {expensePieData.map((entry, index) => (
@@ -380,125 +390,132 @@ export default function Finances() {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => formatCurrency(value)}
+                      formatter={(value: number) => [formatCurrency(value), 'Expense']}
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                        border: '1px solid rgba(0, 0, 0, 0.05)',
+                        borderRadius: '12px'
                       }} 
                     />
-                    <Legend />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  No expense data available
+                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
+                  No expense records reported
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Expenses Table */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle>Recent Expenses</CardTitle>
-            <CardDescription>Manage and track all expenses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {expensesLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading...</div>
-            ) : expenses.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Receipt className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                <p>No expenses recorded yet</p>
+          {/* RECENT EXPENSES LIST TABLE */}
+          <Card className="glass-card bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm overflow-hidden lg:col-span-2">
+            <CardHeader className="pb-3 border-b border-border/45 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100">Recent Expenses</CardTitle>
+                <CardDescription className="text-xs">Manage and audit company transactional costs.</CardDescription>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {expenses.map((expense) => (
-                      <TableRow key={expense.id}>
-                        <TableCell>{format(new Date(expense.date), 'MMM d, yyyy')}</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{expense.title}</p>
-                            {expense.description && (
-                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                {expense.description}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getCategoryBadgeColor(expense.category)}>
-                            {expense.category.replace('_', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(expense.amount)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setEditingExpense(expense)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => setDeleteExpense(expense)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-none shadow-none font-bold rounded-lg">{expenses.length}</Badge>
+            </CardHeader>
+            <CardContent className="pt-4 px-3 sm:px-6">
+              {expensesLoading ? (
+                <div className="text-center py-16 text-xs text-muted-foreground">Loading transactional data...</div>
+              ) : expenses.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground max-w-sm mx-auto">
+                  <Receipt className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                  <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200">No Expenses Logged</h4>
+                  <p className="text-xs text-muted-foreground mt-1">Get started by creating your first company spending record.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-border/45 bg-card/35">
+                  <Table>
+                    <TableHeader className="bg-muted/40">
+                      <TableRow className="border-border/40">
+                        <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider py-3">Date</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider py-3">Details</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider py-3">Category</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider py-3 text-right">Amount</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider py-3 text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {expenses.map((expense) => (
+                        <TableRow key={expense.id} className="border-border/30 hover:bg-muted/10 transition-colors">
+                          <TableCell className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                            {format(new Date(expense.date), 'MMM d, yyyy')}
+                          </TableCell>
+                          <TableCell className="max-w-[180px] sm:max-w-[240px]">
+                            <div className="space-y-0.5">
+                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate">{expense.title}</p>
+                              {expense.description && (
+                                <p className="text-[10px] text-muted-foreground truncate" title={expense.description}>
+                                  {expense.description}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`border uppercase text-[9px] font-extrabold tracking-wider px-2 py-0.5 shadow-none ${getCategoryBadgeColor(expense.category)}`}>
+                              {expense.category.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-extrabold text-slate-800 dark:text-slate-100 text-sm">
+                            {formatCurrency(expense.amount)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-lg hover:bg-muted"
+                                onClick={() => setEditingExpense(expense)}
+                              >
+                                <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
+                                onClick={() => setDeleteExpense(expense)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Edit Dialog */}
+      {/* --- EDIT EXPENSE DIALOG --- */}
       <EditExpenseDialog
         expense={editingExpense}
         open={!!editingExpense}
         onOpenChange={(open) => !open && setEditingExpense(null)}
       />
 
-      {/* Delete Confirmation */}
+      {/* --- DELETE CONFIRMATION DIALOG --- */}
       <AlertDialog open={!!deleteExpense} onOpenChange={(open) => !open && setDeleteExpense(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border-border/40 shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">Delete Expense Record?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteExpense?.title}"? This action cannot be undone.
+              Are you sure you want to permanently delete "{deleteExpense?.title}"? Doing so will void the audit trace and subtract this transaction from all company financial aggregates.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl border-border/60">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteExpense && deleteMutation.mutate(deleteExpense.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl"
             >
-              Delete
+              Confirm Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

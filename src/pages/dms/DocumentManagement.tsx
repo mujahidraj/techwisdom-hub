@@ -21,7 +21,7 @@ export default function DocumentManagement() {
       let query = supabase.from('dms_folders' as any).select('*').order('name');
       if (currentFolderId) query = query.eq('parent_id', currentFolderId);
       else query = query.is('parent_id', null);
-      
+
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
@@ -35,7 +35,7 @@ export default function DocumentManagement() {
       let query = supabase.from('dms_files' as any).select('*').order('created_at', { ascending: false });
       if (currentFolderId) query = query.eq('folder_id', currentFolderId);
       else query = query.is('folder_id', null);
-      
+
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
@@ -67,7 +67,7 @@ export default function DocumentManagement() {
   const uploadFileMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!user?.id) throw new Error("Not authenticated");
-      
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
       const filePath = currentFolderId ? `${currentFolderId}/${fileName}` : fileName;
@@ -124,7 +124,7 @@ export default function DocumentManagement() {
       // Delete from storage first
       const { error: storageError } = await supabase.storage.from('dms_documents').remove([file.file_path]);
       if (storageError) throw new Error("Storage Error: " + storageError.message);
-      
+
       // Delete from DB
       const { error: dbError } = await supabase.from('dms_files' as any).delete().eq('id', file.id);
       if (dbError) throw dbError;
@@ -158,7 +158,7 @@ export default function DocumentManagement() {
             </h1>
             <p className="text-muted-foreground mt-1">Manage corporate documents and signatures securely.</p>
           </div>
-          
+
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => createFolderMutation.mutate()} disabled={createFolderMutation.isPending}>
               <Plus className="h-4 w-4 mr-2" /> New Folder
@@ -170,12 +170,12 @@ export default function DocumentManagement() {
                 className="hidden"
                 onChange={handleFileUpload}
               />
-              <Button 
-                className="gradient-primary" 
+              <Button
+                className="gradient-primary"
                 onClick={() => document.getElementById('file-upload')?.click()}
                 disabled={uploadFileMutation.isPending}
               >
-                <Upload className="h-4 w-4 mr-2" /> 
+                <Upload className="h-4 w-4 mr-2" />
                 {uploadFileMutation.isPending ? 'Uploading...' : 'Upload File'}
               </Button>
             </div>
@@ -197,7 +197,7 @@ export default function DocumentManagement() {
               <div className="col-span-3">Status / Version</div>
               <div className="col-span-3 text-right">Actions</div>
             </div>
-            
+
             <div className="divide-y">
               {folders.map((folder: any) => (
                 <div key={folder.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 p-4 items-center hover:bg-muted/50 cursor-pointer" onClick={() => setCurrentFolderId(folder.id)}>
@@ -209,9 +209,9 @@ export default function DocumentManagement() {
                     <span className="text-xs text-muted-foreground">Folder</span>
                   </div>
                   <div className="col-span-3 text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (confirm('Are you sure you want to delete this folder?')) {
@@ -244,9 +244,9 @@ export default function DocumentManagement() {
                     <Button variant="ghost" size="icon" onClick={() => window.open(supabase.storage.from('dms_documents').getPublicUrl(file.file_path).data.publicUrl, '_blank')}>
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="text-destructive hover:bg-destructive/10"
                       onClick={() => {
                         if (confirm('Are you sure you want to delete this file?')) {

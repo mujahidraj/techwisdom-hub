@@ -15,10 +15,12 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Target, ChevronRight, CheckCircle2, AlertCircle, AlertTriangle, TrendingUp, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function OKRDashboard() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { sendNotification } = useNotifications();
   const [cycle, setCycle] = useState('Q2 2026');
   
   // Dialogs
@@ -33,7 +35,7 @@ export default function OKRDashboard() {
   const { data: team = [] } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, first_name, last_name');
+      const { data } = await supabase.from('profiles').select('id, full_name');
       return data || [];
     }
   });
@@ -45,7 +47,6 @@ export default function OKRDashboard() {
         .from('okr_objectives')
         .select(`
           *,
-          profiles:owner_id (first_name, last_name),
           okr_key_results (
             *,
             okr_check_ins (*)
@@ -62,6 +63,15 @@ export default function OKRDashboard() {
     mutationFn: async (payload: any) => {
       const { error } = await supabase.from('okr_objectives').insert(payload);
       if (error) throw error;
+
+      if (payload.owner_id) {
+        await sendNotification({
+          userId: payload.owner_id,
+          title: 'New OKR Objective Assigned',
+          message: `You have been assigned a new objective: "${payload.title}" for ${payload.cycle}.`,
+          type: 'info'
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['okrs'] });
@@ -130,59 +140,109 @@ export default function OKRDashboard() {
 
   const getStatusIcon = (status: string) => {
     switch(status) {
-      case 'on_track': return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
-      case 'at_risk': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-      case 'off_track': return <AlertCircle className="h-4 w-4 text-destructive" />;
-      case 'completed': return <Target className="h-4 w-4 text-primary" />;
+      case 'on_track': return <CheckCircle2 className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />;
+      case 'at_risk': return <AlertTriangle className="h-4 w-4 text-amber-500 dark:text-amber-400" />;
+      case 'off_track': return <AlertCircle className="h-4 w-4 text-rose-500 dark:text-rose-400" />;
+      case 'completed': return <CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />;
       default: return null;
     }
   };
 
-  const renderObjCard = (obj: any) => (
-    <Card key={obj.id} className="mb-4 overflow-hidden border-l-4 border-l-primary">
-      <div className="bg-card/50 p-4 border-b flex justify-between items-start">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant={obj.level === 'company' ? 'default' : obj.level === 'department' ? 'secondary' : 'outline'}>{obj.level}</Badge>
-            <span className="flex items-center gap-1 text-sm font-medium">{getStatusIcon(obj.status)} {obj.status.replace('_', ' ')}</span>
-          </div>
-          <h3 className="font-bold text-lg leading-tight">{obj.title}</h3>
-          {obj.description && <p className="text-sm text-muted-foreground mt-1">{obj.description}</p>}
-          <div className="text-xs text-muted-foreground mt-2">Owner: {obj.profiles?.first_name} {obj.profiles?.last_name}</div>
-        </div>
-        <div className="text-right ml-4 w-32 shrink-0">
-          <div className="text-2xl font-bold text-primary">{obj.progress}%</div>
-          <Progress value={obj.progress} className="h-2 mt-2" />
-        </div>
-      </div>
-      <div className="bg-muted/30 p-4">
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="text-sm font-semibold flex items-center gap-1"><Key className="h-4 w-4 text-muted-foreground" /> Key Results</h4>
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openNewKr(obj.id)}><Plus className="h-3 w-3 mr-1" /> Add KR</Button>
-        </div>
-        <div className="space-y-3">
-          {obj.okr_key_results?.length === 0 ? <p className="text-xs text-muted-foreground italic">No key results yet.</p> : null}
-          {obj.okr_key_results?.map((kr: any) => {
-            const krProgress = Math.min(100, Math.round((kr.current_value / kr.target_value) * 100));
-            return (
-              <div key={kr.id} className="bg-background border rounded p-3 flex justify-between items-center group">
-                <div className="flex-1 mr-4">
-                  <p className="text-sm font-medium">{kr.title}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <div className="text-xs font-semibold">{kr.current_value} / {kr.target_value} {kr.unit}</div>
-                    <Progress value={krProgress} className="h-1.5 flex-1 max-w-[200px]" />
-                  </div>
-                </div>
-                <Button variant="secondary" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openCheckIn(obj.id, kr)}>
-                  <TrendingUp className="h-3 w-3 mr-1" /> Update
-                </Button>
+  const getStatusColorClass = (status: string) => {
+    switch(status) {
+      case 'completed': return 'border-l-4 border-l-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.08)]';
+      case 'on_track': return 'border-l-4 border-l-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.08)]';
+      case 'at_risk': return 'border-l-4 border-l-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.08)]';
+      default: return 'border-l-4 border-l-rose-500 shadow-[0_0_15px_rgba(239,68,68,0.08)]';
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const base = "text-xs font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 capitalize tracking-wide ";
+    switch(status) {
+      case 'completed': return <span className={base + "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"}>{getStatusIcon(status)} Completed</span>;
+      case 'on_track': return <span className={base + "bg-indigo-500/10 text-indigo-600 border-indigo-500/20"}>{getStatusIcon(status)} On Track</span>;
+      case 'at_risk': return <span className={base + "bg-amber-500/10 text-amber-600 border-amber-500/20"}>{getStatusIcon(status)} At Risk</span>;
+      default: return <span className={base + "bg-rose-500/10 text-rose-600 border-rose-500/20"}>{getStatusIcon(status)} Off Track</span>;
+    }
+  };
+
+  const renderObjCard = (obj: any) => {
+    const ownerName = team.find((t: any) => t.id === obj.owner_id)?.full_name || 'Unassigned';
+    return (
+      <Card key={obj.id} className={`mb-6 overflow-hidden glass-card border border-border/40 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 transform hover:-translate-y-0.5 rounded-2xl ${getStatusColorClass(obj.status)}`}>
+        <div className="bg-card/30 dark:bg-slate-900/30 p-5 border-b border-border/40 flex justify-between items-start">
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary/10 px-2.5 py-0.5 text-xs font-semibold capitalize tracking-wide shadow-none">
+                {obj.level}
+              </Badge>
+              {getStatusBadge(obj.status)}
+            </div>
+            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight tracking-tight">{obj.title}</h3>
+            {obj.description && <p className="text-sm text-muted-foreground">{obj.description}</p>}
+            
+            <div className="flex items-center gap-2 mt-3">
+              <div className="flex items-center gap-1.5 bg-muted/65 dark:bg-slate-800/65 px-3 py-1 rounded-full text-xs font-medium border border-border/30 shadow-sm text-slate-600 dark:text-slate-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Owner: <span className="font-bold text-slate-700 dark:text-slate-200">{ownerName}</span>
               </div>
-            );
-          })}
+              {obj.department && (
+                <div className="bg-muted/40 dark:bg-slate-800/40 px-2.5 py-1 rounded-full text-xs font-medium border border-border/20 text-slate-500">
+                  Dept: {obj.department}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="text-right ml-4 w-32 shrink-0 flex flex-col justify-center items-end">
+            <div className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 flex items-baseline">
+              {obj.progress || 0}<span className="text-sm font-semibold text-muted-foreground ml-0.5">%</span>
+            </div>
+            <Progress value={obj.progress || 0} className="h-2 w-full mt-2 bg-slate-100 dark:bg-slate-800 overflow-hidden" />
+          </div>
         </div>
-      </div>
-    </Card>
-  );
+        
+        <div className="bg-muted/10 dark:bg-slate-900/10 p-5 space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="text-sm font-bold flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+              <Key className="h-4 w-4 text-primary/80" /> Key Results
+            </h4>
+            <Button variant="outline" size="sm" className="h-8 text-xs px-3 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all duration-200 rounded-lg shadow-sm" onClick={() => openNewKr(obj.id)}>
+              <Plus className="h-3 w-3 mr-1" /> Add Key Result
+            </Button>
+          </div>
+          
+          <div className="space-y-3">
+            {(!obj.okr_key_results || obj.okr_key_results.length === 0) ? (
+              <div className="text-center py-6 border border-dashed rounded-xl border-border/60 bg-background/50">
+                <p className="text-xs text-muted-foreground italic">No key results defined for this objective yet.</p>
+              </div>
+            ) : null}
+            {obj.okr_key_results?.map((kr: any) => {
+              const krProgress = Math.min(100, Math.round((kr.current_value / kr.target_value) * 100));
+              return (
+                <div key={kr.id} className="bg-card/40 dark:bg-slate-900/40 backdrop-blur-sm border border-border/40 hover:border-primary/20 rounded-xl p-4 flex justify-between items-center group transition-all duration-200 shadow-sm">
+                  <div className="flex-1 mr-4">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{kr.title}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-muted px-2 py-0.5 rounded border border-border/20">
+                        {kr.current_value} / {kr.target_value} {kr.unit}
+                      </div>
+                      <Progress value={krProgress} className="h-1.5 flex-1 max-w-[200px]" />
+                    </div>
+                  </div>
+                  <Button variant="secondary" size="sm" className="opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:bg-primary hover:text-white rounded-lg h-8 px-3" onClick={() => openCheckIn(obj.id, kr)}>
+                    <TrendingUp className="h-3 w-3 mr-1" /> Check-in
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   if (isLoading) return <DashboardLayout><div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div></DashboardLayout>;
 
@@ -214,11 +274,11 @@ export default function OKRDashboard() {
         </div>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent mb-6">
-            <TabsTrigger value="all" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 px-6">All OKRs</TabsTrigger>
-            <TabsTrigger value="company" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 px-6">Company Level</TabsTrigger>
-            <TabsTrigger value="department" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 px-6">Department Level</TabsTrigger>
-            <TabsTrigger value="individual" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 px-6">Individual</TabsTrigger>
+          <TabsList className="w-full justify-start border border-border/40 rounded-2xl h-auto p-1.5 bg-muted/20 backdrop-blur-md mb-8 flex-wrap md:flex-nowrap gap-1">
+            <TabsTrigger value="all" className="rounded-xl py-2 px-5 text-sm font-semibold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20">All OKRs</TabsTrigger>
+            <TabsTrigger value="company" className="rounded-xl py-2 px-5 text-sm font-semibold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20">Company Level</TabsTrigger>
+            <TabsTrigger value="department" className="rounded-xl py-2 px-5 text-sm font-semibold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20">Department Level</TabsTrigger>
+            <TabsTrigger value="individual" className="rounded-xl py-2 px-5 text-sm font-semibold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20">Individual</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="m-0 space-y-8">
@@ -264,7 +324,7 @@ export default function OKRDashboard() {
                 <Label>Owner</Label>
                 <Select value={formData.owner_id || ''} onValueChange={v => setFormData({ ...formData, owner_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Select owner" /></SelectTrigger>
-                  <SelectContent>{team.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.first_name} {t.last_name}</SelectItem>)}</SelectContent>
+                  <SelectContent>{team.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.full_name || 'Unknown'}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>

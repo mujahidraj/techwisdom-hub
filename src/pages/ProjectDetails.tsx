@@ -31,7 +31,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityLog } from '@/hooks/useActivityLog';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications, sendNotificationDirect } from '@/hooks/useNotifications';
 
 const STAGES = [
   'discovery', 'requirement', 'strategy', 'design',
@@ -148,6 +148,7 @@ export default function ProjectDetails() {
         const profile = profs.find(p => p.user_id === emp.user_id);
         return {
           id: emp.id,
+          user_id: emp.user_id,
           designation: emp.designation,
           full_name: profile?.full_name || 'Unnamed Employee',
           avatar_url: profile?.avatar_url
@@ -261,12 +262,48 @@ export default function ProjectDetails() {
     onSuccess: (data, variables) => {
       if (project) {
         if (variables.selectedEmps) {
-          logActivity('assigned', 'project', `Modified employee assignments for ${project.project_name}`, id);
-          logSecurity('UPDATE', 'PROJECT_ASSIGNMENT', `Modified employee assignments for project ${project.project_name}`, id);
+          // Compute assignment delta for more detailed security logging
+          const prevIds = (assignedEmployees || []).map((e: any) => e.id);
+          const newIds = variables.selectedEmps || [];
+          const added = newIds.filter((nid: string) => !prevIds.includes(nid));
+          const removed = prevIds.filter((pid: string) => !newIds.includes(pid));
+
+          if (added.length > 0 || removed.length > 0) {
+            logActivity('assigned', 'project', `Modified employee assignments for ${project.project_name}`, id, { added, removed });
+            logSecurity('UPDATE', 'PROJECT_ASSIGNMENT', `Modified employee assignments for project ${project.project_name}`, id, { added, removed });
+          }
+
+          // Notify newly assigned employees only
+          if (added.length > 0) {
+            const assignedEmps = allEmployees.filter((emp: any) => added.includes(emp.id));
+            assignedEmps.forEach((emp: any) => {
+              if (emp.user_id) {
+                sendNotificationDirect({
+                  targetRoles: [],
+                  userId: emp.user_id,
+                  title: '💼 New Project Assignment',
+                  message: `You have been assigned to the project "${project.project_name}".`,
+                  type: 'info',
+                  actionLink: `/employee-portal`
+                }).catch(err => console.error('notify assign error:', err));
+              }
+            });
+          }
         }
         if (variables.stage) {
           logActivity('updated', 'project', `${project.project_name} to ${variables.stage} Stage`, id, { stage: variables.stage });
           logSecurity('UPDATE', 'PROJECT', `Changed project stage of ${project.project_name} to ${variables.stage}`, id);
+          
+          // Notify client
+          if (project.client_id) {
+            sendNotification({
+              userId: project.client_id,
+              title: '📈 Project Stage Updated',
+              message: `Your project "${project.project_name}" has transitioned to the "${variables.stage.toUpperCase()}" stage.`,
+              type: 'info',
+              actionLink: `/client-portal?project=${id}&tab=overview`
+            });
+          }
         } else if (!variables.selectedEmps) {
           logActivity('updated', 'project', project.project_name, id, variables);
           logSecurity('UPDATE', 'PROJECT', `Updated project ${project.project_name}`, id);
@@ -433,15 +470,25 @@ export default function ProjectDetails() {
   });
 
   const resolveTicketMutation = useMutation({
-    mutationFn: async ({ ticketId, notes }: { ticketId: string, notes: string }) => {
+    mutationFn: async ({ ticketId, notes, clientId, ticketTitle }: { ticketId: string, notes: string, clientId?: string, ticketTitle?: string }) => {
       const { error } = await supabase.from('client_tickets' as any).update({
         status: 'resolved', resolution_notes: notes
       }).eq('id', ticketId);
       if (error) throw error;
+      return { clientId, ticketTitle };
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['client_tickets'] });
       setResolutionNotes('');
+      if (data?.clientId) {
+        await sendNotification({
+          userId: data.clientId,
+          title: '✅ Support Ticket Resolved',
+          message: `Your ticket "${data.ticketTitle || 'Support Request'}" has been successfully resolved.`,
+          type: 'success',
+          actionLink: `/client-portal?project=${id}&tab=tickets`
+        });
+      }
       toast.success("Ticket resolved.");
     },
     onError: (err) => toast.error(err.message)
@@ -941,7 +988,7 @@ export default function ProjectDetails() {
                         {t.status !== 'resolved' && t.status !== 'closed' ? (
                           <div className="mt-4 flex gap-2 w-full">
                             <Input placeholder="Type resolution summaries..." value={resolutionNotes} onChange={e => setResolutionNotes(e.target.value)} className="h-8 text-xs bg-muted/20 border-border/40 rounded-lg flex-1" />
-                            <Button size="sm" className="h-8 text-[10px] rounded-lg shrink-0" onClick={() => resolveTicketMutation.mutate({ ticketId: t.id, notes: resolutionNotes })}>Resolve</Button>
+                            <Button size="sm" className="h-8 text-[10px] rounded-lg shrink-0" onClick={() => resolveTicketMutation.mutate({ ticketId: t.id, notes: resolutionNotes, clientId: t.client_id, ticketTitle: t.title })}>Resolve</Button>
                           </div>
                         ) : (
                           <div className="mt-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-400 p-3 rounded-xl text-xs border border-emerald-100 dark:border-emerald-900/40">

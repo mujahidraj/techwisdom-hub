@@ -4,9 +4,9 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  // IMPORTANT: This ensures assets work as absolute paths on Vercel Web, but remain relative in the PC/Mobile App
-  base: process.env.VERCEL === "1" ? "/" : "./", 
+export default defineConfig(({ command, mode }) => ({
+  // IMPORTANT: Use absolute path '/' for local development ('serve') and Vercel Web builds to prevent relative MIME-type crashes, but keep relative './' for PC/Electron/Capacitor packaging.
+  base: command === "serve" || process.env.VERCEL === "1" ? "/" : "./", 
   server: {
     host: "::",
     port: 8080,

@@ -25,6 +25,11 @@ export function useNotifications() {
     type = 'info',
     actionLink,
   }: SendNotificationParams) => {
+
+
+
+
+
     try {
       let targetUserIds: string[] = [];
 
@@ -77,4 +82,54 @@ export function useNotifications() {
   };
 
   return { sendNotification };
+}
+
+// A direct helper to send notifications that can be imported and used outside React components/hooks
+export async function sendNotificationDirect({
+  userId,
+  userIds,
+  targetRoles,
+  title,
+  message,
+  type = 'info',
+  actionLink,
+}: SendNotificationParams) {
+  try {
+    let targetUserIds: string[] = [];
+
+    if (userIds && userIds.length > 0) {
+      targetUserIds = userIds;
+    } else if (userId) {
+      targetUserIds = [userId];
+    } else if (targetRoles && targetRoles.length > 0) {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', targetRoles);
+      if (roleData) targetUserIds = roleData.map(r => r.user_id);
+    } else {
+      const { data: adminData } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+      if (adminData) targetUserIds = adminData.map(r => r.user_id);
+    }
+
+    if (targetUserIds.length === 0) return;
+
+    const notifications = targetUserIds.map(id => ({
+      user_id: id,
+      title,
+      message,
+      type,
+      action_link: actionLink,
+      is_read: false,
+    }));
+
+    const { error } = await supabase.from('app_notifications').insert(notifications);
+    if (error) throw error;
+  } catch (err) {
+    console.error('sendNotificationDirect error:', err);
+    throw err;
+  }
 }

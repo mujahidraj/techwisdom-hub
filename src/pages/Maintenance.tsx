@@ -61,6 +61,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // --- TYPES ---
 type MaintenanceFrequency = 'monthly' | 'quarterly' | 'yearly';
@@ -244,9 +245,14 @@ export default function Maintenance() {
       // NOTE: Ensure your 'invoices' table has these columns. 
       const { error: invoiceError } = await supabase.from('invoices').insert({
         invoice_number: `MAINT-${contract.id.slice(0, 8).toUpperCase()}`,
-        amount: contract.amount,
+        client_name: contract.client_name,
+        contract_id: contract.id,
+        project_id: contract.project_id || null,
+        total_amount: Number(contract.amount),
+        paid_amount: Number(contract.amount),
         status: 'paid', // Automatically marked as paid
         due_date: new Date().toISOString(),
+        issue_date: new Date().toISOString(),
         notes: `Maintenance Fee (${contract.service_tier}) - ${contract.frequency} for ${contract.client_name}`
       });
 
@@ -286,224 +292,242 @@ export default function Maintenance() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-10">
+        {/* --- HEADER --- */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-border/40">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <ShieldCheck className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
               Maintenance Hub
             </h1>
-            <p className="text-muted-foreground">Manage recurring revenue, updates, and client subscriptions.</p>
+            <p className="text-muted-foreground mt-1.5 text-sm">Manage recurring revenue, updates, and client subscriptions securely.</p>
           </div>
-          <Button className="gradient-primary" onClick={() => setIsAddOpen(true)}>
+          <Button className="gradient-primary shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 rounded-xl h-10 px-5 text-sm font-semibold transition-all duration-200" onClick={() => setIsAddOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             New Contract
           </Button>
         </div>
 
         {/* --- STATS ROW --- */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="glass-card bg-gradient-to-br from-green-50 to-emerald-50 border-emerald-100">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-emerald-600">Monthly Revenue (MRR)</p>
-                  <div className="text-2xl font-bold text-emerald-900">{formatCurrency(totalMRR)}</div>
-                </div>
-                <Activity className="h-8 w-8 text-emerald-500 opacity-50" />
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <Card className="relative overflow-hidden bg-emerald-500/5 dark:bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 rounded-2xl hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1">
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider truncate">Monthly Revenue (MRR)</p>
+                <div className="text-xl md:text-2xl font-extrabold text-emerald-900 dark:text-emerald-100">{formatCurrency(totalMRR)}</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 shrink-0 ml-2">
+                <Activity className="h-5 w-5" />
               </div>
             </CardContent>
           </Card>
-          <Card className="glass-card">
-             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Projected Annual (ARR)</p>
-                  <div className="text-2xl font-bold">{formatCurrency(totalARR)}</div>
-                </div>
-                <DollarSign className="h-8 w-8 text-blue-500 opacity-50" />
+
+          <Card className="relative overflow-hidden bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 hover:border-primary/25 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1">
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Projected Annual (ARR)</p>
+                <div className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{formatCurrency(totalARR)}</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary shrink-0 ml-2">
+                <DollarSign className="h-5 w-5" />
               </div>
             </CardContent>
           </Card>
-          <Card className="glass-card">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Clients</p>
-                  <div className="text-2xl font-bold">{activeCount}</div>
-                </div>
-                <CheckCircle2 className="h-8 w-8 text-primary opacity-50" />
+
+          <Card className="relative overflow-hidden bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 hover:border-primary/25 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1">
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Active Clients</p>
+                <div className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{activeCount}</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary shrink-0 ml-2">
+                <CheckCircle2 className="h-5 w-5" />
               </div>
             </CardContent>
           </Card>
-          <Card className={`glass-card ${overdueCount > 0 ? 'border-red-200 bg-red-50' : ''}`}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-sm font-medium ${overdueCount > 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
-                    Overdue / Blocked
-                  </p>
-                  <div className={`text-2xl font-bold ${overdueCount > 0 ? 'text-red-700' : ''}`}>
-                    {overdueCount}
-                  </div>
+
+          <Card className={`relative overflow-hidden bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border rounded-2xl hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm p-4 col-span-1 ${overdueCount > 0 ? 'border-rose-500/30 bg-rose-500/5' : 'border-border/40 hover:border-primary/25'}`}>
+            <CardContent className="p-0 flex items-center justify-between">
+              <div className="space-y-1 truncate">
+                <p className={`text-xs font-semibold uppercase tracking-wider truncate ${overdueCount > 0 ? 'text-rose-500' : 'text-muted-foreground'}`}>
+                  Overdue / Blocked
+                </p>
+                <div className={`text-xl md:text-2xl font-extrabold ${overdueCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-slate-100'}`}>
+                  {overdueCount}
                 </div>
-                {overdueCount > 0 ? (
-                  <ServerOff className="h-8 w-8 text-red-500" />
-                ) : (
-                  <ShieldCheck className="h-8 w-8 text-gray-400" />
-                )}
+              </div>
+              <div className={`p-3 rounded-2xl shrink-0 ml-2 ${overdueCount > 0 ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-500/10 text-slate-400'}`}>
+                {overdueCount > 0 ? <ServerOff className="h-5 w-5 animate-pulse" /> : <ShieldCheck className="h-5 w-5" />}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* --- MAIN LIST --- */}
-          <Card className="md:col-span-2 glass-card">
-            <CardHeader className="flex flex-col md:flex-row items-center justify-between">
-              <div>
-                <CardTitle>Active Contracts</CardTitle>
-                <CardDescription>Clients paying for maintenance and support.</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {contracts.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">No maintenance contracts yet.</div>
-                )}
-                {contracts.map((contract) => {
-                  const date = parseISO(contract.next_billing_date);
-                  const isOverdue = isValid(date) && isBefore(date, new Date());
-                  
-                  return (
-                    <div key={contract.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/5 transition-colors group">
-                      <div className="flex items-start gap-4">
-                        <div className={`p-2 rounded-full mt-1 ${isOverdue ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
-                          {isOverdue ? <ServerOff className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold flex items-center gap-2">
-                            {contract.client_name}
-                            {contract.active_projects?.project_name && (
-                                <Badge variant="secondary" className="text-[10px] h-5">{contract.active_projects.project_name}</Badge>
-                            )}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">
-                            {contract.service_tier} Plan • {contract.frequency}
-                          </p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge className={isOverdue ? 'bg-red-100 text-red-700 hover:bg-red-100' : 'bg-green-100 text-green-700 hover:bg-green-100'}>
-                              {isOverdue ? 'Service Blocked' : 'Active'}
-                            </Badge>
-                          </div>
-                        </div>
+        {/* --- MAIN CORE MODULES --- */}
+        <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+          {/* --- ACTIVE CONTRACTS GRID --- */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-700 dark:text-slate-300">Active Contracts</h2>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-none shadow-none font-bold rounded-lg">{contracts.length}</Badge>
+            </div>
+            
+            <div className="space-y-4">
+              {contracts.length === 0 && (
+                <div className="text-center py-16 border-2 border-dashed rounded-3xl border-border/40 bg-card/20 max-w-md mx-auto">
+                  <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                  <h3 className="font-bold text-slate-800 dark:text-slate-200">No Contracts Setup</h3>
+                  <p className="text-xs text-muted-foreground mt-1 px-4">Get started by creating a recurring billing contract for your clients.</p>
+                </div>
+              )}
+              
+              {contracts.map((contract) => {
+                const date = parseISO(contract.next_billing_date);
+                const isOverdue = isValid(date) && isBefore(date, new Date());
+                
+                return (
+                  <div 
+                    key={contract.id} 
+                    className={`group relative bg-card/65 dark:bg-slate-900/65 backdrop-blur-sm border rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all duration-300 shadow-sm hover:shadow-md hover:border-primary/20 ${isOverdue ? 'border-rose-500/25 bg-rose-500/5' : 'border-border/40'}`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 rounded-2xl shrink-0 mt-0.5 ${isOverdue ? 'bg-rose-500/10 text-rose-500' : 'bg-primary/10 text-primary'}`}>
+                        {isOverdue ? <ServerOff className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
                       </div>
-
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="font-bold text-lg">{formatCurrency(contract.amount)}</div>
-                          <p className={`text-xs ${isOverdue ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>
-                            Due: {safeFormatDate(contract.next_billing_date)}
-                          </p>
+                      
+                      <div className="space-y-1 truncate">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-100 flex flex-wrap items-center gap-2 text-base">
+                          {contract.client_name}
+                          {contract.active_projects?.project_name && (
+                            <Badge variant="outline" className="text-[10px] h-5 bg-muted/60 dark:bg-slate-800 border-border/50 text-slate-600 dark:text-slate-300 font-semibold px-2">
+                              {contract.active_projects.project_name}
+                            </Badge>
+                          )}
+                        </h4>
+                        
+                        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{contract.service_tier}</span> Plan
+                          <span>•</span>
+                          <span className="uppercase text-[10px] tracking-wide font-extrabold px-1.5 py-0.5 rounded bg-muted dark:bg-slate-800">{contract.frequency}</span>
+                        </p>
+                        
+                        <div className="flex gap-2 pt-1">
+                          <Badge className={`border uppercase text-[9px] font-extrabold tracking-wider px-2 py-0.5 shadow-none ${isOverdue ? 'bg-rose-500/10 text-rose-600 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
+                            {isOverdue ? 'Service Blocked' : 'Active'}
+                          </Badge>
                         </div>
-
-                        {/* Dropdown Menu */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            
-                            {/* 1. Record Payment */}
-                            {isOverdue ? (
-                                <DropdownMenuItem className="text-red-600" onClick={() => paymentMutation.mutate(contract)}>
-                                    <DollarSign className="h-4 w-4 mr-2" /> Record Payment
-                                </DropdownMenuItem>
-                            ) : (
-                                <DropdownMenuItem onClick={() => { setSelectedContract(contract); setLogWorkOpen(true); }}>
-                                    <FileText className="h-4 w-4 mr-2" /> Log Work
-                                </DropdownMenuItem>
-                            )}
-                            
-                            <DropdownMenuSeparator />
-
-                            {/* 2. View History */}
-                            <DropdownMenuItem onClick={() => { setSelectedContract(contract); setViewLogsOpen(true); }}>
-                                <Eye className="h-4 w-4 mr-2" /> View History
-                            </DropdownMenuItem>
-
-                            {/* 3. Edit */}
-                            <DropdownMenuItem onClick={() => { setSelectedContract(contract); setIsEditOpen(true); }}>
-                                <Edit className="h-4 w-4 mr-2" /> Edit Details
-                            </DropdownMenuItem>
-
-                            {/* 4. Delete */}
-                            <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(contract.id)}>
-                                <Trash2 className="h-4 w-4 mr-2" /> Cancel Contract
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* --- RIGHT SIDEBAR --- */}
+                    <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-border/30">
+                      <div className="text-left sm:text-right">
+                        <div className="font-extrabold text-lg text-slate-800 dark:text-slate-100">{formatCurrency(contract.amount)}</div>
+                        <p className={`text-xs ${isOverdue ? 'text-rose-500 font-extrabold' : 'text-muted-foreground font-medium'}`}>
+                          Due: {safeFormatDate(contract.next_billing_date)}
+                        </p>
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted shrink-0 border border-border/10">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="rounded-xl shadow-lg border border-border/40">
+                          <DropdownMenuLabel className="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5">Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-border/40" />
+                          
+                          {/* Payment Action */}
+                          {isOverdue ? (
+                            <DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-700 cursor-pointer font-semibold" onClick={() => paymentMutation.mutate(contract)}>
+                              <DollarSign className="h-4 w-4 mr-2 text-rose-500" /> Record Payment
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem className="rounded-lg cursor-pointer" onClick={() => { setSelectedContract(contract); setLogForm({ title: '', description: '' }); setLogWorkOpen(true); }}>
+                              <FileText className="h-4 w-4 mr-2 text-muted-foreground" /> Log Performed Work
+                            </DropdownMenuItem>
+                          )}
+                          
+                          <DropdownMenuSeparator className="bg-border/40" />
+
+                          {/* View Logs */}
+                          <DropdownMenuItem className="rounded-lg cursor-pointer" onClick={() => { setSelectedContract(contract); setViewLogsOpen(true); }}>
+                            <Eye className="h-4 w-4 mr-2 text-muted-foreground" /> View Audit Logs
+                          </DropdownMenuItem>
+
+                          {/* Edit Details */}
+                          <DropdownMenuItem className="rounded-lg cursor-pointer" onClick={() => { setSelectedContract(contract); setIsEditOpen(true); }}>
+                            <Edit className="h-4 w-4 mr-2 text-muted-foreground" /> Edit Settings
+                          </DropdownMenuItem>
+
+                          <DropdownMenuSeparator className="bg-border/40" />
+
+                          {/* Cancel/Delete */}
+                          <DropdownMenuItem className="rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer font-medium" onClick={() => setDeleteId(contract.id)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Cancel Contract
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* --- RIGHT SIDEBAR - CHARTS & AUDIT LINKS --- */}
           <div className="space-y-6">
-             <Card className="glass-card">
-               <CardHeader>
-                 <CardTitle>Income Flow</CardTitle>
-                 <CardDescription>Monthly vs Yearly split</CardDescription>
-               </CardHeader>
-               <CardContent className="h-[250px]">
-                 <ResponsiveContainer width="100%" height="100%">
-                   <BarChart data={[
-                     { name: 'Monthly', value: totalMRR },
-                     { name: 'Quarterly', value: contracts.filter(c => c.frequency === 'quarterly').reduce((s, c) => s + Number(c.amount), 0) / 3 },
-                     { name: 'Yearly', value: contracts.filter(c => c.frequency === 'yearly').reduce((s, c) => s + Number(c.amount), 0) / 12 },
-                   ]}>
-                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                     <XAxis dataKey="name" fontSize={12} />
-                     <YAxis fontSize={12} />
-                     <Tooltip 
-                       contentStyle={{ background: 'rgba(255, 255, 255, 0.8)', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                       formatter={(value: number) => formatCurrency(value)}
-                     />
-                     <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                   </BarChart>
-                 </ResponsiveContainer>
-               </CardContent>
-             </Card>
+            <Card className="glass-card bg-card/65 dark:bg-slate-900/65 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm overflow-hidden">
+              <CardHeader className="pb-3 border-b border-border/45">
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100">Income Flow Split</CardTitle>
+                <CardDescription className="text-xs">Visual breakdown normalized to monthly cashflow.</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[230px] pt-5">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { name: 'Monthly', value: totalMRR },
+                    { name: 'Quarterly', value: contracts.filter(c => c.frequency === 'quarterly').reduce((s, c) => s + Number(c.amount), 0) / 3 },
+                    { name: 'Yearly', value: contracts.filter(c => c.frequency === 'yearly').reduce((s, c) => s + Number(c.amount), 0) / 12 },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <XAxis dataKey="name" fontSize={11} stroke="rgba(156, 163, 175, 0.8)" />
+                    <YAxis fontSize={11} stroke="rgba(156, 163, 175, 0.8)" />
+                    <Tooltip 
+                      contentStyle={{ background: 'rgba(255, 255, 255, 0.95)', border: '1px solid rgba(0, 0, 0, 0.05)', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      labelStyle={{ fontWeight: 'bold', color: '#1f2937' }}
+                      formatter={(value: number) => [formatCurrency(value), 'Monthly Value']}
+                    />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-             <Card className="glass-card bg-primary/5 border-primary/20">
-               <CardHeader>
-                 <CardTitle className="text-sm">Quick Actions</CardTitle>
-               </CardHeader>
-               <CardContent className="space-y-2">
-                 <Button variant="outline" className="w-full justify-start" onClick={() => setGlobalAuditOpen(true)}>
-                   <History className="h-4 w-4 mr-2" /> View Audit Logs
-                 </Button>
-                 <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setSuspendedOpen(true)}>
-                   <AlertTriangle className="h-4 w-4 mr-2" /> Suspended Accounts ({overdueCount})
-                 </Button>
-               </CardContent>
-             </Card>
+            <Card className="glass-card bg-primary/5 dark:bg-slate-900/40 border border-primary/20 dark:border-border/60 rounded-2xl p-5 shadow-inner">
+              <CardHeader className="p-0 pb-3">
+                <CardTitle className="text-sm font-bold text-slate-700 dark:text-slate-200">Management & Alerts</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 space-y-3">
+                <Button variant="outline" className="w-full justify-start rounded-xl h-11 bg-card/50 hover:bg-card border-border/50 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm" onClick={() => setGlobalAuditOpen(true)}>
+                  <History className="h-4 w-4 mr-2.5 text-primary" /> View Global Audit Logs
+                </Button>
+                <Button variant="outline" className="w-full justify-start rounded-xl h-11 border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 text-xs font-bold text-rose-600 dark:text-rose-400 shadow-sm" onClick={() => setSuspendedOpen(true)}>
+                  <AlertTriangle className="h-4 w-4 mr-2.5" /> Suspended Accounts ({overdueCount})
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* --- DIALOGS SECTION --- */}
 
-        {/* 1. Add Contract */}
+        {/* 1. Add Contract Dialog */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-lg rounded-2xl border-border/40 shadow-xl">
             <DialogHeader>
-              <DialogTitle>New Maintenance Contract</DialogTitle>
+              <DialogTitle className="text-xl font-bold">New Maintenance Contract</DialogTitle>
               <DialogDescription>Link a completed project to a recurring maintenance plan.</DialogDescription>
             </DialogHeader>
             <form onSubmit={(e: any) => {
@@ -518,167 +542,252 @@ export default function Maintenance() {
                 next_billing_date: formData.get('next_billing_date'),
                 status: 'active'
               });
-            }} className="space-y-4 py-4">
-               {/* Form Fields Same as before */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><Label>Client Name</Label><Input name="client_name" required placeholder="Business Name" /></div>
-                <div>
-                   <Label>Project Link</Label>
-                   <Select name="project_id">
-                     <SelectTrigger><SelectValue placeholder="Select Project" /></SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="none">-- No Project --</SelectItem>
-                       {projects?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.project_name}</SelectItem>)}
-                     </SelectContent>
-                   </Select>
+            }} className="space-y-4 py-4 pr-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Client Name *</Label>
+                  <Input name="client_name" className="rounded-xl border-border/60" required placeholder="Business Name" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Project Link</Label>
+                  <Select name="project_id">
+                    <SelectTrigger className="rounded-xl border-border/60"><SelectValue placeholder="Select Project" /></SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/40">
+                      <SelectItem value="none">-- No Project --</SelectItem>
+                      {projects?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.project_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Service Tier</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Service Tier</Label>
                   <Select name="service_tier" defaultValue="Standard">
-                     <SelectTrigger><SelectValue /></SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="Basic">Basic</SelectItem>
-                       <SelectItem value="Standard">Standard</SelectItem>
-                       <SelectItem value="Premium">Premium</SelectItem>
-                     </SelectContent>
+                    <SelectTrigger className="rounded-xl border-border/60"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/40">
+                      <SelectItem value="Basic">Basic</SelectItem>
+                      <SelectItem value="Standard">Standard</SelectItem>
+                      <SelectItem value="Premium">Premium</SelectItem>
+                    </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label>Frequency</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Frequency</Label>
                   <Select name="frequency" defaultValue="monthly">
-                     <SelectTrigger><SelectValue /></SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="monthly">Monthly</SelectItem>
-                       <SelectItem value="quarterly">Quarterly</SelectItem>
-                       <SelectItem value="yearly">Yearly</SelectItem>
-                     </SelectContent>
+                    <SelectTrigger className="rounded-xl border-border/60"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/40">
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
                   </Select>
                 </div>
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><Label>Amount</Label><Input name="amount" type="number" required placeholder="5000" /></div>
-                <div><Label>Next Bill</Label><Input name="next_billing_date" type="date" required /></div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Recurring Amount ($) *</Label>
+                  <Input name="amount" type="number" className="rounded-xl border-border/60" required placeholder="5000" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Next Billing Date *</Label>
+                  <Input name="next_billing_date" type="date" className="rounded-xl border-border/60" required />
+                </div>
               </div>
-              <DialogFooter>
-                <Button type="submit" disabled={addContractMutation.isPending}>{addContractMutation.isPending ? 'Saving...' : 'Create'}</Button>
+              
+              <DialogFooter className="pt-3 gap-2">
+                <Button type="button" variant="outline" className="rounded-xl border-border/60" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+                <Button type="submit" className="gradient-primary rounded-xl" disabled={addContractMutation.isPending}>
+                  {addContractMutation.isPending ? 'Saving...' : 'Create Contract'}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
 
-        {/* 2. Edit Contract */}
+        {/* 2. Edit Contract Dialog */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-lg rounded-2xl border-border/40 shadow-xl">
             <DialogHeader>
-              <DialogTitle>Edit Contract</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Edit Contract Settings</DialogTitle>
+              <DialogDescription>Modify parameters for this recurring plan.</DialogDescription>
             </DialogHeader>
             {selectedContract && (
-                <form onSubmit={(e: any) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    updateContractMutation.mutate({
-                        client_name: formData.get('client_name'),
-                        amount: formData.get('amount'),
-                        service_tier: formData.get('service_tier'),
-                        next_billing_date: formData.get('next_billing_date'),
-                    });
-                }} className="space-y-4 py-4">
-                    <div><Label>Client Name</Label><Input name="client_name" defaultValue={selectedContract.client_name} /></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label>Amount</Label><Input name="amount" type="number" defaultValue={selectedContract.amount} /></div>
-                        <div><Label>Service Tier</Label><Input name="service_tier" defaultValue={selectedContract.service_tier} /></div>
-                    </div>
-                    <div><Label>Next Billing Date</Label><Input name="next_billing_date" type="date" defaultValue={selectedContract.next_billing_date} /></div>
-                    <DialogFooter><Button type="submit">Update Contract</Button></DialogFooter>
-                </form>
+              <form onSubmit={(e: any) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                updateContractMutation.mutate({
+                  client_name: formData.get('client_name'),
+                  amount: formData.get('amount'),
+                  service_tier: formData.get('service_tier'),
+                  next_billing_date: formData.get('next_billing_date'),
+                });
+              }} className="space-y-4 py-4 pr-1">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Client Name</Label>
+                  <Input name="client_name" className="rounded-xl border-border/60" defaultValue={selectedContract.client_name} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Billing Amount ($)</Label>
+                    <Input name="amount" type="number" className="rounded-xl border-border/60" defaultValue={selectedContract.amount} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Service Tier Plan</Label>
+                    <Input name="service_tier" className="rounded-xl border-border/60" defaultValue={selectedContract.service_tier} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Next Billing Date</Label>
+                  <Input name="next_billing_date" type="date" className="rounded-xl border-border/60" defaultValue={selectedContract.next_billing_date} />
+                </div>
+                <DialogFooter className="pt-3 gap-2">
+                  <Button type="button" variant="outline" className="rounded-xl border-border/60" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+                  <Button type="submit" className="gradient-primary rounded-xl" disabled={updateContractMutation.isPending}>
+                    {updateContractMutation.isPending ? 'Updating...' : 'Save Settings'}
+                  </Button>
+                </DialogFooter>
+              </form>
             )}
           </DialogContent>
         </Dialog>
 
-        {/* 3. Log Work */}
+        {/* 3. Log Work Dialog */}
         <Dialog open={logWorkOpen} onOpenChange={setLogWorkOpen}>
-          <DialogContent>
-             <DialogHeader><DialogTitle>Log Work</DialogTitle></DialogHeader>
-             <div className="space-y-4">
-                <div><Label>Work Title</Label><Input value={logForm.title} onChange={e => setLogForm({...logForm, title: e.target.value})} /></div>
-                <div><Label>Description</Label><Input value={logForm.description} onChange={e => setLogForm({...logForm, description: e.target.value})} /></div>
-                <Button className="w-full gradient-primary" onClick={() => addLogMutation.mutate()}>Save Log</Button>
-             </div>
+          <DialogContent className="max-w-md rounded-2xl border-border/40 shadow-xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Log Maintenance Work</DialogTitle>
+              <DialogDescription>Document server patches, core updates, or backups completed for {selectedContract?.client_name}.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4 pr-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Task Title *</Label>
+                <Input value={logForm.title} className="rounded-xl border-border/60" placeholder="E.g. Security updates, core backups" onChange={e => setLogForm({...logForm, title: e.target.value})} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Work Details *</Label>
+                <Input value={logForm.description} className="rounded-xl border-border/60" placeholder="Describe the updates or performed support items" onChange={e => setLogForm({...logForm, description: e.target.value})} />
+              </div>
+              <DialogFooter className="pt-3 gap-2">
+                <Button type="button" variant="outline" className="rounded-xl border-border/60" onClick={() => setLogWorkOpen(false)}>Cancel</Button>
+                <Button className="gradient-primary rounded-xl" onClick={() => addLogMutation.mutate()} disabled={!logForm.title || !logForm.description || addLogMutation.isPending}>
+                  {addLogMutation.isPending ? 'Saving...' : 'Save Log Entry'}
+                </Button>
+              </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
 
-        {/* 4. Global Audit Logs */}
+        {/* 4. Global Audit Logs Dialog */}
         <Dialog open={globalAuditOpen} onOpenChange={setGlobalAuditOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Global Maintenance Audit</DialogTitle></DialogHeader>
-            <div className="space-y-4">
-                {logs.length === 0 ? <p className="text-muted-foreground text-center">No logs found.</p> : logs.map((log: any) => (
-                    <div key={log.id} className="border-b pb-2">
-                        <div className="flex justify-between">
-                            <h4 className="font-semibold">{log.title}</h4>
-                            <span className="text-xs text-muted-foreground">{safeFormatDate(log.performed_at)}</span>
-                        </div>
-                        <p className="text-sm text-gray-600">{log.description}</p>
-                        <p className="text-xs text-blue-600 mt-1">Client: {log.maintenance_contracts?.client_name}</p>
+          <DialogContent className="max-w-2xl rounded-2xl border-border/40 shadow-xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <History className="h-5 w-5 text-primary" />
+                Global Maintenance Audit Log
+              </DialogTitle>
+              <DialogDescription>A complete historical archive of all recurring revenue tasks and client logs.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              {logs.length === 0 ? (
+                <p className="text-muted-foreground text-center py-10 text-sm">No recorded log logs are registered at this moment.</p>
+              ) : (
+                logs.map((log: any) => (
+                  <div key={log.id} className="p-4 rounded-xl border border-border/40 bg-muted/20 space-y-1">
+                    <div className="flex justify-between items-start gap-4">
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{log.title}</h4>
+                      <span className="text-[10px] text-muted-foreground font-semibold px-2 py-0.5 bg-card border border-border/30 rounded">{safeFormatDate(log.performed_at)}</span>
                     </div>
-                ))}
+                    <p className="text-xs text-muted-foreground">{log.description}</p>
+                    <p className="text-[10px] text-primary font-bold mt-2">Client Account: {log.maintenance_contracts?.client_name}</p>
+                  </div>
+                ))
+              )}
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* 5. Specific Contract Logs */}
+        {/* 5. Specific Contract Logs Dialog */}
         <Dialog open={viewLogsOpen} onOpenChange={setViewLogsOpen}>
-          <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>History: {selectedContract?.client_name}</DialogTitle></DialogHeader>
-            <div className="space-y-4">
-                {logs.length === 0 ? <p className="text-muted-foreground text-center">No logs for this client.</p> : logs.map((log: any) => (
-                    <div key={log.id} className="border-b pb-2">
-                        <div className="flex justify-between">
-                            <h4 className="font-semibold">{log.title}</h4>
-                            <span className="text-xs text-muted-foreground">{safeFormatDate(log.performed_at)}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{log.description}</p>
+          <DialogContent className="max-w-xl rounded-2xl border-border/40 shadow-xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <History className="h-5 w-5 text-primary" />
+                History: {selectedContract?.client_name}
+              </DialogTitle>
+              <DialogDescription>Specific support logs and security audit updates for this client contract.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              {logs.length === 0 ? (
+                <p className="text-muted-foreground text-center py-10 text-sm">No logged updates listed for this contract.</p>
+              ) : (
+                logs.map((log: any) => (
+                  <div key={log.id} className="p-4 rounded-xl border border-border/40 bg-muted/20 space-y-1">
+                    <div className="flex justify-between items-start gap-4">
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{log.title}</h4>
+                      <span className="text-[10px] text-muted-foreground font-semibold px-2 py-0.5 bg-card border border-border/30 rounded">{safeFormatDate(log.performed_at)}</span>
                     </div>
-                ))}
+                    <p className="text-xs text-muted-foreground">{log.description}</p>
+                  </div>
+                ))
+              )}
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* 6. Suspended Accounts */}
+        {/* 6. Suspended Accounts Dialog */}
         <Dialog open={suspendedOpen} onOpenChange={setSuspendedOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Suspended / Overdue Accounts</DialogTitle></DialogHeader>
-            <div className="space-y-2">
-                {overdueContracts.length === 0 ? <p className="text-green-600">All accounts are in good standing!</p> : overdueContracts.map(c => (
-                    <div key={c.id} className="flex justify-between items-center p-3 bg-red-50 rounded border border-red-100">
-                        <div>
-                            <p className="font-bold text-red-700">{c.client_name}</p>
-                            <p className="text-xs text-red-500">Due: {safeFormatDate(c.next_billing_date)}</p>
-                        </div>
-                        <div className="text-right">
-                             <p className="font-bold">{formatCurrency(c.amount)}</p>
-                             <Button size="sm" variant="destructive" className="h-7 text-xs mt-1" onClick={() => paymentMutation.mutate(c)}>Pay Now</Button>
-                        </div>
+          <DialogContent className="max-w-md rounded-2xl border-border/40 shadow-xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Suspended / Overdue Accounts
+              </DialogTitle>
+              <DialogDescription>The following accounts have unpaid dues and outstanding billing balances.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
+              {overdueContracts.length === 0 ? (
+                <div className="text-center py-8 text-emerald-600 flex flex-col items-center gap-2">
+                  <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                  <p className="text-sm font-bold">Awesome! All accounts are currently in good standing!</p>
+                </div>
+              ) : (
+                overdueContracts.map(c => (
+                  <div key={c.id} className="flex justify-between items-center p-4 bg-rose-500/5 rounded-2xl border border-rose-500/20">
+                    <div className="truncate pr-2">
+                      <p className="font-bold text-rose-700 dark:text-rose-400 text-sm truncate">{c.client_name}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Overdue since: {safeFormatDate(c.next_billing_date)}</p>
                     </div>
-                ))}
+                    <div className="text-right shrink-0">
+                      <p className="font-extrabold text-sm text-slate-800 dark:text-slate-100">{formatCurrency(c.amount)}</p>
+                      <Button size="sm" variant="destructive" className="h-7 text-xs font-bold rounded-lg mt-1 px-3 shadow-sm bg-rose-600 hover:bg-rose-700" onClick={() => paymentMutation.mutate(c)}>
+                        Pay & Activate
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* 7. Delete Confirmation */}
+        {/* 7. Delete / Cancellation Confirmation */}
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>This will permanently delete this maintenance contract and all its logs.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction className="bg-red-600" onClick={() => deleteId && deleteContractMutation.mutate(deleteId)}>Delete</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl border-border/40 shadow-xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">Cancel & Archive Contract?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you absolutely sure you want to delete this maintenance contract? Doing so will permanently void the recurring revenue cycle and remove all related work audit history.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2">
+              <AlertDialogCancel className="rounded-xl border-border/60">No, Keep Contract</AlertDialogCancel>
+              <AlertDialogAction className="bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl" onClick={() => deleteId && deleteContractMutation.mutate(deleteId)}>
+                Yes, Cancel Contract
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
 
       </div>

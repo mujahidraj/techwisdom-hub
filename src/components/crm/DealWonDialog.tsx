@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import { PartyPopper } from 'lucide-react';
 import {
@@ -61,6 +62,7 @@ interface DealWonDialogProps {
 
 export function DealWonDialog({ lead, onOpenChange, onSuccess }: DealWonDialogProps) {
   const queryClient = useQueryClient();
+  const { sendNotification } = useNotifications();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -76,7 +78,7 @@ export function DealWonDialog({ lead, onOpenChange, onSuccess }: DealWonDialogPr
     mutationFn: async (data: FormData) => {
       const { data: userData } = await supabase.auth.getUser();
       
-      const { error } = await supabase.from('active_projects').insert({
+      const { data: newProject, error } = await supabase.from('active_projects').insert({
         client_name: lead!.business_name,
         project_name: data.project_name,
         project_type: data.project_type,
@@ -84,13 +86,25 @@ export function DealWonDialog({ lead, onOpenChange, onSuccess }: DealWonDialogPr
         deadline: data.deadline || null,
         lead_id: lead!.id,
         created_by: userData.user?.id,
-      });
+      }).select().single();
       if (error) throw error;
+      return newProject;
     },
-    onSuccess: () => {
+    onSuccess: (newProject) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('🎉 Project created successfully!');
       form.reset();
+      // Notify admins about new project
+      try {
+        sendNotification({
+          title: 'New Project Created',
+          message: `Project "${newProject?.project_name || 'New Project'}" was created from a won deal.`,
+          type: 'success',
+          actionLink: `/projects`
+        });
+      } catch (e) {
+        console.error('Notify failed:', e);
+      }
       onSuccess();
     },
     onError: (error) => {

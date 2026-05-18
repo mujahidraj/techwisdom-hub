@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { TRIGGER_TYPES } from '@/config/workflowConfig';
+import { sendNotificationDirect } from '@/hooks/useNotifications';
 
 interface Workflow {
   id: string;
@@ -51,9 +53,31 @@ async function executeStep(step: WorkflowStep, payload: Record<string, unknown>,
 
   switch (step.action_type) {
     case 'send_notification':
-      toast.info(String(config.title || 'Workflow'), {
-        description: String(config.message || '').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k)),
-      });
+      try {
+        const title = String(config.title || 'Workflow').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k));
+        const message = String(config.message || '').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k));
+        const type = String(config.type || 'info') as any;
+        const actionLink = (config.actionLink || config.action_link || config.action) as string | undefined;
+
+        // Normalize target fields
+        let userId: string | undefined;
+        let userIds: string[] | undefined;
+        let targetRoles: ('admin'|'employee'|'client')[] | undefined;
+
+        if (config.userId) userId = String(config.userId);
+        if (config.userIds) {
+          if (Array.isArray(config.userIds)) userIds = config.userIds as string[];
+          else userIds = String(config.userIds).split(',').map(s => s.trim()).filter(Boolean);
+        }
+        if (config.targetRoles) {
+          if (Array.isArray(config.targetRoles)) targetRoles = config.targetRoles as any;
+          else targetRoles = String(config.targetRoles).split(',').map(s => s.trim()) as any;
+        }
+
+        await sendNotificationDirect({ userId, userIds, targetRoles, title, message, type, actionLink });
+      } catch (e) {
+        console.error('Workflow send_notification failed:', e);
+      }
       break;
 
     case 'create_note':
@@ -88,6 +112,29 @@ async function executeStep(step: WorkflowStep, payload: Record<string, unknown>,
 
     case 'log_activity':
       console.log(`[Workflow] ${config.message || 'Activity logged'}`, payload);
+      break;
+
+    case 'create_task':
+      await supabase.from('notes').insert({
+        title: `✅ TASK: ${String(config.title || 'Auto Task').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k))}`,
+        content: `Assigned Role: ${config.assignee_role || 'employee'}\n\nGenerated automatically via workflow trigger.`,
+        user_id: userId || null,
+        color: '#10b981',
+      });
+      break;
+
+    case 'slack_webhook':
+      if (config.slack_url) {
+        try {
+          const text = String(config.payload || 'Workflow trigger alert!').replace(/\{(\w+)\}/g, (_, k) => String(payload[k] || k));
+          await fetch(String(config.slack_url), {
+            method: 'POST',
+            body: JSON.stringify({ text }),
+          });
+        } catch (e) {
+          console.error('Slack Webhook failed:', e);
+        }
+      }
       break;
   }
 }
@@ -154,6 +201,10 @@ export function useWorkflowEngine() {
             if (trigger.value === 'project_stage_changed' && oldData.stage === newData.stage) continue;
             if (trigger.value === 'project_completed' && newData.status !== 'completed') continue;
             if (trigger.value === 'asset_assigned' && !newData.assigned_to) continue;
+            if (trigger.value === 'ticket_escalated' && oldData.priority === newData.priority) continue;
+            if (trigger.value === 'appraisal_completed' && newData.status !== 'completed') continue;
+            if (trigger.value === 'candidate_hired' && newData.status !== 'hired') continue;
+            if (trigger.value === 'contract_renewed' && newData.status !== 'active') continue;
 
             // Find matching workflows
             const matched = workflowsRef.current.filter(w => matchesTrigger(w, trigger.value, newData));

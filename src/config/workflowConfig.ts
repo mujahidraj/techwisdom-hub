@@ -13,6 +13,11 @@ export const TRIGGER_TYPES = [
   { value: 'employee_added', label: 'New Employee Added', table: 'employees', event: 'INSERT' },
   { value: 'leave_requested', label: 'Leave Request Submitted', table: 'leave_applications', event: 'INSERT' },
   { value: 'asset_assigned', label: 'Asset Assigned', table: 'assets', event: 'UPDATE' },
+  { value: 'ticket_opened', label: 'Helpdesk Ticket Opened', table: 'helpdesk_tickets', event: 'INSERT' },
+  { value: 'ticket_escalated', label: 'Ticket Priority Escalated', table: 'helpdesk_tickets', event: 'UPDATE' },
+  { value: 'appraisal_completed', label: 'Performance Review Completed', table: 'performance_reviews', event: 'UPDATE' },
+  { value: 'candidate_hired', label: 'ATS Candidate Hired', table: 'ats_candidates', event: 'UPDATE' },
+  { value: 'contract_renewed', label: 'Maintenance Contract Renewed', table: 'maintenance_contracts', event: 'UPDATE' },
 ];
 
 export const ACTION_TYPES = [
@@ -21,6 +26,8 @@ export const ACTION_TYPES = [
   { value: 'update_field', label: 'Update a Database Field', icon: '✏️' },
   { value: 'send_webhook', label: 'Send Webhook (HTTP POST)', icon: '🌐' },
   { value: 'log_activity', label: 'Log to Audit Trail', icon: '📋' },
+  { value: 'create_task', label: 'Assign Auto-Task Checklist', icon: '✅' },
+  { value: 'slack_webhook', label: 'Post to Slack Channel', icon: '💬' },
 ];
 
 // Condition operators for trigger_config filters
@@ -68,4 +75,22 @@ export const TRIGGER_FIELDS: Record<string, { value: string; label: string }[]> 
   asset_assigned: [
     { value: 'category', label: 'Asset Category' },
   ],
+  ticket_opened: [
+    { value: 'priority', label: 'Ticket Priority' },
+    { value: 'category', label: 'Ticket Category' },
+  ],
+  ticket_escalated: [
+    { value: 'priority', label: 'New Priority' },
+    { value: 'status', label: 'Ticket Status' },
+  ],
+  appraisal_completed: [
+    { value: 'overall_score', label: 'Appraisal Score' },
+  ],
+  candidate_hired: [
+    { value: 'status', label: 'Candidate Stage' },
+  ],
+  contract_renewed: [
+    { value: 'status', label: 'Contract Status' },
+  ],
 };
+

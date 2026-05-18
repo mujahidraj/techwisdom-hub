@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/select';
 
 import { projectTypes, getStagesForType, formatLabel, getProjectTypeGroups } from '@/config/projectConfig';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const schema = z.object({
   project_name: z.string().min(1, 'Project name is required'),
@@ -61,6 +62,7 @@ interface AddProjectDialogProps {
 export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) {
   const queryClient = useQueryClient();
   const { logActivity } = useActivityLog();
+  const { sendNotification } = useNotifications();
 
   // Fetch client users
   const { data: clients = [] } = useQuery({
@@ -157,6 +159,38 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     onSuccess: (newProject) => {
       if (newProject) {
         logActivity('created', 'project', newProject.project_name, newProject.id);
+        // Notify assigned employees
+        try {
+          if (selectedEmployees.length > 0) {
+            const userIdsToNotify = employees
+              .filter((e: any) => selectedEmployees.includes(e.id))
+              .map((e: any) => e.user_id)
+              .filter(Boolean);
+
+            if (userIdsToNotify.length > 0) {
+              sendNotification({
+                userIds: userIdsToNotify,
+                title: '💼 New Project Assignment',
+                message: `You have been assigned to the project "${newProject.project_name}".`,
+                type: 'info',
+                actionLink: `/employee-portal`
+              });
+            }
+          }
+
+          // Notify client user if assigned
+          if (newProject.client_id) {
+            sendNotification({
+              userId: newProject.client_id,
+              title: '📦 Project Created',
+              message: `A new project "${newProject.project_name}" has been created for you.`,
+              type: 'success',
+              actionLink: `/client-portal?project=${newProject.id}`
+            });
+          }
+        } catch (e) {
+          console.error('Project notifications failed:', e);
+        }
       }
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('Project created successfully');

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { CalendarDays, FileText, Sparkles, Send } from 'lucide-react';
 
 interface LeaveApplicationDialogProps {
   open: boolean;
@@ -92,70 +93,118 @@ export function LeaveApplicationDialog({ open, onOpenChange, employeeId }: Leave
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Apply for Leave</DialogTitle>
-          <DialogDescription>
-            Submit a leave request for approval.
+      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/60 dark:border-slate-800/40 rounded-2xl shadow-2xl">
+        <DialogHeader className="p-6 pb-0 relative">
+          {/* Subtle Background Accent Glow */}
+          <div className="absolute top-0 left-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 rounded-xl">
+              <CalendarDays className="h-5 w-5" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+              Apply for Leave
+              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+            </DialogTitle>
+          </div>
+          <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 pl-1">
+            Submit a leave request for administrative approval.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="leave_type">Leave Type</Label>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Leave Type Selector */}
+          <div className="space-y-1.5">
+            <Label htmlFor="leave_type" className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              Leave Type
+            </Label>
             <Select
               value={formData.leave_type}
               onValueChange={(value) => setFormData({ ...formData, leave_type: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 rounded-xl border-slate-250 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/15">
                 <SelectValue placeholder="Select leave type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 {LEAVE_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
+                  <SelectItem key={type.value} value={type.value} className="text-xs font-semibold">
                     {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start_date">Start Date</Label>
+
+          {/* Date Picker Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="start_date" className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                Start Date
+              </Label>
               <Input
                 id="start_date"
                 type="date"
                 value={formData.start_date}
                 onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                 required
+                className="h-11 rounded-xl border-slate-250 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/15 text-xs font-semibold"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="end_date">End Date</Label>
+            
+            <div className="space-y-1.5">
+              <Label htmlFor="end_date" className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                End Date
+              </Label>
               <Input
                 id="end_date"
                 type="date"
                 value={formData.end_date}
                 onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                 required
+                className="h-11 rounded-xl border-slate-250 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/15 text-xs font-semibold"
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="reason">Reason (Optional)</Label>
+
+          {/* Reason Textarea */}
+          <div className="space-y-1.5">
+            <Label htmlFor="reason" className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <FileText className="h-3 w-3 text-slate-400" />
+              Reason (Optional)
+            </Label>
             <Textarea
               id="reason"
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-              placeholder="Provide a reason for your leave request..."
+              placeholder="Provide a brief explanation for your leave application..."
               rows={3}
+              className="rounded-xl border-slate-250 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/15 text-xs font-semibold resize-none"
             />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+
+          {/* Modal Actions */}
+          <DialogFooter className="pt-2 flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 border-t border-slate-100 dark:border-slate-800/30">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="rounded-xl text-xs font-bold px-5 h-11 border-slate-200 dark:border-slate-800"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Submitting...' : 'Submit Application'}
+            <Button 
+              type="submit" 
+              disabled={createMutation.isPending}
+              className="rounded-xl text-xs font-bold px-5 h-11 gradient-primary shadow-sm shadow-indigo-500/10"
+            >
+              {createMutation.isPending ? (
+                'Submitting...'
+              ) : (
+                <>
+                  Submit Application
+                  <Send className="h-3.5 w-3.5 ml-2" />
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>

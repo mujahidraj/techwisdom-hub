@@ -17,13 +17,14 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const { data: notifications = [] } = useQuery({
+    const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
         .from('app_notifications')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20);
       if (error) throw error;
@@ -65,7 +66,9 @@ export function NotificationBell() {
             'Team Feed Update',
             'File Received',
             'New Team File',
-            'Debug Check'
+            'Debug Check',
+            'New Message from Team',
+            'New Client Message'
           ].includes(payload.new.title);
 
           if (!isMuted) {
@@ -107,7 +110,9 @@ export function NotificationBell() {
     n.title !== 'Team Feed Update' &&
     n.title !== 'File Received' &&
     n.title !== 'New Team File' &&
-    n.title !== 'Debug Check'
+    n.title !== 'Debug Check' &&
+    n.title !== 'New Message from Team' &&
+    n.title !== 'New Client Message'
   );
 
   const unreadCount = filteredNotifications.filter(n => !n.is_read).length;
