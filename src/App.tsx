@@ -8,7 +8,7 @@ import { useTeamPresence } from "@/hooks/useTeamPresence";
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Maximize2, PhoneOff } from 'lucide-react';
+import { Maximize2, PhoneOff, ShieldAlert, Copy, Check, ExternalLink, Terminal } from 'lucide-react';
 
 // --- IMPORT THE ERROR BOUNDARY ---
 import ErrorBoundary from "@/components/ErrorBoundary"; 
@@ -261,9 +261,127 @@ const GlobalMeetingOverlay = () => {
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+const SupabaseConfigWarning = () => {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const envVariables = [
+    {
+      key: "VITE_SUPABASE_URL",
+      value: "https://jhlmpbhvsddswgycgahm.supabase.co",
+      desc: "Connects your frontend to your Supabase database server."
+    },
+    {
+      key: "VITE_SUPABASE_PUBLISHABLE_KEY",
+      value: "sb_publishable_4QlKcHk95VzeHy49GPOBZA_3KP_yMdv",
+      desc: "Allows secure, client-side queries to Supabase."
+    },
+    {
+      key: "VITE_GROQ_API_KEY",
+      value: "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",
+      desc: "Powers the AI Assistant Hub and Daily Briefing generators."
+    }
+  ];
+
+  const handleCopy = (key: string, value: string) => {
+    navigator.clipboard.writeText(value);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#060813] text-slate-100 flex items-center justify-center p-4 md:p-8 font-sans selection:bg-rose-500/30">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(192,7,7,0.15),rgba(255,255,255,0))]" />
+      
+      <div className="w-full max-w-3xl glass-card border border-rose-500/20 bg-slate-950/75 p-6 md:p-10 rounded-[28px] shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-5 border-b border-white/5 pb-6 mb-8">
+          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 shadow-lg shadow-rose-950/20 animate-pulse">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">System Configuration Required</h1>
+            <p className="text-sm text-slate-400 mt-1 font-semibold">Your Vercel deployment is active, but missing critical environment variables.</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+              <Terminal className="h-4.5 w-4.5 text-rose-400" />
+              Why is this page showing up instead of a blank screen?
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+              Previously, missing Supabase credentials caused a silent crash on startup, leaving a blank white page. 
+              We have stabilized the system so it boots gracefully and provides you with the exact values you need to configure your live site instantly!
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-base font-bold text-white">Missing Variables (Copy & Paste to Vercel):</h3>
+            
+            <div className="grid gap-3.5">
+              {envVariables.map((variable) => (
+                <div key={variable.key} className="bg-slate-900/60 border border-white/5 p-4.5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:bg-slate-900/80">
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-rose-400 select-all truncate">{variable.key}</span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/15 shrink-0">Required</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-semibold">{variable.desc}</p>
+                    <div className="bg-black/45 border border-white/5 px-3 py-2 rounded-xl mt-2 flex items-center justify-between gap-3 font-mono text-[11px] text-slate-350 select-all truncate w-full">
+                      <span className="truncate">{variable.value}</span>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleCopy(variable.key, variable.value)}
+                    className="shrink-0 rounded-xl h-9 px-4 border-white/10 hover:bg-white/5 active:scale-95 transition-all text-xs font-bold"
+                  >
+                    {copiedKey === variable.key ? (
+                      <span className="text-emerald-400 flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Copied!</span>
+                    ) : (
+                      <span className="flex items-center gap-1.5"><Copy className="h-3.5 w-3.5" /> Copy Value</span>
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-rose-500/5 border border-rose-500/15 p-5 rounded-2xl space-y-3 mt-6">
+            <h4 className="text-xs font-black uppercase tracking-wider text-rose-400">Quick Configuration Steps:</h4>
+            <ol className="text-xs text-slate-350 space-y-2 leading-relaxed list-decimal list-inside font-semibold">
+              <li>Open your <a href="https://vercel.com" target="_blank" rel="noreferrer" className="text-white hover:underline inline-flex items-center gap-1 font-bold">Vercel Dashboard <ExternalLink className="h-3 w-3" /></a> and select the project.</li>
+              <li>Go to <strong>Settings</strong> &gt; <strong>Environment Variables</strong>.</li>
+              <li>Add the three keys and values displayed above.</li>
+              <li>Go to the <strong>Deployments</strong> tab, click the three dots on your latest deployment, and click <strong>Redeploy</strong>.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+          <span>System State: Graceful Offline Fallback</span>
+          <span>TechWisdom ERP V4</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
+  const isSupabaseConfigured = 
+    import.meta.env.VITE_SUPABASE_URL && 
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!isSupabaseConfigured) {
+    return <SupabaseConfigWarning />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <GlobalPresenceTracker />
       <TooltipProvider>
         <Toaster />
@@ -345,9 +463,10 @@ const App = () => (
           </ErrorBoundary>
           <GlobalMeetingOverlay />
         </Router>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
