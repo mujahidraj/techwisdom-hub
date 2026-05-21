@@ -145,8 +145,8 @@ const GlobalMeetingOverlay = () => {
           parentNode: globalJitsiRef.current,
           lang: "en",
           configOverwrite: {
-            startWithAudioMuted: false,
-            startWithVideoMuted: type === 'audio',
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
             prejoinPageEnabled: false,
             requireDisplayName: false,
             disableDeepLinking: true,
