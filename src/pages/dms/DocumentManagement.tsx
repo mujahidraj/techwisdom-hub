@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Folder, FileText, Upload, Plus, Download, Trash2, Clock, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { 
+  getCloudinaryUploadUrl, 
+  CLOUDINARY_PRESET, 
+  downloadCloudinaryFile, 
+  deleteCloudinaryAsset 
+} from '@/utils/cloudinary';
+
 
 export default function DocumentManagement() {
   const { user } = useAuth();
@@ -68,32 +75,30 @@ export default function DocumentManagement() {
     mutationFn: async (file: File) => {
       if (!user?.id) throw new Error("Not authenticated");
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-      const filePath = currentFolderId ? `${currentFolderId}/${fileName}` : fileName;
+      // 1. Upload to Cloudinary (dynamically routing by file type to avoid PDF viewer errors)
+      const uploadUrl = getCloudinaryUploadUrl(file.type, file.name);
 
-      // 1. Upload to Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
-        .from('dms_documents')
-        .upload(filePath, file);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
 
-      if (uploadError) {
-        throw new Error("Storage Upload Error: " + uploadError.message);
+      const res = await fetch(uploadUrl, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.secure_url) {
+        throw new Error("Cloudinary Upload Error: " + (data.error?.message || "Unknown error"));
       }
 
       // 2. Insert into dms_files table
       const { error: dbError } = await supabase.from('dms_files' as any).insert({
         name: file.name,
         folder_id: currentFolderId,
-        file_path: filePath,
+        file_path: data.secure_url,
         size_bytes: file.size,
         mime_type: file.type,
         created_by: user.id,
       });
 
       if (dbError) {
-        // Rollback storage if db insert fails
-        await supabase.storage.from('dms_documents').remove([filePath]);
         throw new Error("Database Error: " + dbError.message);
       }
     },
@@ -121,9 +126,13 @@ export default function DocumentManagement() {
 
   const deleteFileMutation = useMutation({
     mutationFn: async (file: any) => {
-      // Delete from storage first
-      const { error: storageError } = await supabase.storage.from('dms_documents').remove([file.file_path]);
-      if (storageError) throw new Error("Storage Error: " + storageError.message);
+      // Delete from storage first if it's not a Cloudinary file
+      if (file.file_path && file.file_path.startsWith('http')) {
+        await deleteCloudinaryAsset(file.file_path);
+      } else if (file.file_path) {
+        const { error: storageError } = await supabase.storage.from('dms_documents').remove([file.file_path]);
+        if (storageError) throw new Error("Storage Error: " + storageError.message);
+      }
 
       // Delete from DB
       const { error: dbError } = await supabase.from('dms_files' as any).delete().eq('id', file.id);
@@ -241,7 +250,18 @@ export default function DocumentManagement() {
                     )}
                   </div>
                   <div className="md:col-span-3 flex justify-start md:justify-end gap-2 w-full md:w-auto border-t md:border-t-0 pt-2 md:pt-0">
-                    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => window.open(supabase.storage.from('dms_documents').getPublicUrl(file.file_path).data.publicUrl, '_blank')}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-9 w-9" 
+                      onClick={() => {
+                        if (file.file_path?.startsWith('http')) {
+                          downloadCloudinaryFile(file.file_path, file.name);
+                        } else {
+                          window.open(supabase.storage.from('dms_documents').getPublicUrl(file.file_path).data.publicUrl, '_blank');
+                        }
+                      }}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
                     <Button

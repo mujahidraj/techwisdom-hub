@@ -32,6 +32,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityLog } from '@/hooks/useActivityLog';
 import { useNotifications, sendNotificationDirect } from '@/hooks/useNotifications';
+import { 
+  getCloudinaryUploadUrl, 
+  CLOUDINARY_PRESET, 
+  downloadCloudinaryFile, 
+  deleteCloudinaryAsset 
+} from '@/utils/cloudinary';
 
 const STAGES = [
   'discovery', 'requirement', 'strategy', 'design',
@@ -360,16 +366,24 @@ export default function ProjectDetails() {
     mutationFn: async () => {
       if (!selectedFile) throw new Error("No file selected");
       setUploading(true);
-      const fileExt = selectedFile.name.split('.').pop();
-      const filePath = `${id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage.from('project-attachments').upload(filePath, selectedFile);
-      if (uploadError) throw uploadError;
+      // Dynamically route by file type to avoid PDF viewer errors
+      const uploadUrl = getCloudinaryUploadUrl(selectedFile.type, selectedFile.name);
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+
+      const res = await fetch(uploadUrl, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.secure_url) {
+        throw new Error("Cloudinary Upload Error: " + (data.error?.message || "Unknown error"));
+      }
 
       const { error: dbError } = await supabase.from('project_documents' as any).insert({
         project_id: id,
         file_name: selectedFile.name,
-        file_path: filePath,
+        file_path: data.secure_url,
         file_type: selectedFile.type,
         document_type: 'attachment'
       });
@@ -394,7 +408,11 @@ export default function ProjectDetails() {
 
   const deleteFileMutation = useMutation({
     mutationFn: async (file: any) => {
-      await supabase.storage.from('project-attachments').remove([file.file_path]);
+      if (file.file_path && file.file_path.startsWith('http')) {
+        await deleteCloudinaryAsset(file.file_path);
+      } else if (file.file_path) {
+        await supabase.storage.from('project-attachments').remove([file.file_path]);
+      }
       const { error } = await supabase.from('project_documents' as any).delete().eq('id', file.id);
       if (error) throw error;
     },
@@ -411,18 +429,24 @@ export default function ProjectDetails() {
     mutationFn: async () => {
       if (!selectedFile) throw new Error("No file selected");
       setUploading(true);
-      const fileExt = selectedFile.name.split('.').pop();
-      const filePath = `deliverables/${id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage.from('project-attachments').upload(filePath, selectedFile);
-      if (uploadError) throw uploadError;
+      // Dynamically route by file type to avoid PDF viewer errors
+      const uploadUrl = getCloudinaryUploadUrl(selectedFile.type, selectedFile.name);
 
-      const { data: urlData } = supabase.storage.from('project-attachments').getPublicUrl(filePath);
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+
+      const res = await fetch(uploadUrl, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.secure_url) {
+        throw new Error("Cloudinary Upload Error: " + (data.error?.message || "Unknown error"));
+      }
 
       const { error: dbError } = await supabase.from('project_deliverables' as any).insert({
         project_id: id,
         title: selectedFile.name,
-        file_url: urlData.publicUrl,
+        file_url: data.secure_url,
       });
 
       if (dbError) throw dbError;
@@ -494,10 +518,14 @@ export default function ProjectDetails() {
     onError: (err) => toast.error(err.message)
   });
 
-  const handleDownload = async (filePath: string) => {
-    const { data } = await supabase.storage.from('project-attachments').createSignedUrl(filePath, 60);
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
-    else toast.error("Could not generate link");
+  const handleDownload = async (filePath: string, fileName?: string) => {
+    if (filePath?.startsWith('http')) {
+      await downloadCloudinaryFile(filePath, fileName);
+    } else {
+      const { data } = await supabase.storage.from('project-attachments').createSignedUrl(filePath, 60);
+      if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+      else toast.error("Could not generate link");
+    }
   };
 
   const getProgress = (stage: string) => {
@@ -826,7 +854,7 @@ export default function ProjectDetails() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 rounded-lg text-muted-foreground"
-                                onClick={() => handleDownload(file.file_path)}
+                                onClick={() => handleDownload(file.file_path, file.file_name)}
                               >
                                 <Download className="h-3.5 w-3.5" />
                               </Button>
@@ -888,8 +916,14 @@ export default function ProjectDetails() {
                               <p className="text-[9px] text-muted-foreground mt-0.5">{format(new Date(d.created_at), 'PPP')}</p>
                             </div>
                           </div>
-                          <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-lg shrink-0 border-border/40 bg-white" asChild>
-                            <a href={d.file_url} target="_blank" rel="noreferrer">Download</a>
+                          <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-lg shrink-0 border-border/40 bg-white" onClick={() => {
+                            if (d.file_url?.startsWith('http')) {
+                              downloadCloudinaryFile(d.file_url, d.title);
+                            } else if (d.file_url) {
+                              window.open(d.file_url, '_blank');
+                            }
+                          }}>
+                            Download
                           </Button>
                         </div>
                       ))}

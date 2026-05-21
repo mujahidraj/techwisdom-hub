@@ -25,6 +25,12 @@ import { FileText, Upload, Trash2, Download, Loader2, File } from 'lucide-react'
 import { toast } from 'sonner';
 import { sendNotificationDirect } from '@/hooks/useNotifications';
 import { format } from 'date-fns';
+import { 
+  getCloudinaryUploadUrl, 
+  CLOUDINARY_PRESET, 
+  downloadCloudinaryFile, 
+  deleteCloudinaryAsset 
+} from '@/utils/cloudinary';
 
 interface ProjectDocumentsProps {
   projectId: string;
@@ -61,12 +67,16 @@ export function ProjectDocuments({ projectId, isAdmin }: ProjectDocumentsProps) 
 
   const deleteMutation = useMutation({
     mutationFn: async (doc: any) => {
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('project-documents')
-        .remove([doc.file_path]);
-      
-      if (storageError) console.error('Storage delete error:', storageError);
+      // Delete from storage if it is a Supabase storage path
+      if (doc.file_path && doc.file_path.startsWith('http')) {
+        await deleteCloudinaryAsset(doc.file_path);
+      } else if (doc.file_path) {
+        const { error: storageError } = await supabase.storage
+          .from('project-documents')
+          .remove([doc.file_path]);
+        
+        if (storageError) console.error('Storage delete error:', storageError);
+      }
 
       // Delete from database
       const { error } = await supabase
@@ -99,15 +109,19 @@ export function ProjectDocuments({ projectId, isAdmin }: ProjectDocumentsProps) 
     try {
       const { data: userData } = await supabase.auth.getUser();
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `${projectId}/${fileName}`;
 
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from('project-documents')
-        .upload(filePath, file);
+      // Upload to Cloudinary (dynamically routing by file type to avoid PDF viewer errors)
+      const uploadUrl = getCloudinaryUploadUrl(file.type, file.name);
 
-      if (uploadError) throw uploadError;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+
+      const res = await fetch(uploadUrl, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.secure_url) {
+        throw new Error("Cloudinary Upload Error: " + (data.error?.message || "Unknown error"));
+      }
 
       // Save to database
       const { error: dbError } = await supabase
@@ -115,7 +129,7 @@ export function ProjectDocuments({ projectId, isAdmin }: ProjectDocumentsProps) 
         .insert({
           project_id: projectId,
           file_name: file.name,
-          file_path: filePath,
+          file_path: data.secure_url,
           file_type: fileExt || 'unknown',
           document_type: docType,
           uploaded_by: userData.user?.id,
@@ -168,22 +182,28 @@ export function ProjectDocuments({ projectId, isAdmin }: ProjectDocumentsProps) 
 
   const handleDownload = async (doc: any) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('project-documents')
-        .download(doc.file_path);
+      if (doc.file_path?.startsWith('http')) {
+        await downloadCloudinaryFile(doc.file_path, doc.file_name);
+        logActivity('downloaded', 'project_document', doc.file_name, projectId);
+        logSecurity('EXPORT', 'PROJECT_DOCUMENT', `Downloaded project document "${doc.file_name}"`, projectId);
+      } else {
+        const { data, error } = await supabase.storage
+          .from('project-documents')
+          .download(doc.file_path);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Create download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.file_name;
-      a.click();
-      URL.revokeObjectURL(url);
+        // Create download link
+        const url = URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.file_name;
+        a.click();
+        URL.revokeObjectURL(url);
 
-      logActivity('downloaded', 'project_document', doc.file_name, projectId);
-      logSecurity('EXPORT', 'PROJECT_DOCUMENT', `Downloaded project document "${doc.file_name}"`, projectId);
+        logActivity('downloaded', 'project_document', doc.file_name, projectId);
+        logSecurity('EXPORT', 'PROJECT_DOCUMENT', `Downloaded project document "${doc.file_name}"`, projectId);
+      }
     } catch (error: any) {
       toast.error('Failed to download: ' + error.message);
     }

@@ -27,6 +27,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
 
+import { 
+  getCloudinaryUploadUrl, 
+  CLOUDINARY_PRESET, 
+  downloadCloudinaryFile, 
+  deleteCloudinaryAsset 
+} from '@/utils/cloudinary';
+
 export default function LeadDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -150,14 +157,22 @@ export default function LeadDetails() {
     mutationFn: async () => {
       if (!selectedFile) throw new Error("No file selected");
       setUploading(true);
-      const fileExt = selectedFile.name.split('.').pop();
-      const filePath = `${id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage.from('lead-attachments').upload(filePath, selectedFile);
-      if (uploadError) throw uploadError;
+      // Dynamically route by file type to avoid PDF viewer errors
+      const uploadUrl = getCloudinaryUploadUrl(selectedFile.type, selectedFile.name);
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+
+      const res = await fetch(uploadUrl, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.secure_url) {
+        throw new Error("Cloudinary Upload Error: " + (data.error?.message || "Unknown error"));
+      }
 
       const { error: dbError } = await supabase.from('lead_files' as any).insert({
-        lead_id: id, file_name: selectedFile.name, file_path: filePath, file_size: selectedFile.size, file_type: selectedFile.type
+        lead_id: id, file_name: selectedFile.name, file_path: data.secure_url, file_size: selectedFile.size, file_type: selectedFile.type
       });
       if (dbError) throw dbError;
     },
@@ -177,7 +192,11 @@ export default function LeadDetails() {
   // --- 9. MUTATION: DELETE FILE ---
   const deleteFileMutation = useMutation({
     mutationFn: async (file: any) => {
-      await supabase.storage.from('lead-attachments').remove([file.file_path]);
+      if (file.file_path && file.file_path.startsWith('http')) {
+        await deleteCloudinaryAsset(file.file_path);
+      } else if (file.file_path) {
+        await supabase.storage.from('lead-attachments').remove([file.file_path]);
+      }
       const { error } = await supabase.from('lead_files' as any).delete().eq('id', file.id);
       if (error) throw error;
     },
@@ -187,10 +206,14 @@ export default function LeadDetails() {
     }
   });
 
-  const handleDownload = async (filePath: string) => {
-    const { data } = await supabase.storage.from('lead-attachments').createSignedUrl(filePath, 60);
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
-    else toast.error("Could not generate link");
+  const handleDownload = async (filePath: string, fileName?: string) => {
+    if (filePath?.startsWith('http')) {
+      await downloadCloudinaryFile(filePath, fileName);
+    } else {
+      const { data } = await supabase.storage.from('lead-attachments').createSignedUrl(filePath, 60);
+      if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+      else toast.error("Could not generate link");
+    }
   };
 
   const convertMutation = useMutation({
@@ -424,7 +447,7 @@ export default function LeadDetails() {
                               </div>
                             </div>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => handleDownload(file.file_path)}>
+                              <Button variant="ghost" size="icon" onClick={() => handleDownload(file.file_path, file.file_name)}>
                                 <Download className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => deleteFileMutation.mutate(file)}>
